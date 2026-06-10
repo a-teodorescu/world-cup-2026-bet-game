@@ -22,10 +22,33 @@ function escapeHtml(value) {
 }
 
 function parseMatches() {
-  const matchesPath = path.join(__dirname, '../../matches.js');
-  const raw = fs.readFileSync(matchesPath, 'utf8');
+  // Netlify bundles serverless functions separately. `matches.js` may be copied
+  // either near the function file or in the function working directory, depending
+  // on the deploy/bundling mode. Try all common locations so the scheduled test
+  // and cron runner behave the same in production.
+  const candidatePaths = [
+    path.join(__dirname, '../../matches.js'),
+    path.join(__dirname, '../matches.js'),
+    path.join(__dirname, 'matches.js'),
+    path.join(process.cwd(), 'matches.js')
+  ];
+
+  let raw = '';
+  let foundPath = '';
+  for (const candidate of candidatePaths) {
+    if (fs.existsSync(candidate)) {
+      raw = fs.readFileSync(candidate, 'utf8');
+      foundPath = candidate;
+      break;
+    }
+  }
+
+  if (!raw) {
+    throw new Error('Nu pot citi lista de meciuri din matches.js. Verifică netlify.toml included_files.');
+  }
+
   const match = raw.match(/window\.WC2026_MATCHES\s*=\s*(\[[\s\S]*?\]);\s*$/);
-  if (!match) throw new Error('Nu pot citi lista de meciuri din matches.js');
+  if (!match) throw new Error(`Nu pot interpreta lista de meciuri din matches.js: ${foundPath}`);
   return JSON.parse(match[1]);
 }
 
