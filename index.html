@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cupa Mondială 2026 • Predictor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="bg-orb orb-one"></div>
+  <div class="bg-orb orb-two"></div>
+
+  <header id="topbar" class="topbar hidden">
+    <a class="brand" href="#predictii" aria-label="Acasă">
+      <span class="brand-mark">26</span>
+      <span>Cupa Mondială Predictor</span>
+    </a>
+
+    <nav class="nav desktop-nav" aria-label="Navigare principală">
+      <a href="#predictii">Pronosticuri</a>
+      <a href="#rezultate">Rezultate</a>
+      <a href="#grupe">Grupe</a>
+      <a href="#clasament">Clasament</a>
+      <a href="#admin-scoruri" class="admin-only">Admin scoruri</a>
+      <a href="#admin-emailuri" class="admin-only">Admin emailuri</a>
+    </nav>
+
+    <div class="mobile-nav-wrap" aria-label="Navigare secțiuni">
+      <span class="mobile-nav-label">Secțiune</span>
+      <select id="sectionSelect" class="section-select">
+        <option value="predictii">Pronosticuri</option>
+        <option value="rezultate">Rezultate</option>
+        <option value="grupe">Grupe</option>
+        <option value="clasament">Clasament</option>
+        <option value="admin-scoruri" class="admin-only-option">Admin scoruri</option>
+        <option value="admin-emailuri" class="admin-only-option">Admin emailuri</option>
+      </select>
+    </div>
+
+    <button id="logoutBtn" class="ghost small-btn">Ieșire</button>
+  </header>
+
+  <main>
+    <section id="home" class="hero section active" data-section="home">
+      <div class="hero-copy">
+        <p class="eyebrow">FIFA World Cup 2026</p>
+        <h1>Intră în joc. Pune scorurile. Urcă în clasament.</h1>
+        <p class="hero-text">Un mini-joc pentru prieteni, colegi sau familie: fiecare participant introduce pronosticuri pentru meciuri, iar punctajul se calculează automat după rezultate.</p>
+        <form id="loginForm" class="name-card">
+          <label for="playerName">Numele tău în clasament</label>
+          <div class="name-row stacked-mobile">
+            <input id="playerName" name="playerName" type="text" placeholder="Ex: Alexandru" minlength="2" required />
+          </div>
+          <label for="playerEmail" class="mt-14">Email asociat</label>
+          <div class="name-row">
+            <input id="playerEmail" name="playerEmail" type="email" placeholder="exemplu@email.com" required />
+            <button type="submit">Continuă</button>
+          </div>
+          <small id="loginMessage">Numele este blocat pe email după prima autentificare. Acceptăm emailuri valide de la provideri cunoscuți: Gmail, Yahoo, Outlook, Hotmail, iCloud, Proton, Zoho, GMX etc.</small>
+          <small id="storageModeMessage" class="storage-mode-message">Mod local: datele se salvează doar în browser până configurezi Supabase.</small>
+        </form>
+      </div>
+      <div class="hero-panel">
+        <div class="trophy-card">
+          <span class="cup">🏆</span>
+          <h2>Regulament</h2>
+          <div class="rule"><strong>3p</strong><span>Scor exact</span></div>
+          <div class="rule"><strong>1p</strong><span>Pronostic corect: 1 / X / 2</span></div>
+          <div class="rule"><strong>0p</strong><span>Predicție greșită</span></div>
+          <div class="rule"><strong>⏱</strong><span>Pronosticul se blochează cu 2 ore înainte de start, la ora României.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="predictii" class="section app-section" data-section="predictii">
+      <div class="section-head">
+        <div>
+          <h2>Pronosticuri meciuri</h2>
+          <p>Completează scorul estimat.<br>Meciurile se blochează cu 2 ore înainte de start.</p>
+        </div>
+        <div class="player-pill">Jucător: <strong id="currentPlayerLabel">—</strong></div>
+      </div>
+      <div class="filters">
+        <button class="filter active" data-filter="all">Toate</button>
+        <button class="filter" data-filter="group">Grupe A–L</button>
+        <button class="filter" data-filter="knockout">Eliminatorii</button>
+      </div>
+      <div id="matchList" class="match-grid"></div>
+      <div class="sticky-actions">
+        <button id="savePredictions" class="primary">Salvează pronosticurile</button>
+      </div>
+    </section>
+
+    <section id="rezultate" class="section app-section" data-section="rezultate">
+      <div class="section-head">
+        <div>
+          <h2>Rezultate & punctajul tău</h2>
+          <p>Verde = scor exact. Galben = doar pronostic corect. Roșu = greșit.</p>
+        </div>
+        <div class="score-card"><span>Total</span><strong id="myTotalScore">0p</strong></div>
+      </div>
+      <div id="resultsList" class="results-list"></div>
+    </section>
+
+    <section id="grupe" class="section app-section" data-section="grupe">
+      <div class="section-head">
+        <div>
+          <h2>Clasamente grupe A–L</h2>
+          <p>Se actualizează automat pe baza rezultatelor existente în fișierul <code>matches.js</code> sau sincronizate ulterior dintr-un API.</p>
+        </div>
+      </div>
+      <div id="groupStandings" class="groups-grid"></div>
+    </section>
+
+
+    <section id="admin-scoruri" class="section app-section admin-only-section" data-section="admin-scoruri">
+      <div class="section-head">
+        <div>
+          <h2>Admin scoruri meciuri</h2>
+          <p>Introdu rezultatele reale pentru testare. După salvare, pagina de rezultate, culorile pronosticurilor, clasamentele grupelor și clasamentul userilor se recalculează automat.</p>
+        </div>
+        <button id="clearAdminScores" class="ghost small-btn" type="button">Resetează scorurile test</button>
+      </div>
+      <div class="admin-note">Această secțiune este vizibilă doar pentru admin. În modul online, scorurile se salvează în Supabase și devin vizibile pentru toți userii.</div>
+      <div id="adminScoresList" class="admin-scores-list"></div>
+      <div class="sticky-actions">
+        <button id="saveAdminScores" class="primary" type="button">Salvează scorurile reale</button>
+      </div>
+    </section>
+
+
+    <section id="admin-emailuri" class="section app-section admin-only-section" data-section="admin-emailuri">
+      <div class="section-head">
+        <div>
+          <h2>Admin emailuri zilnice</h2>
+          <p>Trimite fiecărui user un rezumat cu punctele obținute, scorurile exacte, pronosticurile corecte și poziția actuală în clasament.</p>
+        </div>
+      </div>
+      <div class="admin-note">
+        Această secțiune este vizibilă doar pentru admin. Pentru trimitere reală trebuie configurate variabilele Netlify pentru Resend. Poți testa întâi cu butonul de previzualizare.
+      </div>
+      <div class="email-admin-panel">
+        <label>Data meciurilor
+          <input id="emailReportDate" type="date">
+        </label>
+        <label class="checkbox-line">
+          <input id="emailIncludeAllResults" type="checkbox">
+          Include toate meciurile cu rezultat, nu doar data selectată
+        </label>
+        <div class="email-actions">
+          <button id="previewDailyEmails" class="ghost" type="button">Previzualizează emailurile</button>
+          <button id="sendDailyEmails" class="primary" type="button">Trimite emailurile</button>
+        </div>
+      </div>
+      <div id="emailPreview" class="email-preview-list"></div>
+    </section>
+
+    <section id="clasament" class="section app-section" data-section="clasament">
+      <div class="section-head">
+        <div>
+          <h2>Clasamentul tuturor userilor</h2>
+          <p>Emailurile sunt păstrate pentru autentificare. Sunt vizibile doar pentru admin.</p>
+        </div>
+      </div>
+      <div id="leaderboardCards" class="leaderboard-cards"></div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="matches.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
