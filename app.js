@@ -324,6 +324,9 @@ function teamInline(team, align = 'left') {
 function teamLabel(team) {
   return `<span class="input-team-label">${teamInline(team)}</span>`;
 }
+function predictionInputLabel(team) {
+  return `<span class="input-team-label no-flag"><span class="team-name">${escapeHtml(team)}</span></span>`;
+}
 function matchTitle(m) {
   return `<span class="match-title"><span class="match-number">#${m.matchNo}</span>${teamInline(m.home)}<span class="match-vs">vs</span>${teamInline(m.away, 'right')}</span>`;
 }
@@ -342,8 +345,8 @@ function renderPredictions() {
       <div class="match-meta"><span>#${m.matchNo} • ${groupLabel}</span><span>${formatRoDate(m)} RO</span></div>
       <div class="teams"><strong>${teamInline(m.home)}</strong><span>vs</span><strong>${teamInline(m.away, 'right')}</strong></div>
       <div class="inputs">
-        <label>${teamLabel(m.home)}<input type="number" min="0" max="20" data-id="${m.id}" data-side="home" value="${p.home ?? ''}" ${locked ? 'disabled' : ''}></label>
-        <label>${teamLabel(m.away)}<input type="number" min="0" max="20" data-id="${m.id}" data-side="away" value="${p.away ?? ''}" ${locked ? 'disabled' : ''}></label>
+        <label>${predictionInputLabel(m.home)}<input type="number" min="0" max="20" data-id="${m.id}" data-side="home" value="${p.home ?? ''}" ${locked ? 'disabled' : ''}></label>
+        <label>${predictionInputLabel(m.away)}<input type="number" min="0" max="20" data-id="${m.id}" data-side="away" value="${p.away ?? ''}" ${locked ? 'disabled' : ''}></label>
       </div>
       <div class="prediction-pill">Pronostic:<strong data-pred="${m.id}">${pred}</strong></div>
       <div class="lock-info">${m.venue} • blocare: ${new Intl.DateTimeFormat('ro-RO', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }).format(new Date(new Date(m.startTimeRo).getTime() - LOCK_HOURS_BEFORE_START*3600000))} RO</div>
