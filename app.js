@@ -14,7 +14,7 @@ const TEAM_FLAGS = {
 };
 const TEAM_FLAG_FALLBACKS = {
   'England':'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f3f4-e0067-e0062-e0065-e006e-e0067-e007f.svg',
-  'Scotland':'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f3f4-e0067-e0062-e0073-e0063-e0074-e007f.svg'
+  'Scotland':'data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 480'%3E%3Crect width='640' height='480' fill='%23005EB8'/%3E%3Cpath d='M0 0 640 480M640 0 0 480' stroke='%23fff' stroke-width='96'/%3E%3C/svg%3E'
 };
 
 let currentUser = null;
