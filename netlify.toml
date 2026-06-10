@@ -1,0 +1,8 @@
+[functions]
+  directory = "netlify/functions"
+
+# Netlify cron runs in UTC. 01:00 UTC = 04:00 Romania time in June/July 2026.
+# The function itself sends the report for the previous Romania competition day.
+[[scheduled.functions]]
+  name = "scheduled-daily-emails"
+  cron = "0 1 * * *"

@@ -78,3 +78,20 @@ Pași necesari pentru trimitere reală:
 6. Intră ca admin → **Admin emailuri** → previzualizează → trimite.
 
 Notă: dacă Brevo cere verificarea expeditorului, verifică emailul sau domeniul din dashboard-ul Brevo înainte de test.
+
+## Emailuri automate zilnice
+
+Această versiune include funcția Netlify programată `scheduled-daily-emails`.
+
+- Netlify rulează cron-ul în UTC.
+- Cron-ul este setat la `0 1 * * *`, adică 01:00 UTC.
+- În iunie/iulie 2026, România este UTC+3, deci funcția rulează la 04:00 ora României.
+- Funcția trimite raportul pentru ziua competițională anterioară, pe baza câmpului `romaniaDate` din `matches.js`.
+- De exemplu, pe 15.06.2026 la 04:00 trimite emailuri pentru meciurile cu `romaniaDate = 2026-06-14`, chiar dacă un meci început pe 14.06 se termină după miezul nopții.
+- Funcția trimite rapoarte utile pentru datele de meci 2026-06-11 până la 2026-07-19. Asta înseamnă rulări utile între 2026-06-12 și 2026-07-20, pentru a include și finala din 19 iulie.
+
+Înainte de deploy, rulează în Supabase fișierul:
+
+`supabase-email-scheduled-schema.sql`
+
+Acesta adaugă protecție anti-dublare pentru emailurile zilnice.
