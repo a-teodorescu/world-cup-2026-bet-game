@@ -10,7 +10,11 @@ const ALLOWED_EMAIL_PROVIDERS = ['gmail','googlemail','yahoo','ymail','rocketmai
 const LOCK_HOURS_BEFORE_START = 2;
 
 const TEAM_FLAGS = {
-  'Algeria':'🇩🇿','Argentina':'🇦🇷','Australia':'🇦🇺','Austria':'🇦🇹','Belgium':'🇧🇪','Bosnia and Herzegovina':'🇧🇦','Brazil':'🇧🇷','Canada':'🇨🇦','Cape Verde':'🇨🇻','Colombia':'🇨🇴','Croatia':'🇭🇷','Curacao':'🇨🇼','Czechia':'🇨🇿','DR Congo':'🇨🇩','Ecuador':'🇪🇨','Egypt':'🇪🇬','England':'🏴','France':'🇫🇷','Germany':'🇩🇪','Ghana':'🇬🇭','Haiti':'🇭🇹','Iran':'🇮🇷','Iraq':'🇮🇶','Ivory Coast':'🇨🇮','Japan':'🇯🇵','Jordan':'🇯🇴','Mexico':'🇲🇽','Morocco':'🇲🇦','Netherlands':'🇳🇱','New Zealand':'🇳🇿','Norway':'🇳🇴','Panama':'🇵🇦','Paraguay':'🇵🇾','Portugal':'🇵🇹','Qatar':'🇶🇦','Saudi Arabia':'🇸🇦','Scotland':'🏴','Senegal':'🇸🇳','South Africa':'🇿🇦','South Korea':'🇰🇷','Spain':'🇪🇸','Sweden':'🇸🇪','Switzerland':'🇨🇭','Tunisia':'🇹🇳','Turkey':'🇹🇷','USA':'🇺🇸','Uruguay':'🇺🇾','Uzbekistan':'🇺🇿'
+  'Algeria':'dz','Argentina':'ar','Australia':'au','Austria':'at','Belgium':'be','Bosnia and Herzegovina':'ba','Brazil':'br','Canada':'ca','Cape Verde':'cv','Colombia':'co','Croatia':'hr','Curacao':'cw','Czechia':'cz','DR Congo':'cd','Ecuador':'ec','Egypt':'eg','England':'gb-eng','France':'fr','Germany':'de','Ghana':'gh','Haiti':'ht','Iran':'ir','Iraq':'iq','Ivory Coast':'ci','Japan':'jp','Jordan':'jo','Mexico':'mx','Morocco':'ma','Netherlands':'nl','New Zealand':'nz','Norway':'no','Panama':'pa','Paraguay':'py','Portugal':'pt','Qatar':'qa','Saudi Arabia':'sa','Scotland':'gb-sct','Senegal':'sn','South Africa':'za','South Korea':'kr','Spain':'es','Sweden':'se','Switzerland':'ch','Tunisia':'tn','Turkey':'tr','USA':'us','Uruguay':'uy','Uzbekistan':'uz'
+};
+const TEAM_FLAG_FALLBACKS = {
+  'England':'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f3f4-e0067-e0062-e0065-e006e-e0067-e007f.svg',
+  'Scotland':'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f3f4-e0067-e0062-e0073-e0063-e0074-e007f.svg'
 };
 
 let currentUser = null;
@@ -302,7 +306,13 @@ document.querySelectorAll('.filter').forEach(btn => btn.addEventListener('click'
 
 
 function flagForTeam(team) {
-  return TEAM_FLAGS[team] || '⚑';
+  const code = TEAM_FLAGS[team];
+  if (!code) return '<span class="flag-fallback">⚑</span>';
+  const safeTeam = escapeHtml(team);
+  const fallback = TEAM_FLAG_FALLBACKS[team] || `https://flagcdn.com/w40/${code}.png`;
+  const primary = `https://flagcdn.com/w40/${code}.png`;
+  const src = TEAM_FLAG_FALLBACKS[team] ? TEAM_FLAG_FALLBACKS[team] : primary;
+  return `<img class="flag-img" src="${src}" alt="" loading="lazy" onerror="this.onerror=null;this.src='${fallback}'"><span class="sr-only">${safeTeam}</span>`;
 }
 function isPlaceholderTeam(team) {
   return !TEAM_FLAGS[team];
