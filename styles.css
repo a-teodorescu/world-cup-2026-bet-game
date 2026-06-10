@@ -644,3 +644,62 @@ code { background: rgba(255,255,255,.1); padding: 2px 7px; border-radius: 8px; c
   .group-table .team-inline { gap: 5px; }
   .group-table .flag-badge { width: 20px; height: 20px; font-size: 13px; }
 }
+
+/* Pronosticuri hero layout: flags first, country names below */
+.prediction-teams {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  margin: 12px 0 18px;
+}
+.prediction-team {
+  min-width: 0;
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+}
+.prediction-team.right {
+  justify-items: end;
+}
+.prediction-flag {
+  width: 46px;
+  height: 46px;
+}
+.prediction-team-name {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 900;
+  color: var(--text);
+  line-height: 1.15;
+}
+.prediction-team.right .prediction-team-name {
+  text-align: right;
+}
+.prediction-vs {
+  align-self: center;
+  justify-self: center;
+  margin-top: -18px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.10);
+  color: var(--muted);
+  font-size: .78rem;
+  font-weight: 900;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.prediction-team.placeholder .prediction-flag {
+  background: rgba(255,255,255,.08);
+  border-style: dashed;
+  box-shadow: none;
+}
+@media (max-width: 640px) {
+  .prediction-teams { gap: 10px; margin-top: 10px; }
+  .prediction-flag { width: 42px; height: 42px; }
+  .prediction-team-name { font-size: .94rem; max-width: 120px; }
+  .prediction-vs { margin-top: -16px; }
+}

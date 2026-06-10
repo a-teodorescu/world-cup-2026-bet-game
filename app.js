@@ -330,6 +330,13 @@ function predictionInputLabel(team) {
 function matchTitle(m) {
   return `<span class="match-title"><span class="match-number">#${m.matchNo}</span>${teamInline(m.home)}<span class="match-vs">vs</span>${teamInline(m.away, 'right')}</span>`;
 }
+function predictionTeamBlock(team, side = 'left') {
+  const placeholder = isPlaceholderTeam(team);
+  return `<div class="prediction-team ${side === 'right' ? 'right' : 'left'} ${placeholder ? 'placeholder' : ''}">
+    <span class="flag-badge prediction-flag" aria-hidden="true">${flagForTeam(team)}</span>
+    <span class="prediction-team-name">${escapeHtml(team)}</span>
+  </div>`;
+}
 
 function renderPredictions() {
   const list = $('matchList');
@@ -343,7 +350,11 @@ function renderPredictions() {
     const groupLabel = isGroup(m) ? `Grupa ${m.group}` : (stageLabels[m.stage] || `Eliminatorii · ${m.stage}`);
     return `<article class="match-card ${locked ? 'locked' : ''}">
       <div class="match-meta"><span>#${m.matchNo} • ${groupLabel}</span><span>${formatRoDate(m)} RO</span></div>
-      <div class="teams"><strong>${teamInline(m.home)}</strong><span>vs</span><strong>${teamInline(m.away, 'right')}</strong></div>
+      <div class="teams prediction-teams">
+        ${predictionTeamBlock(m.home, 'left')}
+        <span class="prediction-vs">vs</span>
+        ${predictionTeamBlock(m.away, 'right')}
+      </div>
       <div class="inputs">
         <label>${predictionInputLabel(m.home)}<input type="number" min="0" max="20" data-id="${m.id}" data-side="home" value="${p.home ?? ''}" ${locked ? 'disabled' : ''}></label>
         <label>${predictionInputLabel(m.away)}<input type="number" min="0" max="20" data-id="${m.id}" data-side="away" value="${p.away ?? ''}" ${locked ? 'disabled' : ''}></label>
