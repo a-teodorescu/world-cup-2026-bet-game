@@ -847,3 +847,19 @@ code { background: rgba(255,255,255,.1); padding: 2px 7px; border-radius: 8px; c
     grid-column: 1 / -1;
   }
 }
+
+/* Desktop-only: keep the first line in Pronosticuri on one single row, like mobile */
+@media (min-width: 901px) {
+  #matchList .match-meta {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 56px;
+    white-space: nowrap;
+    padding-right: 0;
+  }
+  #matchList .match-card.locked .match-meta {
+    padding-right: 76px;
+  }
+}
