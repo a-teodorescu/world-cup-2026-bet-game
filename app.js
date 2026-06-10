@@ -13,7 +13,7 @@ const TEAM_FLAGS = {
   'Algeria':'dz','Argentina':'ar','Australia':'au','Austria':'at','Belgium':'be','Bosnia and Herzegovina':'ba','Brazil':'br','Canada':'ca','Cape Verde':'cv','Colombia':'co','Croatia':'hr','Curacao':'cw','Czechia':'cz','DR Congo':'cd','Ecuador':'ec','Egypt':'eg','England':'gb-eng','France':'fr','Germany':'de','Ghana':'gh','Haiti':'ht','Iran':'ir','Iraq':'iq','Ivory Coast':'ci','Japan':'jp','Jordan':'jo','Mexico':'mx','Morocco':'ma','Netherlands':'nl','New Zealand':'nz','Norway':'no','Panama':'pa','Paraguay':'py','Portugal':'pt','Qatar':'qa','Saudi Arabia':'sa','Scotland':'gb-sct','Senegal':'sn','South Africa':'za','South Korea':'kr','Spain':'es','Sweden':'se','Switzerland':'ch','Tunisia':'tn','Turkey':'tr','USA':'us','Uruguay':'uy','Uzbekistan':'uz'
 };
 const TEAM_FLAG_FALLBACKS = {
-  'England':'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f3f4-e0067-e0062-e0065-e006e-e0067-e007f.svg',
+  'England':'data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20640%20480%22%3E%3Crect%20width=%22640%22%20height=%22480%22%20fill=%22%23fff%22/%3E%3Cpath%20d=%22M320%200v480M0%20240h640%22%20stroke=%22%23CE1124%22%20stroke-width=%2296%22/%3E%3C/svg%3E',
   'Scotland':'data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20640%20480%22%3E%3Crect%20width=%22640%22%20height=%22480%22%20fill=%22%23005EB8%22/%3E%3Cpath%20d=%22M0%200%20640%20480M640%200%200%20480%22%20stroke=%22%23fff%22%20stroke-width=%2296%22/%3E%3C/svg%3E'
 };
 
