@@ -309,10 +309,9 @@ function flagForTeam(team) {
   const code = TEAM_FLAGS[team];
   if (!code) return '<span class="flag-fallback">⚑</span>';
   const safeTeam = escapeHtml(team);
-  const fallback = TEAM_FLAG_FALLBACKS[team] || `https://flagcdn.com/w40/${code}.png`;
-  const primary = `https://flagcdn.com/w40/${code}.png`;
-  const src = TEAM_FLAG_FALLBACKS[team] ? TEAM_FLAG_FALLBACKS[team] : primary;
-  return `<img class="flag-img" src="${src}" alt="" loading="lazy" onerror="this.onerror=null;this.src='${fallback}'"><span class="sr-only">${safeTeam}</span>`;
+  const primary = TEAM_FLAG_FALLBACKS[team] || `https://flagcdn.com/${code}.svg`;
+  const fallback = `https://flagcdn.com/w80/${code}.png`;
+  return `<img class="flag-img" src="${primary}" alt="" loading="lazy" onerror="this.onerror=null;this.src='${fallback}'"><span class="sr-only">${safeTeam}</span>`;
 }
 function isPlaceholderTeam(team) {
   return !TEAM_FLAGS[team];
