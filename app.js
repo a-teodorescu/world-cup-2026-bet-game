@@ -3,7 +3,8 @@ const STORAGE = {
   users: 'wc2026_users_v3',
   current: 'wc2026_current_user_v3',
   predictions: 'wc2026_predictions_v3',
-  resultOverrides: 'wc2026_result_overrides_v1'
+  resultOverrides: 'wc2026_result_overrides_v1',
+  luckyStrikes: 'wc2026_lucky_strikes_v1'
 };
 const ADMIN_ACCOUNT = { name: 'admin', email: 'admin@gmail.com' };
 const LOCK_HOURS_BEFORE_START = 2;
@@ -21,6 +22,7 @@ let currentFilter = 'all';
 let usersCache = [];
 let predictionsCache = {};
 let resultsCache = {};
+let luckyStrikesCache = {};
 let onlineMode = false;
 let supabaseClient = null;
 
@@ -94,6 +96,8 @@ function localPredictions() { return JSON.parse(localStorage.getItem(STORAGE.pre
 function saveLocalPredictions(data) { localStorage.setItem(STORAGE.predictions, JSON.stringify(data)); }
 function localResults() { return JSON.parse(localStorage.getItem(STORAGE.resultOverrides) || '{}'); }
 function saveLocalResults(data) { localStorage.setItem(STORAGE.resultOverrides, JSON.stringify(data)); }
+function localLuckyStrikes() { return JSON.parse(localStorage.getItem(STORAGE.luckyStrikes) || '{}'); }
+function saveLocalLuckyStrikes(data) { localStorage.setItem(STORAGE.luckyStrikes, JSON.stringify(data)); }
 
 function normalizeUserRow(u) {
   return {
@@ -128,12 +132,27 @@ async function loadOnlineData() {
   (results || []).forEach(r => {
     resultsCache[r.match_id] = { home: r.home, away: r.away, updatedAt: r.updated_at };
   });
+  luckyStrikesCache = {};
+  try {
+    const { data: luckyRows, error: luckyError } = await supabaseClient
+      .from('wc2026_lucky_strikes')
+      .select('user_id, team, created_at, wc2026_users(email)');
+    if (luckyError) throw luckyError;
+    (luckyRows || []).forEach(row => {
+      const email = normalize(row.wc2026_users?.email || usersCache.find(u => u.id === row.user_id)?.email);
+      if (email) luckyStrikesCache[email] = { team: row.team, createdAt: row.created_at };
+    });
+  } catch (err) {
+    console.warn('Lucky Strike nu este încă disponibil în Supabase. Rulează supabase-lucky-strike-schema.sql.', err);
+    luckyStrikesCache = {};
+  }
 }
 
 function loadLocalData() {
   usersCache = localUsers().map(normalizeUserRow);
   predictionsCache = localPredictions();
   resultsCache = localResults();
+  luckyStrikesCache = localLuckyStrikes();
 }
 
 async function refreshData() {
@@ -144,6 +163,7 @@ async function refreshData() {
 function getUsers() { return usersCache; }
 function getAllPredictions() { return predictionsCache; }
 function getResultOverrides() { return resultsCache; }
+function getLuckyStrikes() { return luckyStrikesCache || {}; }
 
 function effectiveMatch(m) {
   const o = resultsCache[m.id];
@@ -181,7 +201,7 @@ function updateNavigationState() {
 }
 
 function allowedSections() {
-  return isAdminUser() ? ['predictii', 'rezultate', 'grupe', 'clasament', 'admin-scoruri', 'admin-emailuri'] : ['predictii', 'rezultate', 'grupe', 'clasament'];
+  return isAdminUser() ? ['predictii', 'rezultate', 'grupe', 'lucky-strike', 'clasament', 'admin-scoruri', 'admin-emailuri'] : ['predictii', 'rezultate', 'grupe', 'lucky-strike', 'clasament'];
 }
 
 async function showApp() {
@@ -517,6 +537,7 @@ function todayRoKey() {
 function computeLeaderboardRows(matchesScope = MATCHES) {
   const users = getUsers().filter(u => !isAdminUser(u));
   const all = getAllPredictions();
+  const applyLucky = shouldApplyLuckyBonus(matchesScope);
   const rows = users.map(u => {
     let exact = 0, winner = 0, total = 0;
     const p = all[u.email] || {};
@@ -526,7 +547,9 @@ function computeLeaderboardRows(matchesScope = MATCHES) {
       if (sc.type === 'exact') exact++;
       if (sc.type === 'winner') winner++;
     });
-    return { ...u, exact, winner, total };
+    const luckyHit = applyLucky && isLuckyWinner(u.email);
+    if (luckyHit) total += 25;
+    return { ...u, exact, winner, total, luckyHit, luckyTeam: luckyForEmail(u.email)?.team || null };
   }).sort((a,b) => b.total-a.total || b.exact-a.exact || a.name.localeCompare(b.name));
   let currentRank = 0, previousPoints = null;
   return rows.map(r => {
@@ -707,6 +730,96 @@ async function scheduleScheduledEmailTest() {
   }
 }
 
+
+function allSelectableTeams() {
+  return [...new Set(MATCHES.filter(isGroup).flatMap(m => [m.home, m.away]).filter(t => TEAM_FLAGS[t]))].sort((a, b) => a.localeCompare(b));
+}
+function luckyDeadlineMatch() {
+  return MATCHES.find(m => Number(m.matchNo) === 24) || MATCHES.find(m => m.id === 'M024');
+}
+function luckyDeadlineDate() {
+  const m = luckyDeadlineMatch();
+  if (!m) return null;
+  return new Date(new Date(m.startTimeRo).getTime() - LOCK_HOURS_BEFORE_START * 60 * 60 * 1000);
+}
+function isLuckyLocked() {
+  const d = luckyDeadlineDate();
+  return !!d && Date.now() >= d.getTime();
+}
+function finalMatch() {
+  return MATCHES.find(m => Number(m.matchNo) === 104) || MATCHES.find(m => m.stage === 'Final');
+}
+function finalWinnerTeam() {
+  const f = finalMatch();
+  if (!f || !hasResult(f)) return null;
+  const em = effectiveMatch(f);
+  if (Number(em.resultHome) > Number(em.resultAway)) return em.home;
+  if (Number(em.resultAway) > Number(em.resultHome)) return em.away;
+  return null;
+}
+function luckyForEmail(email) {
+  return getLuckyStrikes()[normalize(email)] || null;
+}
+function isLuckyWinner(email) {
+  const pick = luckyForEmail(email);
+  const winner = finalWinnerTeam();
+  return !!(pick?.team && winner && normalize(pick.team) === normalize(winner));
+}
+function shouldApplyLuckyBonus(matchesScope = MATCHES) {
+  const final = finalMatch();
+  return !!(final && matchesScope.some(m => Number(m.matchNo) === Number(final.matchNo)) && hasResult(final));
+}
+function renderLuckyStrike() {
+  const status = $('luckyStatus');
+  const select = $('luckyTeamSelect');
+  const saveBtn = $('saveLuckyStrike');
+  const deadlineInfo = $('luckyDeadlineInfo');
+  if (!status || !select || !saveBtn) return;
+  const teams = allSelectableTeams();
+  const currentPick = luckyForEmail(currentUser?.email);
+  const lockedByTime = isLuckyLocked();
+  const deadline = luckyDeadlineDate();
+  const deadlineLabel = deadline ? new Intl.DateTimeFormat('ro-RO', { weekday:'short', day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }).format(deadline) + ' RO' : '—';
+  select.innerHTML = `<option value="">Alege o echipă...</option>` + teams.map(team => `<option value="${escapeHtml(team)}" ${currentPick?.team === team ? 'selected' : ''}>${team}</option>`).join('');
+  select.disabled = !!currentPick || lockedByTime;
+  saveBtn.disabled = !!currentPick || lockedByTime;
+  deadlineInfo.textContent = `Deadline Lucky Strike: ${deadlineLabel}. După confirmare, alegerea nu mai poate fi schimbată.`;
+  if (currentPick?.team) {
+    const hit = isLuckyWinner(currentUser?.email);
+    status.innerHTML = `<div class="lucky-picked"><span class="flag-badge" aria-hidden="true">${flagForTeam(currentPick.team)}</span><div><strong>${escapeHtml(currentPick.team)}</strong><span>${hit ? 'Felicitări! Echipa ta a câștigat finala și primești +25p.' : 'Alegerea este blocată până la finalul turneului.'}</span></div></div>`;
+  } else if (lockedByTime) {
+    status.innerHTML = `<div class="lucky-closed"><strong>Selecția Lucky Strike este închisă.</strong><span>Deadline-ul a fost cu 2 ore înainte de startul meciului #24.</span></div>`;
+  } else {
+    status.innerHTML = `<div class="lucky-open"><strong>Selecția este deschisă.</strong><span>Alege echipa despre care crezi că va câștiga finala.</span></div>`;
+  }
+}
+async function saveLuckyStrike() {
+  if (!currentUser) return;
+  const select = $('luckyTeamSelect');
+  const team = select?.value;
+  if (!team) return toast('Alege o echipă pentru Lucky Strike.');
+  if (luckyForEmail(currentUser.email)) return toast('Ai deja o alegere Lucky Strike blocată.');
+  if (isLuckyLocked()) return toast('Deadline-ul Lucky Strike a trecut.');
+  const ok = confirm(`Confirmi Lucky Strike: ${team}? Alegerea nu mai poate fi schimbată până la finalul turneului.`);
+  if (!ok) return;
+  try {
+    if (onlineMode) {
+      const { error } = await supabaseClient.from('wc2026_lucky_strikes').insert({ user_id: currentUser.id, team });
+      if (error) throw error;
+    } else {
+      const all = localLuckyStrikes();
+      all[normalize(currentUser.email)] = { team, createdAt: new Date().toISOString() };
+      saveLocalLuckyStrikes(all);
+    }
+    await refreshData();
+    toast('Lucky Strike a fost salvat. Alegerea este blocată.');
+    renderAll();
+  } catch (err) {
+    console.error(err);
+    toast(err.message || 'Nu am putut salva Lucky Strike. Verifică dacă ai rulat scriptul SQL.');
+  }
+}
+
 function renderLeaderboard() {
   const rows = computeLeaderboardRows();
   const admin = isAdminUser();
@@ -714,11 +827,13 @@ function renderLeaderboard() {
   if (!rows.length) return list.innerHTML = `<div class="empty">Nu există useri încă.</div>`;
   list.innerHTML = rows.map((r) => {
     const medal = r.rank === 1 ? '🥇' : r.rank === 2 ? '🥈' : r.rank === 3 ? '🥉' : `#${r.rank}`;
+    const luckyMedal = r.luckyHit ? '<span class="lucky-rank-medal" title="Lucky Strike câștigător">🍀</span>' : '';
+    const luckyLine = r.luckyHit ? `<span class="leaderboard-lucky">Lucky Strike: ${escapeHtml(r.luckyTeam)} · +25p</span>` : '';
     const removeButton = admin ? `<button class="delete-user" data-delete-email="${r.email}" title="Șterge userul ${r.name}" aria-label="Șterge userul ${r.name}">×</button>` : '';
     const adminEmail = admin ? `<span class="leaderboard-email">${r.email}</span>` : '';
-    return `<article class="leaderboard-card ${r.rank <= 3 ? 'podium' : ''}">
-      <div class="rank-badge">${medal}</div>
-      <div class="leaderboard-user"><strong>${r.name}</strong>${adminEmail}<span>${r.exact} scoruri exacte · ${r.winner} pronosticuri corecte</span></div>
+    return `<article class="leaderboard-card ${r.rank <= 3 ? 'podium' : ''} ${r.luckyHit ? 'lucky-hit' : ''}">
+      <div class="rank-badge"><span>${medal}</span>${luckyMedal}</div>
+      <div class="leaderboard-user"><strong>${r.name}</strong>${adminEmail}<span>${r.exact} scoruri exacte · ${r.winner} pronosticuri corecte</span>${luckyLine}</div>
       <div class="leaderboard-points"><strong>${r.total}p</strong><span>Total</span></div>${removeButton}
     </article>`;
   }).join('');
@@ -826,6 +941,8 @@ async function clearAdminScores() {
   }
 }
 
+const saveLuckyStrikeBtn = $('saveLuckyStrike');
+if (saveLuckyStrikeBtn) saveLuckyStrikeBtn.addEventListener('click', saveLuckyStrike);
 const saveAdminScoresBtn = $('saveAdminScores');
 if (saveAdminScoresBtn) saveAdminScoresBtn.addEventListener('click', saveAdminScores);
 const clearAdminScoresBtn = $('clearAdminScores');
@@ -843,7 +960,7 @@ if (emailReportDateInput && !emailReportDateInput.value) emailReportDateInput.va
 const emailIncludeAllResultsInput = $('emailIncludeAllResults');
 if (emailIncludeAllResultsInput) emailIncludeAllResultsInput.addEventListener('change', renderEmailPreview);
 
-function renderAll() { renderPredictions(); renderResults(); renderGroups(); renderLeaderboard(); renderAdminScores(); renderEmailPreview(); }
+function renderAll() { renderPredictions(); renderResults(); renderGroups(); renderLuckyStrike(); renderLeaderboard(); renderAdminScores(); renderEmailPreview(); }
 
 (async function init(){
   initSupabase();

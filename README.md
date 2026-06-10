@@ -122,3 +122,13 @@ The real scheduled function `scheduled-daily-emails` is configured to run daily 
 For testing, the allowed report window now starts with report date `2026-06-10`, so the automatic run on `2026-06-11 04:00 Romania time` can send the "no matches/results" informational email for `10.06.2026`.
 
 The final useful automatic run remains `2026-07-20 04:00 Romania time`, which sends the report for `19.07.2026`.
+
+## Lucky Strike
+
+Pentru noua secțiune Lucky Strike, rulează în Supabase SQL Editor fișierul:
+
+```text
+supabase-lucky-strike-schema.sql
+```
+
+Fiecare user poate salva o singură echipă. Selecția se blochează cu 2 ore înainte de startul meciului #24. Dacă echipa aleasă câștigă finala, userul primește +25p și medalie Lucky Strike în clasament.

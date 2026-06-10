@@ -23,6 +23,7 @@
       <a href="#predictii">Pronosticuri</a>
       <a href="#rezultate">Rezultate</a>
       <a href="#grupe">Grupe</a>
+      <a href="#lucky-strike">Lucky Strike</a>
       <a href="#clasament">Clasament</a>
       <a href="#admin-scoruri" class="admin-only">Admin scoruri</a>
       <a href="#admin-emailuri" class="admin-only">Admin emailuri</a>
@@ -34,6 +35,7 @@
         <option value="predictii">Pronosticuri</option>
         <option value="rezultate">Rezultate</option>
         <option value="grupe">Grupe</option>
+        <option value="lucky-strike">Lucky Strike</option>
         <option value="clasament">Clasament</option>
         <option value="admin-scoruri" class="admin-only-option">Admin scoruri</option>
         <option value="admin-emailuri" class="admin-only-option">Admin emailuri</option>
@@ -169,6 +171,40 @@
       </div>
       <div id="emailPreview" class="email-preview-list"></div>
     </section>
+
+    <section id="lucky-strike" class="section app-section" data-section="lucky-strike">
+      <div class="section-head">
+        <div>
+          <h2>Lucky Strike</h2>
+          <p>Alege o singură echipă pentru tot turneul. Dacă echipa aleasă câștigă finala, primești 25 puncte bonus în clasament.</p>
+        </div>
+        <div class="score-card lucky-score-card"><span>Bonus</span><strong>25p</strong></div>
+      </div>
+      <div class="lucky-layout">
+        <article class="lucky-card">
+          <div class="lucky-card-head">
+            <span class="lucky-icon">🍀</span>
+            <div>
+              <h3>Alegerea ta Lucky Strike</h3>
+              <p>Selecția se blochează definitiv după confirmare și poate fi făcută până cu 2 ore înainte de startul meciului #24.</p>
+            </div>
+          </div>
+          <div id="luckyStatus" class="lucky-status"></div>
+          <label class="lucky-select-label" for="luckyTeamSelect">Alege echipa</label>
+          <select id="luckyTeamSelect" class="lucky-team-select"></select>
+          <button id="saveLuckyStrike" class="primary" type="button">Confirmă Lucky Strike</button>
+          <small id="luckyDeadlineInfo"></small>
+        </article>
+        <article class="lucky-info-card">
+          <h3>Regulă</h3>
+          <div class="rule"><strong>🍀</strong><span>O singură alegere per user.</span></div>
+          <div class="rule"><strong>⏱</strong><span>Deadline: cu 2 ore înainte de meciul #24.</span></div>
+          <div class="rule"><strong>🏆</strong><span>Dacă echipa aleasă câștigă finala, primești +25p.</span></div>
+          <div class="rule"><strong>🎖</strong><span>Câștigătorii Lucky Strike primesc medalie specială în clasament.</span></div>
+        </article>
+      </div>
+    </section>
+
 
     <section id="clasament" class="section app-section" data-section="clasament">
       <div class="section-head">

@@ -242,9 +242,21 @@ async function runOneScheduledTest(test, env) {
     .map(u => ({ id: u.id, name: u.username, email: String(u.email).toLowerCase() }));
   const predictions = await supabaseGet(SUPABASE_URL, SUPABASE_ANON_KEY, 'wc2026_predictions', '?select=user_id,match_id,home,away');
   const resultsRows = await supabaseGet(SUPABASE_URL, SUPABASE_ANON_KEY, 'wc2026_results', '?select=match_id,home,away');
+  let luckyRows = [];
+  try {
+    luckyRows = await supabaseGet(SUPABASE_URL, SUPABASE_ANON_KEY, 'wc2026_lucky_strikes', '?select=user_id,team');
+  } catch (_) {
+    luckyRows = [];
+  }
 
   const resultsByMatch = new Map(resultsRows.map(r => [r.match_id, { home: Number(r.home), away: Number(r.away) }]));
   const predsByUserMatch = new Map(predictions.map(p => [`${p.user_id}|${p.match_id}`, { home: Number(p.home), away: Number(p.away) }]));
+  const luckyByUser = new Map(luckyRows.map(row => [row.user_id, row.team]));
+  const finalMatch = matches.find(m => Number(m.matchNo) === 104 || m.stage === 'Final');
+  const finalResult = finalMatch ? resultsByMatch.get(finalMatch.id) : null;
+  const finalWinner = finalMatch && finalResult
+    ? (Number(finalResult.home) > Number(finalResult.away) ? finalMatch.home : Number(finalResult.away) > Number(finalResult.home) ? finalMatch.away : null)
+    : null;
 
   const reportMatches = matches.filter(m => m.romaniaDate === reportDate && resultsByMatch.has(m.id));
   const noResultsMode = reportMatches.length === 0;
@@ -257,7 +269,11 @@ async function runOneScheduledTest(test, env) {
       const result = resultsByMatch.get(m.id);
       total += scorePrediction(pred, result).points;
     }
-    return { ...player, total };
+    const luckyPick = luckyByUser.get(player.id);
+    const finalIncluded = !!(finalMatch && matchesUntilReportDate.some(m => m.id === finalMatch.id));
+    const luckyHit = !!(finalIncluded && finalWinner && luckyPick && String(luckyPick).toLowerCase() === String(finalWinner).toLowerCase());
+    if (luckyHit) total += 25;
+    return { ...player, total, luckyHit, luckyTeam: luckyPick || null };
   }));
   const rankByUserId = new Map(rankedPlayers.map(p => [p.id, p]));
 
