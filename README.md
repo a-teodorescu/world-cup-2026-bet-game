@@ -113,3 +113,12 @@ Flux recomandat:
 
 ## Hotfix test scheduler
 Funcția scheduled-email-test-runner verifică testele one-time la fiecare minut (`* * * * *`), pentru ca testele programate din Admin emailuri să pornească mai rapid. Netlify poate avea totuși o mică întârziere de execuție.
+
+
+## Daily automation test window
+
+The real scheduled function `scheduled-daily-emails` is configured to run daily at `01:00 UTC`, which is 04:00 in Romania during June/July 2026.
+
+For testing, the allowed report window now starts with report date `2026-06-10`, so the automatic run on `2026-06-11 04:00 Romania time` can send the "no matches/results" informational email for `10.06.2026`.
+
+The final useful automatic run remains `2026-07-20 04:00 Romania time`, which sends the report for `19.07.2026`.

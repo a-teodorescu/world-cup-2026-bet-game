@@ -251,9 +251,11 @@ exports.handler = async (event = {}) => {
     : addDaysIso(todayRo, -1);
   const reportType = isHttpTest ? 'daily-test' : 'daily';
 
-  // Competition-day guard. Useful run dates are 2026-06-12 through 2026-07-20,
-  // so the function can send reports for match start dates 2026-06-11 through 2026-07-19.
-  if (reportDate < '2026-06-11' || reportDate > '2026-07-19') {
+  // Competition-day guard. Useful automatic run dates are 2026-06-11 through 2026-07-20.
+  // Because the daily cron sends the report for the previous Romania date,
+  // the 2026-06-11 04:00 run sends an informational no-results email for 2026-06-10.
+  // The 2026-07-20 04:00 run sends the report for the final day, 2026-07-19.
+  if (reportDate < '2026-06-10' || reportDate > '2026-07-19') {
     return json(200, { ok: true, skipped: true, mode: reportType, reason: 'În afara perioadei competiției.', todayRo, reportDate });
   }
 
