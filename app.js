@@ -337,6 +337,15 @@ function predictionTeamBlock(team, side = 'left') {
     <span class="prediction-team-name">${escapeHtml(team)}</span>
   </div>`;
 }
+function predictionSideScoreBlock(team, matchId, side, value, locked) {
+  const placeholder = isPlaceholderTeam(team);
+  const sideClass = side === 'away' ? 'right' : 'left';
+  return `<div class="prediction-side ${sideClass} ${placeholder ? 'placeholder' : ''}">
+    <span class="flag-badge prediction-flag" aria-hidden="true">${flagForTeam(team)}</span>
+    <span class="prediction-team-name">${escapeHtml(team)}</span>
+    <input class="prediction-score-input" aria-label="Scor ${escapeHtml(team)}" type="number" min="0" max="20" data-id="${matchId}" data-side="${side}" value="${value ?? ''}" ${locked ? 'disabled' : ''}>
+  </div>`;
+}
 
 function renderPredictions() {
   const list = $('matchList');
@@ -350,14 +359,10 @@ function renderPredictions() {
     const groupLabel = isGroup(m) ? `Grupa ${m.group}` : (stageLabels[m.stage] || `Eliminatorii · ${m.stage}`);
     return `<article class="match-card ${locked ? 'locked' : ''}">
       <div class="match-meta"><span>#${m.matchNo} • ${groupLabel}</span><span>${formatRoDate(m)} RO</span></div>
-      <div class="teams prediction-teams">
-        ${predictionTeamBlock(m.home, 'left')}
+      <div class="prediction-duel">
+        ${predictionSideScoreBlock(m.home, m.id, 'home', p.home, locked)}
         <span class="prediction-vs">vs</span>
-        ${predictionTeamBlock(m.away, 'right')}
-      </div>
-      <div class="inputs">
-        <label>${predictionInputLabel(m.home)}<input type="number" min="0" max="20" data-id="${m.id}" data-side="home" value="${p.home ?? ''}" ${locked ? 'disabled' : ''}></label>
-        <label>${predictionInputLabel(m.away)}<input type="number" min="0" max="20" data-id="${m.id}" data-side="away" value="${p.away ?? ''}" ${locked ? 'disabled' : ''}></label>
+        ${predictionSideScoreBlock(m.away, m.id, 'away', p.away, locked)}
       </div>
       <div class="prediction-pill">Pronostic:<strong data-pred="${m.id}">${pred}</strong></div>
       <div class="lock-info">${m.venue} • blocare: ${new Intl.DateTimeFormat('ro-RO', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }).format(new Date(new Date(m.startTimeRo).getTime() - LOCK_HOURS_BEFORE_START*3600000))} RO</div>

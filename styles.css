@@ -645,43 +645,51 @@ code { background: rgba(255,255,255,.1); padding: 2px 7px; border-radius: 8px; c
   .group-table .flag-badge { width: 20px; height: 20px; font-size: 13px; }
 }
 
-/* Pronosticuri hero layout: flags first, country names below */
-.prediction-teams {
+/* Pronosticuri match layout: centered team columns */
+.prediction-duel {
+  display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: 14px;
-  margin: 12px 0 18px;
+  margin: 14px 0 18px;
 }
-.prediction-team {
+.prediction-side {
   min-width: 0;
   display: grid;
-  justify-items: start;
-  gap: 8px;
+  justify-items: center;
+  align-content: center;
+  gap: 9px;
 }
-.prediction-team.right {
-  justify-items: end;
+.prediction-side.left {
+  justify-self: stretch;
+}
+.prediction-side.right {
+  justify-self: stretch;
 }
 .prediction-flag {
-  width: 46px;
-  height: 46px;
+  width: 48px;
+  height: 48px;
 }
 .prediction-team-name {
   display: block;
-  max-width: 100%;
+  width: 100%;
+  max-width: 145px;
+  min-height: 2.25em;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  text-align: center;
   font-weight: 900;
   color: var(--text);
-  line-height: 1.15;
+  line-height: 1.12;
 }
-.prediction-team.right .prediction-team-name {
-  text-align: right;
+.prediction-score-input {
+  width: min(100%, 132px);
+  text-align: center;
 }
 .prediction-vs {
   align-self: center;
   justify-self: center;
-  margin-top: -18px;
+  transform: translateY(-12px);
   padding: 5px 8px;
   border-radius: 999px;
   background: rgba(255,255,255,.08);
@@ -692,14 +700,15 @@ code { background: rgba(255,255,255,.1); padding: 2px 7px; border-radius: 8px; c
   letter-spacing: .04em;
   text-transform: uppercase;
 }
-.prediction-team.placeholder .prediction-flag {
+.prediction-side.placeholder .prediction-flag {
   background: rgba(255,255,255,.08);
   border-style: dashed;
   box-shadow: none;
 }
 @media (max-width: 640px) {
-  .prediction-teams { gap: 10px; margin-top: 10px; }
-  .prediction-flag { width: 42px; height: 42px; }
-  .prediction-team-name { font-size: .94rem; max-width: 120px; }
-  .prediction-vs { margin-top: -16px; }
+  .prediction-duel { gap: 10px; margin-top: 12px; }
+  .prediction-flag { width: 44px; height: 44px; }
+  .prediction-team-name { font-size: .94rem; max-width: 124px; }
+  .prediction-score-input { width: min(100%, 112px); }
+  .prediction-vs { transform: translateY(-14px); }
 }
