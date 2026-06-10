@@ -667,6 +667,46 @@ async function testScheduledEmails() {
   }
 }
 
+async function scheduleScheduledEmailTest() {
+  if (!isAdminUser()) return toast('Doar adminul poate programa testul automatizării.');
+  const reportDate = $('emailReportDate')?.value;
+  const runAtLocal = $('scheduledTestRunAt')?.value;
+  if (!reportDate) return toast('Selectează data meciurilor pentru raport.');
+  if (!runAtLocal) return toast('Selectează data și ora la care să pornească testul.');
+  const runAtIso = `${runAtLocal}:00+03:00`;
+  const runAtDate = new Date(runAtIso);
+  if (Number.isNaN(runAtDate.getTime())) return toast('Data/ora testului nu este validă.');
+  if (runAtDate.getTime() < Date.now() - 60 * 1000) {
+    const okPast = confirm('Ora selectată pare să fie în trecut. Programezi totuși testul? Va porni la următoarea verificare Netlify.');
+    if (!okPast) return;
+  }
+  const ok = confirm(`Programezi un test automat pentru ${formatEmailReportDate(reportDate)} la ${runAtLocal.replace('T', ' ')} ora României? Emailurile vor fi trimise real, o singură dată.`);
+  if (!ok) return;
+  try {
+    const pin = sessionStorage.getItem('wc2026_admin_pin') || prompt('Introdu PIN-ul de admin:');
+    if (!pin) return;
+    sessionStorage.setItem('wc2026_admin_pin', pin);
+    const response = await fetch('/.netlify/functions/schedule-email-test', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        adminEmail: currentUser.email,
+        adminPin: pin,
+        reportDate,
+        runAtIso
+      })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || data.ok === false) throw new Error(data.error || 'Programarea testului a eșuat.');
+    const status = $('scheduledTestStatus');
+    if (status) status.textContent = `Test programat pentru ${data.runAtRo || runAtLocal.replace('T', ' ')} ora României. Netlify verifică periodic și îl va porni o singură dată.`;
+    toast('Test automat programat.');
+  } catch (err) {
+    console.error(err);
+    toast(err.message || 'Programarea testului a eșuat.');
+  }
+}
+
 function renderLeaderboard() {
   const rows = computeLeaderboardRows();
   const admin = isAdminUser();
@@ -781,6 +821,8 @@ const sendDailyEmailsBtn = $('sendDailyEmails');
 if (sendDailyEmailsBtn) sendDailyEmailsBtn.addEventListener('click', sendDailyEmails);
 const testScheduledEmailsBtn = $('testScheduledEmails');
 if (testScheduledEmailsBtn) testScheduledEmailsBtn.addEventListener('click', testScheduledEmails);
+const scheduleScheduledEmailTestBtn = $('scheduleScheduledEmailTest');
+if (scheduleScheduledEmailTestBtn) scheduleScheduledEmailTestBtn.addEventListener('click', scheduleScheduledEmailTest);
 const emailReportDateInput = $('emailReportDate');
 if (emailReportDateInput && !emailReportDateInput.value) emailReportDateInput.value = todayRoKey();
 const emailIncludeAllResultsInput = $('emailIncludeAllResults');

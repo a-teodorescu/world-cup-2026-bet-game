@@ -712,3 +712,36 @@ code { background: rgba(255,255,255,.1); padding: 2px 7px; border-radius: 8px; c
   .prediction-score-input { width: min(100%, 112px); }
   .prediction-vs { transform: translateY(-14px); }
 }
+
+.scheduled-test-box {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.32);
+  border-radius: 18px;
+  background: rgba(248, 250, 252, 0.72);
+  display: grid;
+  gap: 12px;
+}
+.scheduled-test-copy {
+  display: grid;
+  gap: 4px;
+}
+.scheduled-test-copy strong {
+  color: #0f172a;
+  font-size: 0.98rem;
+}
+.scheduled-test-copy span,
+#scheduledTestStatus {
+  color: #64748b;
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+@media (min-width: 760px) {
+  .scheduled-test-box {
+    grid-template-columns: 1.35fr 1fr auto;
+    align-items: end;
+  }
+  .scheduled-test-box small {
+    grid-column: 1 / -1;
+  }
+}

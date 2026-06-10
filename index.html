@@ -140,7 +140,7 @@
         </div>
       </div>
       <div class="admin-note">
-        Această secțiune este vizibilă doar pentru admin. Pentru trimitere reală trebuie configurate variabilele Netlify pentru Brevo. Poți testa manual sau poți simula automatizarea pentru data selectată.
+        Această secțiune este vizibilă doar pentru admin. Pentru trimitere reală trebuie configurate variabilele Netlify pentru Brevo. Poți trimite manual emailurile sau poți programa un test one-time al automatizării pentru o dată și oră alese de tine.
       </div>
       <div class="email-admin-panel">
         <label>Data meciurilor
@@ -152,8 +152,19 @@
         </label>
         <div class="email-actions">
           <button id="previewDailyEmails" class="ghost" type="button">Previzualizează emailurile</button>
-          <button id="sendDailyEmails" class="primary" type="button">Trimite emailurile</button>
-          <button id="testScheduledEmails" class="ghost" type="button">Testează automatizarea pentru data selectată</button>
+          <button id="sendDailyEmails" class="primary" type="button">Trimite emailurile acum</button>
+          <button id="testScheduledEmails" class="ghost" type="button">Simulează trimiterea automată acum</button>
+        </div>
+        <div class="scheduled-test-box">
+          <div class="scheduled-test-copy">
+            <strong>Test automatizare one-time</strong>
+            <span>Programează o singură rulare de test. Automatizarea reală de la 04:00 rămâne neschimbată.</span>
+          </div>
+          <label>Data și ora pornirii testului
+            <input id="scheduledTestRunAt" type="datetime-local">
+          </label>
+          <button id="scheduleScheduledEmailTest" class="ghost" type="button">Programează test automat</button>
+          <small id="scheduledTestStatus">Testul va trimite emailuri reale pentru data meciurilor selectată mai sus.</small>
         </div>
       </div>
       <div id="emailPreview" class="email-preview-list"></div>

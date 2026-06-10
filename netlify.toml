@@ -7,3 +7,9 @@
 [[scheduled.functions]]
   name = "scheduled-daily-emails"
   cron = "0 1 * * *"
+
+# Test-only scheduler. It runs frequently and checks Supabase for one-time test jobs.
+# It does not change the real 04:00 automation above.
+[[scheduled.functions]]
+  name = "scheduled-email-test-runner"
+  cron = "*/5 * * * *"
