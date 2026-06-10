@@ -512,3 +512,98 @@ code { background: rgba(255,255,255,.1); padding: 2px 7px; border-radius: 8px; c
   .email-admin-panel input[type="date"] { max-width: 100%; }
   .email-actions { display: grid; }
 }
+
+/* Country flag badges - compact, mobile friendly */
+.team-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  min-width: 0;
+  vertical-align: middle;
+}
+.team-inline.right {
+  justify-content: flex-end;
+}
+.team-inline .team-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.flag-badge {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  background: radial-gradient(circle at 30% 25%, rgba(255,255,255,.28), rgba(255,255,255,.08));
+  border: 1px solid rgba(255,255,255,.18);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.22), 0 8px 18px rgba(0,0,0,.2);
+  font-size: 18px;
+  line-height: 1;
+}
+.team-inline.placeholder .flag-badge {
+  color: rgba(255,255,255,.72);
+  font-size: 15px;
+  background: rgba(255,255,255,.08);
+  border-style: dashed;
+  box-shadow: none;
+}
+.teams strong {
+  min-width: 0;
+  display: block;
+}
+.teams strong:last-child .team-inline {
+  margin-left: auto;
+}
+.input-team-label {
+  display: block;
+  margin-bottom: 2px;
+}
+.input-team-label .flag-badge {
+  width: 22px;
+  height: 22px;
+  font-size: 14px;
+}
+.match-title {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+.match-number {
+  color: var(--muted);
+  font-weight: 900;
+}
+.match-vs {
+  color: var(--muted);
+  font-size: .86em;
+  font-weight: 800;
+}
+.result-match-info strong,
+.admin-match-info strong {
+  display: block;
+  min-width: 0;
+}
+.group-table .team-inline {
+  gap: 7px;
+}
+.group-table .flag-badge {
+  width: 24px;
+  height: 24px;
+  font-size: 15px;
+}
+
+@media (max-width: 640px) {
+  .flag-badge { width: 26px; height: 26px; font-size: 17px; }
+  .input-team-label .flag-badge { width: 20px; height: 20px; font-size: 13px; }
+  .teams { gap: 8px; }
+  .teams .team-name { max-width: 108px; }
+  .match-title { gap: 6px; }
+  .result-match-info .team-name { max-width: 118px; }
+  .group-table .team-inline { gap: 5px; }
+  .group-table .flag-badge { width: 20px; height: 20px; font-size: 13px; }
+}

@@ -9,6 +9,10 @@ const ADMIN_ACCOUNT = { name: 'admin', email: 'admin@gmail.com' };
 const ALLOWED_EMAIL_PROVIDERS = ['gmail','googlemail','yahoo','ymail','rocketmail','outlook','hotmail','live','msn','icloud','me','mac','proton','protonmail','zoho','gmx','aol','fastmail','mail'];
 const LOCK_HOURS_BEFORE_START = 2;
 
+const TEAM_FLAGS = {
+  'Algeria':'🇩🇿','Argentina':'🇦🇷','Australia':'🇦🇺','Austria':'🇦🇹','Belgium':'🇧🇪','Bosnia and Herzegovina':'🇧🇦','Brazil':'🇧🇷','Canada':'🇨🇦','Cape Verde':'🇨🇻','Colombia':'🇨🇴','Croatia':'🇭🇷','Curacao':'🇨🇼','Czechia':'🇨🇿','DR Congo':'🇨🇩','Ecuador':'🇪🇨','Egypt':'🇪🇬','England':'🏴','France':'🇫🇷','Germany':'🇩🇪','Ghana':'🇬🇭','Haiti':'🇭🇹','Iran':'🇮🇷','Iraq':'🇮🇶','Ivory Coast':'🇨🇮','Japan':'🇯🇵','Jordan':'🇯🇴','Mexico':'🇲🇽','Morocco':'🇲🇦','Netherlands':'🇳🇱','New Zealand':'🇳🇿','Norway':'🇳🇴','Panama':'🇵🇦','Paraguay':'🇵🇾','Portugal':'🇵🇹','Qatar':'🇶🇦','Saudi Arabia':'🇸🇦','Scotland':'🏴','Senegal':'🇸🇳','South Africa':'🇿🇦','South Korea':'🇰🇷','Spain':'🇪🇸','Sweden':'🇸🇪','Switzerland':'🇨🇭','Tunisia':'🇹🇳','Turkey':'🇹🇷','USA':'🇺🇸','Uruguay':'🇺🇾','Uzbekistan':'🇺🇿'
+};
+
 let currentUser = null;
 let currentFilter = 'all';
 let usersCache = [];
@@ -296,6 +300,24 @@ document.querySelectorAll('.filter').forEach(btn => btn.addEventListener('click'
   renderPredictions();
 }));
 
+
+function flagForTeam(team) {
+  return TEAM_FLAGS[team] || '⚑';
+}
+function isPlaceholderTeam(team) {
+  return !TEAM_FLAGS[team];
+}
+function teamInline(team, align = 'left') {
+  const placeholder = isPlaceholderTeam(team);
+  return `<span class="team-inline ${align === 'right' ? 'right' : ''} ${placeholder ? 'placeholder' : ''}"><span class="flag-badge" aria-hidden="true">${flagForTeam(team)}</span><span class="team-name">${escapeHtml(team)}</span></span>`;
+}
+function teamLabel(team) {
+  return `<span class="input-team-label">${teamInline(team)}</span>`;
+}
+function matchTitle(m) {
+  return `<span class="match-title"><span class="match-number">#${m.matchNo}</span>${teamInline(m.home)}<span class="match-vs">vs</span>${teamInline(m.away, 'right')}</span>`;
+}
+
 function renderPredictions() {
   const list = $('matchList');
   const preds = userPredictions();
@@ -308,10 +330,10 @@ function renderPredictions() {
     const groupLabel = isGroup(m) ? `Grupa ${m.group}` : (stageLabels[m.stage] || `Eliminatorii · ${m.stage}`);
     return `<article class="match-card ${locked ? 'locked' : ''}">
       <div class="match-meta"><span>#${m.matchNo} • ${groupLabel}</span><span>${formatRoDate(m)} RO</span></div>
-      <div class="teams"><strong>${m.home}</strong><span>vs</span><strong>${m.away}</strong></div>
+      <div class="teams"><strong>${teamInline(m.home)}</strong><span>vs</span><strong>${teamInline(m.away, 'right')}</strong></div>
       <div class="inputs">
-        <label>${m.home}<input type="number" min="0" max="20" data-id="${m.id}" data-side="home" value="${p.home ?? ''}" ${locked ? 'disabled' : ''}></label>
-        <label>${m.away}<input type="number" min="0" max="20" data-id="${m.id}" data-side="away" value="${p.away ?? ''}" ${locked ? 'disabled' : ''}></label>
+        <label>${teamLabel(m.home)}<input type="number" min="0" max="20" data-id="${m.id}" data-side="home" value="${p.home ?? ''}" ${locked ? 'disabled' : ''}></label>
+        <label>${teamLabel(m.away)}<input type="number" min="0" max="20" data-id="${m.id}" data-side="away" value="${p.away ?? ''}" ${locked ? 'disabled' : ''}></label>
       </div>
       <div class="prediction-pill">Pronostic:<strong data-pred="${m.id}">${pred}</strong></div>
       <div class="lock-info">${m.venue} • blocare: ${new Intl.DateTimeFormat('ro-RO', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }).format(new Date(new Date(m.startTimeRo).getTime() - LOCK_HOURS_BEFORE_START*3600000))} RO</div>
@@ -378,7 +400,7 @@ function renderResults() {
     const sc = scorePrediction(realMatch, pred);
     total += sc.points;
     return `<article class="result-row ${sc.type}">
-      <div><strong>#${m.matchNo} ${m.home} vs ${m.away}</strong><span>${isGroup(m) ? 'Grupa ' + m.group : m.stage} • ${formatRoDate(m)} RO</span></div>
+      <div class="result-match-info"><strong>${matchTitle(m)}</strong><span>${isGroup(m) ? 'Grupa ' + m.group : m.stage} • ${formatRoDate(m)} RO</span></div>
       <div class="score-box"><b>Rezultat</b><span>${hasResult(realMatch) ? `${realMatch.resultHome} - ${realMatch.resultAway}` : 'Nejucat'}</span></div>
       <div class="score-box user-score"><b>Pronosticul tău</b><span>${pred?.home ?? '—'} - ${pred?.away ?? '—'}</span></div>
       <div class="points"><strong>${sc.points}p</strong><span>${sc.type === 'exact' ? 'Scor exact' : sc.type === 'winner' ? 'Pronostic corect' : sc.type === 'wrong' ? 'Greșit' : 'În așteptare'}</span></div>
@@ -409,7 +431,7 @@ function renderGroups() {
     const rows = Object.values(groups[g] || {}).sort((a,b) => b.Pts-a.Pts || b.GD-a.GD || b.GF-a.GF || a.team.localeCompare(b.team));
     return `<div class="group-card"><div class="group-title"><strong>Grupa ${g}</strong><span>${rows.reduce((s,r)=>s+r.MP,0)/2} meciuri jucate</span></div>
       <table class="group-table"><thead><tr><th>Țară</th><th>M</th><th>V</th><th>E</th><th>Î</th><th>GD</th><th>Pt</th></tr></thead><tbody>
-      ${rows.map(r => `<tr><td>${r.team}</td><td>${r.MP}</td><td>${r.W}</td><td>${r.D}</td><td>${r.L}</td><td>${r.GD}</td><td><strong>${r.Pts}</strong></td></tr>`).join('')}
+      ${rows.map(r => `<tr><td>${teamInline(r.team)}</td><td>${r.MP}</td><td>${r.W}</td><td>${r.D}</td><td>${r.L}</td><td>${r.GD}</td><td><strong>${r.Pts}</strong></td></tr>`).join('')}
       </tbody></table></div>`;
   }).join('');
 }
@@ -595,10 +617,10 @@ function renderAdminScores() {
     const groupLabel = isGroup(m) ? `Grupa ${m.group}` : (stageLabels[m.stage] || `Eliminatorii · ${m.stage}`);
     const sourceBadge = realMatch.resultSource === 'admin' ? '<span class="admin-score-badge">scor online</span>' : '';
     return `<article class="admin-score-row">
-      <div class="admin-match-info"><strong>#${m.matchNo} ${m.home} vs ${m.away}</strong><span>${groupLabel} • ${formatRoDate(m)} RO ${sourceBadge}</span></div>
+      <div class="admin-match-info"><strong>${matchTitle(m)}</strong><span>${groupLabel} • ${formatRoDate(m)} RO ${sourceBadge}</span></div>
       <div class="admin-score-inputs">
-        <label>${m.home}<input type="number" min="0" max="20" data-admin-score="${m.id}" data-side="home" value="${current.home ?? ''}" placeholder="—"></label>
-        <label>${m.away}<input type="number" min="0" max="20" data-admin-score="${m.id}" data-side="away" value="${current.away ?? ''}" placeholder="—"></label>
+        <label>${teamLabel(m.home)}<input type="number" min="0" max="20" data-admin-score="${m.id}" data-side="home" value="${current.home ?? ''}" placeholder="—"></label>
+        <label>${teamLabel(m.away)}<input type="number" min="0" max="20" data-admin-score="${m.id}" data-side="away" value="${current.away ?? ''}" placeholder="—"></label>
       </div>
     </article>`;
   }).join('');
