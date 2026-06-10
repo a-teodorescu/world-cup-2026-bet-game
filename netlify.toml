@@ -2,14 +2,12 @@
   directory = "netlify/functions"
   included_files = ["matches.js"]
 
-# Netlify cron runs in UTC. 01:00 UTC = 04:00 Romania time in June/July 2026.
-# The function itself sends the report for the previous Romania competition day.
-[[scheduled.functions]]
-  name = "scheduled-daily-emails"
-  cron = "0 1 * * *"
+# Netlify Scheduled Functions use UTC cron.
+# 01:00 UTC = 04:00 Romania time in June/July 2026.
+[functions."scheduled-daily-emails"]
+  schedule = "0 1 * * *"
 
-# Test-only scheduler. It runs frequently and checks Supabase for one-time test jobs.
-# It does not change the real 04:00 automation above.
-[[scheduled.functions]]
-  name = "scheduled-email-test-runner"
-  cron = "* * * * *"
+# Test-only runner. Runs every minute and checks Supabase for one-time test jobs.
+# Does not change the real 04:00 automation above.
+[functions."scheduled-email-test-runner"]
+  schedule = "* * * * *"
