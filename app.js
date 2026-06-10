@@ -737,10 +737,25 @@ function renderAdminScores() {
     const groupLabel = isGroup(m) ? `Grupa ${m.group}` : (stageLabels[m.stage] || `Eliminatorii · ${m.stage}`);
     const sourceBadge = realMatch.resultSource === 'admin' ? '<span class="admin-score-badge">scor online</span>' : '';
     return `<article class="admin-score-row">
-      <div class="admin-match-info"><strong>${matchTitle(m)}</strong><span>${groupLabel} • ${formatRoDate(m)} RO ${sourceBadge}</span></div>
-      <div class="admin-score-inputs">
-        <label>${teamLabel(m.home)}<input type="number" min="0" max="20" data-admin-score="${m.id}" data-side="home" value="${current.home ?? ''}" placeholder="—"></label>
-        <label>${teamLabel(m.away)}<input type="number" min="0" max="20" data-admin-score="${m.id}" data-side="away" value="${current.away ?? ''}" placeholder="—"></label>
+      <div class="admin-match-info">
+        <strong>#${m.id} • ${groupLabel}</strong>
+        <span>${formatRoDate(m)} RO ${sourceBadge}</span>
+      </div>
+      <div class="admin-score-board">
+        <label class="admin-team-score admin-team-home">
+          <span class="flag-badge admin-score-flag" aria-hidden="true">${flagForTeam(m.home)}</span>
+          <span class="admin-team-name">${escapeHtml(m.home)}</span>
+          <input type="number" min="0" max="20" data-admin-score="${m.id}" data-side="home" value="${current.home ?? ''}" placeholder="—" aria-label="Scor ${escapeHtml(m.home)}">
+        </label>
+        <div class="admin-score-middle">
+          <span class="admin-vs">vs</span>
+          <span class="admin-current-score">${realMatch.resultHome != null && realMatch.resultAway != null ? `${realMatch.resultHome} - ${realMatch.resultAway}` : 'scor real'}</span>
+        </div>
+        <label class="admin-team-score admin-team-away">
+          <span class="flag-badge admin-score-flag" aria-hidden="true">${flagForTeam(m.away)}</span>
+          <span class="admin-team-name">${escapeHtml(m.away)}</span>
+          <input type="number" min="0" max="20" data-admin-score="${m.id}" data-side="away" value="${current.away ?? ''}" placeholder="—" aria-label="Scor ${escapeHtml(m.away)}">
+        </label>
       </div>
     </article>`;
   }).join('');

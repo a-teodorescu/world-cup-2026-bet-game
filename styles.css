@@ -369,43 +369,109 @@ code { background: rgba(255,255,255,.1); padding: 2px 7px; border-radius: 8px; c
 }
 .admin-scores-list {
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
 .admin-score-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 360px);
-  gap: 14px;
-  align-items: center;
-  padding: 14px;
+  gap: 16px;
+  padding: 16px;
   border: 1px solid var(--line);
-  border-radius: 22px;
-  background: rgba(255,255,255,.075);
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.055));
+  box-shadow: 0 18px 44px rgba(0,0,0,.16);
+}
+.admin-match-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
 }
 .admin-match-info strong {
   display: block;
   line-height: 1.35;
+  letter-spacing: -.01em;
 }
 .admin-match-info span {
-  display: block;
-  margin-top: 5px;
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
   color: var(--muted);
   font-size: .82rem;
+  text-align: right;
 }
-.admin-score-inputs {
+.admin-score-board {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) 82px minmax(0, 1fr);
+  align-items: end;
+  gap: 18px;
 }
-.admin-score-inputs label {
+.admin-team-score {
+  min-width: 0;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 8px;
   color: var(--muted);
   font-size: .8rem;
-  font-weight: 800;
+  font-weight: 900;
+  text-align: center;
 }
-.admin-score-inputs input {
-  margin-top: 6px;
+.admin-score-flag {
+  width: 46px;
+  height: 46px;
+  box-shadow: 0 12px 26px rgba(0,0,0,.22), inset 0 0 0 1px rgba(255,255,255,.2);
+}
+.admin-team-name {
+  width: 100%;
+  min-height: 2.2em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+  line-height: 1.1;
+}
+.admin-team-score input {
+  width: min(100%, 118px);
+  margin-top: 2px;
   text-align: center;
   font-weight: 900;
-  font-size: 1.1rem;
+  font-size: 1.12rem;
+}
+.admin-score-middle {
+  display: grid;
+  justify-items: center;
+  align-self: center;
+  gap: 8px;
+  padding-bottom: 8px;
+}
+.admin-vs {
+  display: inline-grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  border: 1px solid rgba(110,231,249,.35);
+  background: rgba(110,231,249,.10);
+  color: var(--accent);
+  font-size: .8rem;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+.admin-current-score {
+  min-width: 74px;
+  padding: 5px 8px;
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 999px;
+  background: rgba(0,0,0,.14);
+  color: var(--muted);
+  font-size: .72rem;
+  font-weight: 900;
+  text-align: center;
 }
 .admin-score-badge {
   display: inline-flex !important;
@@ -420,14 +486,50 @@ code { background: rgba(255,255,255,.1); padding: 2px 7px; border-radius: 8px; c
   font-weight: 900;
 }
 
-@media (max-width: 900px) {
+@media (min-width: 980px) {
+  .admin-scores-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
   .admin-score-row {
-    grid-template-columns: 1fr;
-    gap: 12px;
+    padding: 14px;
     border-radius: 20px;
   }
-  .admin-score-inputs {
-    grid-template-columns: 1fr 1fr;
+  .admin-match-info {
+    display: grid;
+    justify-items: start;
+    gap: 4px;
+  }
+  .admin-match-info span {
+    justify-content: flex-start;
+    text-align: left;
+  }
+  .admin-score-board {
+    grid-template-columns: minmax(0, 1fr) 54px minmax(0, 1fr);
+    gap: 10px;
+  }
+  .admin-score-flag {
+    width: 40px;
+    height: 40px;
+  }
+  .admin-vs {
+    width: 42px;
+    height: 42px;
+    font-size: .72rem;
+  }
+  .admin-team-name {
+    font-size: .78rem;
+  }
+  .admin-team-score input {
+    width: min(100%, 92px);
+    padding-inline: 8px;
+  }
+  .admin-current-score {
+    min-width: 58px;
+    font-size: .66rem;
+    padding-inline: 6px;
   }
 }
 .storage-mode-message {
