@@ -190,18 +190,39 @@ function scorePrediction(match, pred) {
 }
 function userPredictions(email = currentUser?.email) { return getAllPredictions()[normalize(email)] || {}; }
 
+const NAV_ITEMS = [
+  { id: 'predictii', label: 'Pronosticuri' },
+  { id: 'rezultate', label: 'Rezultate' },
+  { id: 'grupe', label: 'Grupe' },
+  { id: 'lucky-strike', label: 'Lucky Strike' },
+  { id: 'clasament', label: 'Clasament' },
+  { id: 'admin-scoruri', label: 'Admin scoruri', admin: true },
+  { id: 'admin-emailuri', label: 'Admin emailuri', admin: true }
+];
+
+function allowedSections() {
+  return NAV_ITEMS.filter(item => !item.admin || isAdminUser()).map(item => item.id);
+}
+
+function rebuildMobileSectionSelect(activeId) {
+  const sectionSelect = $('sectionSelect');
+  if (!sectionSelect) return;
+  const allowed = new Set(allowedSections());
+  const currentOptions = Array.from(sectionSelect.options).map(o => o.value).join('|');
+  const nextItems = NAV_ITEMS.filter(item => allowed.has(item.id));
+  const nextOptions = nextItems.map(item => item.id).join('|');
+  if (currentOptions !== nextOptions) {
+    sectionSelect.innerHTML = nextItems.map(item => `<option value="${item.id}">${item.label}</option>`).join('');
+  }
+  sectionSelect.value = allowed.has(activeId) ? activeId : 'predictii';
+}
+
 function updateNavigationState() {
   const id = (location.hash || '#predictii').slice(1);
   document.querySelectorAll('.nav a').forEach(a => a.classList.toggle('active', a.getAttribute('href') === `#${id}`));
-  const sectionSelect = $('sectionSelect');
-  if (sectionSelect && sectionSelect.value !== id) sectionSelect.value = id;
   const admin = isAdminUser();
   document.body.classList.toggle('admin-mode', admin);
-  document.querySelectorAll('.admin-only-option').forEach(o => o.hidden = !admin);
-}
-
-function allowedSections() {
-  return isAdminUser() ? ['predictii', 'rezultate', 'grupe', 'lucky-strike', 'clasament', 'admin-scoruri', 'admin-emailuri'] : ['predictii', 'rezultate', 'grupe', 'lucky-strike', 'clasament'];
+  rebuildMobileSectionSelect(id);
 }
 
 async function showApp() {

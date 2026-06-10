@@ -1146,22 +1146,57 @@ code { background: rgba(255,255,255,.1); padding: 2px 7px; border-radius: 8px; c
   width: min(100%, 300px);
 }
 @media (max-width: 760px) {
+  .lucky-layout {
+    display: block;
+  }
   .lucky-card-centered {
-    min-height: calc(100svh - 210px);
-    padding: 24px 18px;
+    min-height: calc(100svh - 185px);
+    padding: 30px 18px 34px;
     justify-content: center;
+    gap: 18px;
+  }
+  .lucky-hero {
+    gap: 12px;
   }
   .lucky-hero h3 {
-    font-size: clamp(2.4rem, 12vw, 4rem);
+    font-size: clamp(2.35rem, 11vw, 3.7rem);
+    line-height: 1.02;
+  }
+  .lucky-hero p {
+    max-width: 310px;
+    font-size: .95rem;
   }
   .lucky-preview-circle {
-    width: min(58vw, 210px);
-    height: min(58vw, 210px);
+    width: min(70vw, 245px);
+    height: min(70vw, 245px);
+    margin: 14px auto 2px;
+    border-width: 1.5px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 32px 88px rgba(0,0,0,.34);
+  }
+  .lucky-preview-name {
+    min-height: 30px;
+    font-size: 1.12rem;
   }
   .lucky-custom-select,
   .lucky-confirm-button,
   .lucky-card-centered .lucky-status,
   .lucky-card-centered #luckyDeadlineInfo {
-    width: min(100%, 330px);
+    width: min(100%, 350px);
+  }
+  .lucky-dropdown-button {
+    min-height: 58px;
+    justify-content: center;
+    position: relative;
+    padding-inline: 44px;
+  }
+  .lucky-dropdown-chevron {
+    position: absolute;
+    right: 18px;
+  }
+  .lucky-dropdown-menu {
+    max-height: 300px;
+  }
+  .lucky-info-card {
+    margin-top: 18px;
   }
 }
