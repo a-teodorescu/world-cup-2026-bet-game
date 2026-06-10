@@ -634,6 +634,39 @@ async function sendDailyEmails() {
   }
 }
 
+async function testScheduledEmails() {
+  if (!isAdminUser()) return toast('Doar adminul poate testa automatizarea.');
+  const reportDate = $('emailReportDate')?.value;
+  if (!reportDate) return toast('Selectează data pentru care vrei să testezi automatizarea.');
+  const ok = confirm(`Simulezi automatizarea pentru data ${formatEmailReportDate(reportDate)}? Se vor trimite emailuri reale către userii eligibili, dar logul va fi marcat ca test și nu va bloca trimiterea automată oficială.`);
+  if (!ok) return;
+  try {
+    const pin = sessionStorage.getItem('wc2026_admin_pin') || prompt('Introdu PIN-ul de admin:');
+    if (!pin) return;
+    sessionStorage.setItem('wc2026_admin_pin', pin);
+    const response = await fetch('/.netlify/functions/scheduled-daily-emails', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        adminEmail: currentUser.email,
+        adminPin: pin,
+        reportDate,
+        testMode: true
+      })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || data.ok === false) throw new Error(data.error || data.reason || 'Testul automatizării a eșuat.');
+    if (data.skipped) {
+      toast(data.reason || 'Automatizarea nu a trimis emailuri pentru această dată.');
+    } else {
+      toast(`Test automatizare: ${data.sent || 0} trimise, ${data.skippedDuplicate || 0} deja trimise, ${data.failed || 0} eșuate.`);
+    }
+  } catch (err) {
+    console.error(err);
+    toast(err.message || 'Testul automatizării a eșuat.');
+  }
+}
+
 function renderLeaderboard() {
   const rows = computeLeaderboardRows();
   const admin = isAdminUser();
@@ -746,6 +779,8 @@ const previewDailyEmailsBtn = $('previewDailyEmails');
 if (previewDailyEmailsBtn) previewDailyEmailsBtn.addEventListener('click', renderEmailPreview);
 const sendDailyEmailsBtn = $('sendDailyEmails');
 if (sendDailyEmailsBtn) sendDailyEmailsBtn.addEventListener('click', sendDailyEmails);
+const testScheduledEmailsBtn = $('testScheduledEmails');
+if (testScheduledEmailsBtn) testScheduledEmailsBtn.addEventListener('click', testScheduledEmails);
 const emailReportDateInput = $('emailReportDate');
 if (emailReportDateInput && !emailReportDateInput.value) emailReportDateInput.value = todayRoKey();
 const emailIncludeAllResultsInput = $('emailIncludeAllResults');

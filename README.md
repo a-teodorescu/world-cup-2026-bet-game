@@ -95,3 +95,17 @@ Această versiune include funcția Netlify programată `scheduled-daily-emails`.
 `supabase-email-scheduled-schema.sql`
 
 Acesta adaugă protecție anti-dublare pentru emailurile zilnice.
+
+## Test manual pentru automatizarea emailurilor
+
+Am adăugat în secțiunea **Admin emailuri** un buton:
+
+`Testează automatizarea pentru data selectată`
+
+Acesta apelează funcția `scheduled-daily-emails` cu data aleasă în interfață și trimite emailuri reale către userii eligibili. Logurile sunt salvate cu `report_type = daily-test`, astfel încât testul nu blochează trimiterea automată oficială (`report_type = daily`).
+
+Flux recomandat:
+1. Setează scoruri reale pentru una sau mai multe meciuri.
+2. Alege data meciurilor în Admin emailuri.
+3. Apasă `Testează automatizarea pentru data selectată`.
+4. Verifică inboxurile și tabela `wc2026_email_logs` din Supabase.

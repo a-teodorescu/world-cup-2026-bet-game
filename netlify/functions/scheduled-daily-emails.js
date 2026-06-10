@@ -123,8 +123,25 @@ async function supabaseInsert(baseUrl, anonKey, table, row) {
   }
 }
 
-async function alreadySent(baseUrl, anonKey, email, reportDate) {
-  const query = `?select=id&email=eq.${encodeURIComponent(email)}&report_date=eq.${encodeURIComponent(reportDate)}&report_type=eq.daily&status=eq.sent&limit=1`;
+async function supabaseRpc(baseUrl, anonKey, fn, payload) {
+  const response = await fetch(`${baseUrl}/rest/v1/rpc/${fn}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: anonKey,
+      Authorization: `Bearer ${anonKey}`
+    },
+    body: JSON.stringify(payload || {})
+  });
+  const data = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new Error(data?.message || data?.error || `Supabase RPC ${fn} a eșuat.`);
+  }
+  return data;
+}
+
+async function alreadySent(baseUrl, anonKey, email, reportDate, reportType = 'daily') {
+  const query = `?select=id&email=eq.${encodeURIComponent(email)}&report_date=eq.${encodeURIComponent(reportDate)}&report_type=eq.${encodeURIComponent(reportType)}&status=eq.sent&limit=1`;
   const rows = await supabaseGet(baseUrl, anonKey, 'wc2026_email_logs', query);
   return rows.length > 0;
 }
@@ -164,7 +181,7 @@ async function sendBrevo({ apiKey, fromEmail, fromName, to, username, subject, h
   return data.messageId || data.messageIds || data.id || 'sent';
 }
 
-exports.handler = async () => {
+exports.handler = async (event = {}) => {
   const BREVO_API_KEY = process.env.BREVO_API_KEY;
   const BREVO_FROM_EMAIL = process.env.BREVO_FROM_EMAIL;
   const BREVO_FROM_NAME = process.env.BREVO_FROM_NAME || 'Cupa Mondială Predictor';
@@ -176,13 +193,36 @@ exports.handler = async () => {
     return json(500, { ok: false, error: 'Lipsesc variabilele Netlify pentru Brevo/Supabase.' });
   }
 
+  const isHttpTest = event.httpMethod === 'POST';
+  let body = {};
+  if (isHttpTest) {
+    try {
+      body = event.body ? JSON.parse(event.body) : {};
+    } catch (_) {
+      return json(400, { ok: false, error: 'Body JSON invalid.' });
+    }
+    const adminEmail = String(body.adminEmail || '').trim().toLowerCase();
+    const adminPin = String(body.adminPin || '');
+    const isAdminValid = await supabaseRpc(SUPABASE_URL, SUPABASE_ANON_KEY, 'wc2026_admin_validate', {
+      admin_email: adminEmail,
+      admin_pin: adminPin
+    });
+    if (isAdminValid !== true) {
+      return json(403, { ok: false, error: 'PIN admin invalid.' });
+    }
+  }
+
   const todayRo = toIsoDate(getRomaniaDateParts(new Date()));
-  const reportDate = addDaysIso(todayRo, -1);
+  const requestedReportDate = String(body.reportDate || '').trim();
+  const reportDate = isHttpTest && /^\d{4}-\d{2}-\d{2}$/.test(requestedReportDate)
+    ? requestedReportDate
+    : addDaysIso(todayRo, -1);
+  const reportType = isHttpTest ? 'daily-test' : 'daily';
 
   // Competition-day guard. Useful run dates are 2026-06-12 through 2026-07-20,
   // so the function can send reports for match start dates 2026-06-11 through 2026-07-19.
   if (reportDate < '2026-06-11' || reportDate > '2026-07-19') {
-    return json(200, { ok: true, skipped: true, reason: 'În afara perioadei competiției.', todayRo, reportDate });
+    return json(200, { ok: true, skipped: true, mode: reportType, reason: 'În afara perioadei competiției.', todayRo, reportDate });
   }
 
   const matches = parseMatches();
@@ -222,7 +262,7 @@ exports.handler = async () => {
   const summary = { attempted: 0, sent: 0, skippedDuplicate: 0, failed: 0, details: [] };
 
   for (const player of players) {
-    if (await alreadySent(SUPABASE_URL, SUPABASE_ANON_KEY, player.email, reportDate)) {
+    if (await alreadySent(SUPABASE_URL, SUPABASE_ANON_KEY, player.email, reportDate, reportType)) {
       summary.skippedDuplicate += 1;
       summary.details.push({ email: player.email, status: 'skipped_duplicate' });
       continue;
@@ -271,7 +311,7 @@ exports.handler = async () => {
         subject,
         status: 'sent',
         report_date: reportDate,
-        report_type: 'daily',
+        report_type: reportType,
         delivery_id: String(deliveryId),
         payload: { dailyPoints, dailyExact, dailyWinner, total: reportUser.total, rank: reportUser.rank, matchCount: items.length }
       });
@@ -284,7 +324,7 @@ exports.handler = async () => {
         subject,
         status: 'error',
         report_date: reportDate,
-        report_type: 'daily',
+        report_type: reportType,
         error_message: error.message,
         payload: { dailyPoints, dailyExact, dailyWinner, total: reportUser.total, rank: reportUser.rank, matchCount: items.length }
       }).catch(() => {});
@@ -293,5 +333,5 @@ exports.handler = async () => {
     }
   }
 
-  return json(200, { ok: true, todayRo, reportDate, reportDateRo: formatRoDate(reportDate), matchCount: reportMatches.length, ...summary });
+  return json(200, { ok: true, mode: reportType, todayRo, reportDate, reportDateRo: formatRoDate(reportDate), matchCount: reportMatches.length, ...summary });
 };
