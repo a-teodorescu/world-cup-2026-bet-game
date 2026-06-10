@@ -993,3 +993,175 @@ code { background: rgba(255,255,255,.1); padding: 2px 7px; border-radius: 8px; c
   .lucky-layout { grid-template-columns: 1fr; }
   .lucky-card-head { align-items: center; }
 }
+
+/* Lucky Strike centered picker refresh */
+.lucky-card-centered {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  min-height: 520px;
+  justify-content: center;
+  gap: 16px;
+}
+.lucky-card-centered .lucky-status,
+.lucky-card-centered #luckyDeadlineInfo {
+  width: min(100%, 440px);
+}
+.lucky-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+.lucky-hero h3 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-weight: 900;
+  letter-spacing: .02em;
+}
+.lucky-hero p {
+  max-width: 430px;
+  margin: 0;
+  color: var(--muted);
+}
+.lucky-preview-circle {
+  width: clamp(150px, 22vw, 230px);
+  height: clamp(150px, 22vw, 230px);
+  display: grid;
+  place-items: center;
+  margin: 10px auto 0;
+  overflow: hidden;
+  border-radius: 999px;
+  background: radial-gradient(circle at 30% 20%, rgba(255,255,255,.28), rgba(255,255,255,.08)), linear-gradient(135deg, rgba(110,231,249,.18), rgba(167,139,250,.16));
+  border: 1px solid rgba(255,255,255,.22);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.24), 0 28px 80px rgba(0,0,0,.28);
+}
+.lucky-preview-circle .flag-img,
+.lucky-preview-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 999px;
+}
+.lucky-preview-circle .flag-fallback {
+  font-size: 4rem;
+  color: rgba(255,255,255,.72);
+}
+.lucky-preview-name {
+  min-height: 28px;
+  font-weight: 900;
+  font-size: 1.05rem;
+  color: var(--text);
+}
+.native-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+.lucky-custom-select {
+  width: min(100%, 360px);
+  position: relative;
+  z-index: 5;
+}
+.lucky-dropdown-button {
+  width: 100%;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,.09);
+  color: var(--text);
+  border-radius: 18px;
+  padding: 15px 18px;
+  font: inherit;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+}
+.lucky-dropdown-button:hover,
+.lucky-custom-select.open .lucky-dropdown-button {
+  border-color: rgba(110,231,249,.48);
+  background: rgba(255,255,255,.13);
+}
+.lucky-dropdown-button:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+.lucky-dropdown-chevron {
+  font-size: 1.3rem;
+  line-height: 1;
+  opacity: .8;
+}
+.lucky-dropdown-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  max-height: 260px;
+  overflow: auto;
+  padding: 8px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(10, 20, 36, .96);
+  box-shadow: 0 24px 70px rgba(0,0,0,.42);
+  backdrop-filter: blur(16px);
+}
+.lucky-custom-select.open .lucky-dropdown-menu {
+  display: grid;
+  gap: 5px;
+}
+.lucky-option {
+  border: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+}
+.lucky-option:hover,
+.lucky-option:focus,
+.lucky-option.selected {
+  outline: none;
+  background: rgba(110,231,249,.14);
+}
+.lucky-option-flag {
+  width: 26px;
+  height: 26px;
+}
+.lucky-confirm-button {
+  width: min(100%, 300px);
+}
+@media (max-width: 760px) {
+  .lucky-card-centered {
+    min-height: calc(100svh - 210px);
+    padding: 24px 18px;
+    justify-content: center;
+  }
+  .lucky-hero h3 {
+    font-size: clamp(2.4rem, 12vw, 4rem);
+  }
+  .lucky-preview-circle {
+    width: min(58vw, 210px);
+    height: min(58vw, 210px);
+  }
+  .lucky-custom-select,
+  .lucky-confirm-button,
+  .lucky-card-centered .lucky-status,
+  .lucky-card-centered #luckyDeadlineInfo {
+    width: min(100%, 330px);
+  }
+}

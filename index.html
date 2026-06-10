@@ -181,18 +181,23 @@
         <div class="score-card lucky-score-card"><span>Bonus</span><strong>25p</strong></div>
       </div>
       <div class="lucky-layout">
-        <article class="lucky-card">
-          <div class="lucky-card-head">
-            <span class="lucky-icon">🍀</span>
-            <div>
-              <h3>Alegerea ta Lucky Strike</h3>
-              <p>Selecția se blochează definitiv după confirmare și poate fi făcută până cu 2 ore înainte de startul meciului #24.</p>
-            </div>
+        <article class="lucky-card lucky-card-centered">
+          <div class="lucky-hero">
+            <h3>Lucky Strike</h3>
+            <p>O singură alegere. Dacă echipa ta câștigă finala, primești 25p bonus.</p>
+            <div id="luckyPreviewFlag" class="lucky-preview-circle" aria-hidden="true"><span class="flag-fallback">⚑</span></div>
+            <div id="luckyPreviewName" class="lucky-preview-name">Alege echipa</div>
           </div>
           <div id="luckyStatus" class="lucky-status"></div>
-          <label class="lucky-select-label" for="luckyTeamSelect">Alege echipa</label>
-          <select id="luckyTeamSelect" class="lucky-team-select"></select>
-          <button id="saveLuckyStrike" class="primary" type="button">Confirmă Lucky Strike</button>
+          <select id="luckyTeamSelect" class="lucky-team-select native-hidden" aria-hidden="true" tabindex="-1"></select>
+          <div class="lucky-custom-select" id="luckyCustomSelect">
+            <button id="luckyDropdownButton" class="lucky-dropdown-button" type="button">
+              <span id="luckyDropdownButtonText">Alege echipa</span>
+              <span class="lucky-dropdown-chevron">⌄</span>
+            </button>
+            <div id="luckyDropdownMenu" class="lucky-dropdown-menu" role="listbox"></div>
+          </div>
+          <button id="saveLuckyStrike" class="primary lucky-confirm-button" type="button">Confirmă</button>
           <small id="luckyDeadlineInfo"></small>
         </article>
         <article class="lucky-info-card">

@@ -769,6 +769,65 @@ function shouldApplyLuckyBonus(matchesScope = MATCHES) {
   const final = finalMatch();
   return !!(final && matchesScope.some(m => Number(m.matchNo) === Number(final.matchNo)) && hasResult(final));
 }
+function updateLuckyPreview(team) {
+  const flagEl = $('luckyPreviewFlag');
+  const nameEl = $('luckyPreviewName');
+  const btnText = $('luckyDropdownButtonText');
+  const label = team || 'Alege echipa';
+  if (flagEl) flagEl.innerHTML = team ? flagForTeam(team) : '<span class="flag-fallback">⚑</span>';
+  if (nameEl) nameEl.textContent = label;
+  if (btnText) btnText.textContent = label;
+}
+
+function closeLuckyDropdown() {
+  const root = $('luckyCustomSelect');
+  const btn = $('luckyDropdownButton');
+  if (root) root.classList.remove('open');
+  if (btn) btn.setAttribute('aria-expanded', 'false');
+}
+
+function bindLuckyDropdown(teams, disabled) {
+  const root = $('luckyCustomSelect');
+  const btn = $('luckyDropdownButton');
+  const menu = $('luckyDropdownMenu');
+  const select = $('luckyTeamSelect');
+  if (!root || !btn || !menu || !select) return;
+
+  btn.disabled = disabled;
+  btn.setAttribute('aria-expanded', 'false');
+  menu.innerHTML = teams.map(team => `
+    <button type="button" class="lucky-option ${select.value === team ? 'selected' : ''}" data-team="${escapeHtml(team)}" role="option">
+      <span class="flag-badge lucky-option-flag" aria-hidden="true">${flagForTeam(team)}</span>
+      <span>${escapeHtml(team)}</span>
+    </button>`).join('');
+
+  const restorePreview = () => updateLuckyPreview(select.value);
+
+  btn.onclick = () => {
+    if (btn.disabled) return;
+    root.classList.toggle('open');
+    btn.setAttribute('aria-expanded', root.classList.contains('open') ? 'true' : 'false');
+  };
+
+  menu.querySelectorAll('.lucky-option').forEach(option => {
+    const team = option.dataset.team || '';
+    option.addEventListener('mouseenter', () => updateLuckyPreview(team));
+    option.addEventListener('focus', () => updateLuckyPreview(team));
+    option.addEventListener('click', () => {
+      select.value = team;
+      updateLuckyPreview(team);
+      menu.querySelectorAll('.lucky-option').forEach(o => o.classList.toggle('selected', o.dataset.team === team));
+      closeLuckyDropdown();
+    });
+  });
+
+  menu.onmouseleave = restorePreview;
+
+  document.addEventListener('click', (event) => {
+    if (!root.contains(event.target)) closeLuckyDropdown();
+  }, { once: true });
+}
+
 function renderLuckyStrike() {
   const status = $('luckyStatus');
   const select = $('luckyTeamSelect');
@@ -783,6 +842,8 @@ function renderLuckyStrike() {
   select.innerHTML = `<option value="">Alege o echipă...</option>` + teams.map(team => `<option value="${escapeHtml(team)}" ${currentPick?.team === team ? 'selected' : ''}>${team}</option>`).join('');
   select.disabled = !!currentPick || lockedByTime;
   saveBtn.disabled = !!currentPick || lockedByTime;
+  updateLuckyPreview(currentPick?.team || select.value || '');
+  bindLuckyDropdown(teams, !!currentPick || lockedByTime);
   deadlineInfo.textContent = `Deadline Lucky Strike: ${deadlineLabel}. După confirmare, alegerea nu mai poate fi schimbată.`;
   if (currentPick?.team) {
     const hit = isLuckyWinner(currentUser?.email);
