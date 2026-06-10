@@ -6,7 +6,6 @@ const STORAGE = {
   resultOverrides: 'wc2026_result_overrides_v1'
 };
 const ADMIN_ACCOUNT = { name: 'admin', email: 'admin@gmail.com' };
-const ALLOWED_EMAIL_PROVIDERS = ['gmail','googlemail','yahoo','ymail','rocketmail','outlook','hotmail','live','msn','icloud','me','mac','proton','protonmail','zoho','gmx','aol','fastmail','mail'];
 const LOCK_HOURS_BEFORE_START = 2;
 
 const TEAM_FLAGS = {
@@ -55,11 +54,17 @@ function setStorageModeLabel() {
 
 function isAllowedEmail(email) {
   const value = normalize(email);
-  const match = value.match(/^([a-z0-9._%+-]+)@([a-z0-9-]+)\.([a-z]{2,})(?:\.([a-z]{2,}))?$/i);
-  if (!match) return false;
-  const provider = match[2].toLowerCase();
-  const tld = [match[3], match[4]].filter(Boolean).join('.').toLowerCase();
-  return ALLOWED_EMAIL_PROVIDERS.includes(provider) && /^[a-z]{2,}(\.[a-z]{2,})?$/.test(tld);
+  // Acceptă emailuri personale și corporate, de exemplu:
+  // nume@gmail.com, nume@yahoo.ro, prenume.nume@dxc.com, user@company.co.uk
+  if (value.length > 254) return false;
+  const parts = value.split('@');
+  if (parts.length !== 2) return false;
+  const [local, domain] = parts;
+  if (!local || !domain || local.length > 64) return false;
+  if (local.startsWith('.') || local.endsWith('.') || local.includes('..')) return false;
+  if (!/^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+$/i.test(local)) return false;
+  if (!/^(?!-)(?:[a-z0-9-]{1,63}\.)+[a-z]{2,24}$/i.test(domain)) return false;
+  return domain.split('.').every(label => !label.startsWith('-') && !label.endsWith('-'));
 }
 
 function toast(msg) {
@@ -248,7 +253,7 @@ $('loginForm').addEventListener('submit', async (e) => {
   $('loginMessage').style.color = '';
   if (!name || !email) return;
   if (!isAllowedEmail(email)) {
-    $('loginMessage').textContent = 'Te rog introdu un email valid de la un provider cunoscut, de forma exemplu@gmail.com, exemplu@yahoo.com, exemplu@outlook.com etc.';
+    $('loginMessage').textContent = 'Te rog introdu un email valid, de forma exemplu@gmail.com, exemplu@email.ro sau nume@companie.com.';
     $('loginMessage').style.color = 'var(--red)';
     return;
   }
