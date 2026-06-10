@@ -12,4 +12,4 @@
 # It does not change the real 04:00 automation above.
 [[scheduled.functions]]
   name = "scheduled-email-test-runner"
-  cron = "*/5 * * * *"
+  cron = "* * * * *"

@@ -109,3 +109,7 @@ Flux recomandat:
 2. Alege data meciurilor în Admin emailuri.
 3. Apasă `Testează automatizarea pentru data selectată`.
 4. Verifică inboxurile și tabela `wc2026_email_logs` din Supabase.
+
+
+## Hotfix test scheduler
+Funcția scheduled-email-test-runner verifică testele one-time la fiecare minut (`* * * * *`), pentru ca testele programate din Admin emailuri să pornească mai rapid. Netlify poate avea totuși o mică întârziere de execuție.
