@@ -183,6 +183,15 @@ function buildEmail({ user, periodLabel, totalLabel, rankLabel, dailyPoints, dai
   return { html, text };
 }
 
+
+function buildNoResultsEmail({ user, reportDateRo, periodLabel, totalLabel, rankLabel, siteUrl }) {
+  const title = `La data ${reportDateRo} nu s-au jucat meciuri`;
+  const subtitle = 'Nu există rezultate de calculat pentru această zi, așa că punctajul tău rămâne neschimbat.';
+  const html = `<div style="margin:0;padding:0;background:#eef2ff;font-family:Arial,Helvetica,sans-serif;color:#0f172a"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#eef2ff;padding:24px 12px"><tr><td align="center"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#ffffff;border-radius:24px;overflow:hidden;box-shadow:0 18px 55px rgba(15,23,42,.14)"><tr><td style="padding:30px 26px;background:linear-gradient(135deg,#0f172a 0%,#1d4ed8 52%,#7c3aed 100%);color:#fff"><div style="font-size:13px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;opacity:.85">Cupa Mondială 2026</div><h1 style="margin:10px 0 0;font-size:28px;line-height:1.15">🏆 Salut, ${escapeHtml(user.name)}!</h1><p style="margin:10px 0 0;font-size:15px;line-height:1.6;opacity:.9">Actualizare pentru ${escapeHtml(periodLabel)}.</p></td></tr><tr><td style="padding:28px 32px 12px"><div style="text-align:center;border:1px solid #bfdbfe;background:#eff6ff;border-radius:22px;padding:28px 20px"><div style="font-size:42px;line-height:1">📭</div><h2 style="margin:14px 0 8px;font-size:23px;line-height:1.25;color:#0f172a">${escapeHtml(title)}</h2><p style="margin:0 auto;color:#475569;font-size:15px;line-height:1.6;max-width:470px">${escapeHtml(subtitle)}</p></div></td></tr><tr><td style="padding:8px 32px 22px"><div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:18px;padding:16px"><div style="font-size:14px;color:#475569;font-weight:800">🏅 ${escapeHtml(totalLabel)}</div><div style="font-size:24px;font-weight:900;color:#0f172a;margin-top:4px">${user.total}p</div><div style="font-size:13px;color:#64748b;margin-top:4px">${escapeHtml(rankLabel)}: locul ${user.rank}</div></div></td></tr><tr><td align="center" style="padding:0 32px 30px">${siteUrl ? `<a href="${escapeHtml(siteUrl)}" style="display:inline-block;text-decoration:none;background:#0f172a;color:#ffffff;border-radius:999px;padding:13px 22px;font-weight:900">Vezi clasamentul</a>` : ''}<p style="margin:18px 0 0;color:#64748b;font-size:13px;line-height:1.6">Pregătește pronosticurile pentru următoarele meciuri! 🔥</p></td></tr></table><p style="max-width:640px;margin:14px auto 0;color:#94a3b8;font-size:12px;line-height:1.5;text-align:center">Email trimis automat de Cupa Mondială 2026 Predictor.</p></td></tr></table></div>`;
+  const text = `Salut, ${user.name}!\n\nLa data ${reportDateRo} nu s-au jucat meciuri.\nPunctajul tău rămâne neschimbat.\n\n${totalLabel}: ${user.total}p\n${rankLabel}: locul ${user.rank}`;
+  return { html, text };
+}
+
 async function sendBrevo({ apiKey, fromEmail, fromName, to, username, subject, html, text }) {
   const response = await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
@@ -260,9 +269,7 @@ exports.handler = async (event = {}) => {
   const predsByUserMatch = new Map(predictions.map(p => [`${p.user_id}|${p.match_id}`, { home: Number(p.home), away: Number(p.away) }]));
 
   const reportMatches = matches.filter(m => m.romaniaDate === reportDate && resultsByMatch.has(m.id));
-  if (reportMatches.length === 0) {
-    return json(200, { ok: true, skipped: true, reason: 'Nu există rezultate salvate pentru ziua anterioară.', todayRo, reportDate });
-  }
+  const noResultsMode = reportMatches.length === 0;
 
   const matchesUntilReportDate = matches.filter(m => m.romaniaDate <= reportDate && resultsByMatch.has(m.id));
 
@@ -280,9 +287,9 @@ exports.handler = async (event = {}) => {
   const periodLabel = `din ${formatRoDate(reportDate)}`;
   const totalLabel = `Puncte totale până la data ${formatRoDate(reportDate)}`;
   const rankLabel = `Poziția ta în clasament la data ${formatRoDate(reportDate)}`;
-  const subject = `Rezumat pronosticuri - ${formatRoDate(reportDate)}`;
+  const subject = noResultsMode ? `Nu s-au jucat meciuri - ${formatRoDate(reportDate)}` : `Rezumat pronosticuri - ${formatRoDate(reportDate)}`;
 
-  const summary = { attempted: 0, sent: 0, skippedDuplicate: 0, failed: 0, details: [] };
+  const summary = { attempted: 0, sent: 0, skippedDuplicate: 0, failed: 0, details: [], noResults: noResultsMode };
 
   for (const player of players) {
     if (await alreadySent(SUPABASE_URL, SUPABASE_ANON_KEY, player.email, reportDate, reportType)) {
@@ -295,26 +302,31 @@ exports.handler = async (event = {}) => {
     let dailyPoints = 0;
     let dailyExact = 0;
     let dailyWinner = 0;
+    let items = [];
 
-    const items = reportMatches.map(m => {
-      const result = resultsByMatch.get(m.id);
-      const pred = predsByUserMatch.get(`${player.id}|${m.id}`);
-      const scored = scorePrediction(pred, result);
-      dailyPoints += scored.points;
-      if (scored.type === 'exact') dailyExact += 1;
-      if (scored.type === 'winner') dailyWinner += 1;
-      return {
-        matchNo: m.matchNo,
-        label: `${m.home} vs ${m.away}`,
-        result: `${result.home} - ${result.away}`,
-        prediction: pred ? `${pred.home} - ${pred.away}` : '-',
-        points: scored.points,
-        type: scored.type
-      };
-    });
+    if (!noResultsMode) {
+      items = reportMatches.map(m => {
+        const result = resultsByMatch.get(m.id);
+        const pred = predsByUserMatch.get(`${player.id}|${m.id}`);
+        const scored = scorePrediction(pred, result);
+        dailyPoints += scored.points;
+        if (scored.type === 'exact') dailyExact += 1;
+        if (scored.type === 'winner') dailyWinner += 1;
+        return {
+          matchNo: m.matchNo,
+          label: `${m.home} vs ${m.away}`,
+          result: `${result.home} - ${result.away}`,
+          prediction: pred ? `${pred.home} - ${pred.away}` : '-',
+          points: scored.points,
+          type: scored.type
+        };
+      });
+    }
 
     const reportUser = { ...ranked, name: player.name, email: player.email };
-    const content = buildEmail({ user: reportUser, periodLabel, totalLabel, rankLabel, dailyPoints, dailyExact, dailyWinner, items, siteUrl: SITE_URL });
+    const content = noResultsMode
+      ? buildNoResultsEmail({ user: reportUser, reportDateRo: formatRoDate(reportDate), periodLabel, totalLabel, rankLabel, siteUrl: SITE_URL })
+      : buildEmail({ user: reportUser, periodLabel, totalLabel, rankLabel, dailyPoints, dailyExact, dailyWinner, items, siteUrl: SITE_URL });
 
     summary.attempted += 1;
     try {
@@ -336,7 +348,7 @@ exports.handler = async (event = {}) => {
         report_date: reportDate,
         report_type: reportType,
         delivery_id: String(deliveryId),
-        payload: { dailyPoints, dailyExact, dailyWinner, total: reportUser.total, rank: reportUser.rank, matchCount: items.length }
+        payload: { dailyPoints, dailyExact, dailyWinner, total: reportUser.total, rank: reportUser.rank, matchCount: items.length, noResults: noResultsMode }
       });
       summary.sent += 1;
       summary.details.push({ email: player.email, status: 'sent' });
@@ -349,7 +361,7 @@ exports.handler = async (event = {}) => {
         report_date: reportDate,
         report_type: reportType,
         error_message: error.message,
-        payload: { dailyPoints, dailyExact, dailyWinner, total: reportUser.total, rank: reportUser.rank, matchCount: items.length }
+        payload: { dailyPoints, dailyExact, dailyWinner, total: reportUser.total, rank: reportUser.rank, matchCount: items.length, noResults: noResultsMode }
       }).catch(() => {});
       summary.failed += 1;
       summary.details.push({ email: player.email, status: 'error', error: error.message });
