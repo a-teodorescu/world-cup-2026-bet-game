@@ -59,20 +59,22 @@ Adminul nu apare în clasament.
 
 Această variantă este potrivită pentru MVP / prieteni / colegi. Pentru securitate completă, următorul pas este Supabase Auth cu login real pe email/parolă.
 
-## Emailuri zilnice prin Resend + Netlify Functions
+## Emailuri zilnice prin Brevo + Netlify Functions
 
 Această versiune include o secțiune nouă vizibilă doar adminului: **Admin emailuri**.
 
 Pași necesari pentru trimitere reală:
 
 1. În Supabase → SQL Editor rulează fișierul `supabase-email-schema.sql`.
-2. În Resend creează un API key.
+2. În Brevo creează un API key de tip v3.
 3. În Netlify → Site configuration / Environment variables adaugă variabilele:
-   - `RESEND_API_KEY` = cheia Resend
-   - `RESEND_FROM` = expeditorul, de exemplu `Cupa Mondială Predictor <onboarding@resend.dev>` sau un email de pe domeniul tău verificat
+   - `BREVO_API_KEY` = cheia Brevo
+   - `BREVO_FROM_EMAIL` = emailul expeditor verificat în Brevo
+   - `BREVO_FROM_NAME` = numele expeditorului, de exemplu `Cupa Mondială Predictor`
    - `SUPABASE_URL` = URL-ul proiectului Supabase, fără `/rest/v1`
    - `SUPABASE_ANON_KEY` = cheia `sb_publishable_...`
-4. Fă redeploy după ce setezi variabilele.
-5. Intră ca admin → **Admin emailuri** → previzualizează → trimite.
+4. Elimină sau ignoră variabilele vechi `RESEND_API_KEY` și `RESEND_FROM`.
+5. Fă redeploy după ce setezi variabilele.
+6. Intră ca admin → **Admin emailuri** → previzualizează → trimite.
 
-Notă: pentru producție, Resend recomandă domeniu verificat pentru expeditor.
+Notă: dacă Brevo cere verificarea expeditorului, verifică emailul sau domeniul din dashboard-ul Brevo înainte de test.
