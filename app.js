@@ -4,7 +4,8 @@ const STORAGE = {
   current: 'wc2026_current_user_v3',
   predictions: 'wc2026_predictions_v3',
   resultOverrides: 'wc2026_result_overrides_v1',
-  luckyStrikes: 'wc2026_lucky_strikes_v1'
+  luckyStrikes: 'wc2026_lucky_strikes_v1',
+  matchOverrides: 'wc2026_match_overrides_v1'
 };
 const ADMIN_ACCOUNT = { name: 'admin', email: 'admin@gmail.com' };
 const LOCK_HOURS_BEFORE_START = 2;
@@ -16,6 +17,29 @@ const TEAM_FLAG_FALLBACKS = {
   'England':'data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20640%20480%22%3E%3Crect%20width=%22640%22%20height=%22480%22%20fill=%22%23fff%22/%3E%3Cpath%20d=%22M320%200v480M0%20240h640%22%20stroke=%22%23CE1124%22%20stroke-width=%2296%22/%3E%3C/svg%3E',
   'Scotland':'data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20640%20480%22%3E%3Crect%20width=%22640%22%20height=%22480%22%20fill=%22%23005EB8%22/%3E%3Cpath%20d=%22M0%200%20640%20480M640%200%200%20480%22%20stroke=%22%23fff%22%20stroke-width=%2296%22/%3E%3C/svg%3E'
 };
+const TEAM_DISPLAY_ALIASES = {
+  'united states': 'USA',
+  'united states of america': 'USA',
+  'usa': 'USA',
+  'bosnia-herzegovina': 'Bosnia and Herzegovina',
+  'bosnia herzegovina': 'Bosnia and Herzegovina',
+  'bosnia and herzegovina': 'Bosnia and Herzegovina',
+  'cape verde islands': 'Cape Verde',
+  'cape verde': 'Cape Verde',
+  'congo dr': 'DR Congo',
+  'dr congo': 'DR Congo',
+  'democratic republic of congo': 'DR Congo',
+  'côte d’ivoire': 'Ivory Coast',
+  'cote d ivoire': 'Ivory Coast',
+  'ivory coast': 'Ivory Coast',
+  'czech republic': 'Czechia',
+  'czechia': 'Czechia',
+  'korea republic': 'South Korea',
+  'south korea': 'South Korea',
+  'ir iran': 'Iran',
+  'curaçao': 'Curacao',
+  'curacao': 'Curacao'
+};
 
 let currentUser = null;
 let currentFilter = 'all';
@@ -23,11 +47,27 @@ let usersCache = [];
 let predictionsCache = {};
 let resultsCache = {};
 let luckyStrikesCache = {};
+let matchOverridesCache = {};
 let onlineMode = false;
 let supabaseClient = null;
 
 const $ = (id) => document.getElementById(id);
 const normalize = (s) => (s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+function teamAliasKey(value) {
+  return String(value || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/&/g, ' and ')
+    .replace(/[’']/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .replace(/\s+/g, ' ');
+}
+function canonicalTeamName(value) {
+  const raw = String(value || '').trim();
+  return TEAM_DISPLAY_ALIASES[teamAliasKey(raw)] || raw;
+}
 const isAdminUser = (user = currentUser) => normalize(user?.name || user?.username) === ADMIN_ACCOUNT.name && normalize(user?.email) === ADMIN_ACCOUNT.email;
 
 function canUseSupabase() {
@@ -98,6 +138,8 @@ function localResults() { return JSON.parse(localStorage.getItem(STORAGE.resultO
 function saveLocalResults(data) { localStorage.setItem(STORAGE.resultOverrides, JSON.stringify(data)); }
 function localLuckyStrikes() { return JSON.parse(localStorage.getItem(STORAGE.luckyStrikes) || '{}'); }
 function saveLocalLuckyStrikes(data) { localStorage.setItem(STORAGE.luckyStrikes, JSON.stringify(data)); }
+function localMatchOverrides() { return JSON.parse(localStorage.getItem(STORAGE.matchOverrides) || '{}'); }
+function saveLocalMatchOverrides(data) { localStorage.setItem(STORAGE.matchOverrides, JSON.stringify(data)); }
 
 function normalizeUserRow(u) {
   return {
@@ -146,6 +188,19 @@ async function loadOnlineData() {
     console.warn('Lucky Strike nu este încă disponibil în Supabase. Rulează supabase-lucky-strike-schema.sql.', err);
     luckyStrikesCache = {};
   }
+  matchOverridesCache = {};
+  try {
+    const { data: overrideRows, error: overrideError } = await supabaseClient
+      .from('wc2026_match_overrides')
+      .select('match_id, home, away, api_match_id, updated_at');
+    if (overrideError) throw overrideError;
+    (overrideRows || []).forEach(row => {
+      if (row.match_id) matchOverridesCache[row.match_id] = { home: row.home, away: row.away, apiMatchId: row.api_match_id, updatedAt: row.updated_at };
+    });
+  } catch (err) {
+    console.warn('Override-urile pentru eliminatorii nu sunt încă disponibile în Supabase. Rulează supabase-match-overrides-schema.sql.', err);
+    matchOverridesCache = {};
+  }
 }
 
 function loadLocalData() {
@@ -153,6 +208,7 @@ function loadLocalData() {
   predictionsCache = localPredictions();
   resultsCache = localResults();
   luckyStrikesCache = localLuckyStrikes();
+  matchOverridesCache = localMatchOverrides();
 }
 
 async function refreshData() {
@@ -164,13 +220,21 @@ function getUsers() { return usersCache; }
 function getAllPredictions() { return predictionsCache; }
 function getResultOverrides() { return resultsCache; }
 function getLuckyStrikes() { return luckyStrikesCache || {}; }
+function getMatchOverrides() { return matchOverridesCache || {}; }
 
-function effectiveMatch(m) {
-  const o = resultsCache[m.id];
-  if (!o || o.home === '' || o.away === '' || o.home == null || o.away == null) return m;
-  return { ...m, resultHome: Number(o.home), resultAway: Number(o.away), resultSource: 'admin' };
+function applyMatchOverride(m) {
+  const o = getMatchOverrides()[m.id];
+  if (!o || !o.home || !o.away) return m;
+  return { ...m, home: canonicalTeamName(o.home), away: canonicalTeamName(o.away), fixtureSource: 'football-data.org', apiMatchId: o.apiMatchId };
 }
-function allEffectiveMatches() { return MATCHES.map(effectiveMatch); }
+function allMatches() { return MATCHES.map(applyMatchOverride); }
+function effectiveMatch(m) {
+  const withTeams = applyMatchOverride(m);
+  const o = resultsCache[withTeams.id];
+  if (!o || o.home === '' || o.away === '' || o.home == null || o.away == null) return withTeams;
+  return { ...withTeams, resultHome: Number(o.home), resultAway: Number(o.away), resultSource: 'admin' };
+}
+function allEffectiveMatches() { return allMatches().map(effectiveMatch); }
 const isGroup = (m) => m.stage === 'group';
 const isKnockout = (m) => m.stage !== 'group';
 function hasResult(m) { const em = effectiveMatch(m); return em.resultHome !== null && em.resultAway !== null && em.resultHome !== undefined && em.resultAway !== undefined; }
@@ -353,25 +417,26 @@ document.querySelectorAll('.filter').forEach(btn => btn.addEventListener('click'
 
 
 function flagForTeam(team) {
-  const code = TEAM_FLAGS[team];
+  const canonical = canonicalTeamName(team);
+  const code = TEAM_FLAGS[canonical];
   if (!code) return '<span class="flag-fallback">⚑</span>';
-  const safeTeam = escapeHtml(team);
-  const primary = TEAM_FLAG_FALLBACKS[team] || `https://flagcdn.com/${code}.svg`;
+  const safeTeam = escapeHtml(canonical);
+  const primary = TEAM_FLAG_FALLBACKS[canonical] || `https://flagcdn.com/${code}.svg`;
   const fallback = `https://flagcdn.com/w80/${code}.png`;
   return `<img class="flag-img" src="${primary}" alt="" loading="lazy" onerror="this.onerror=null;this.src='${fallback}'"><span class="sr-only">${safeTeam}</span>`;
 }
 function isPlaceholderTeam(team) {
-  return !TEAM_FLAGS[team];
+  return !TEAM_FLAGS[canonicalTeamName(team)];
 }
 function teamInline(team, align = 'left') {
   const placeholder = isPlaceholderTeam(team);
-  return `<span class="team-inline ${align === 'right' ? 'right' : ''} ${placeholder ? 'placeholder' : ''}"><span class="flag-badge" aria-hidden="true">${flagForTeam(team)}</span><span class="team-name">${escapeHtml(team)}</span></span>`;
+  return `<span class="team-inline ${align === 'right' ? 'right' : ''} ${placeholder ? 'placeholder' : ''}"><span class="flag-badge" aria-hidden="true">${flagForTeam(team)}</span><span class="team-name">${escapeHtml(canonicalTeamName(team))}</span></span>`;
 }
 function teamLabel(team) {
   return `<span class="input-team-label">${teamInline(team)}</span>`;
 }
 function predictionInputLabel(team) {
-  return `<span class="input-team-label no-flag"><span class="team-name">${escapeHtml(team)}</span></span>`;
+  return `<span class="input-team-label no-flag"><span class="team-name">${escapeHtml(canonicalTeamName(team))}</span></span>`;
 }
 function matchTitle(m) {
   return `<span class="match-title"><span class="match-number">#${m.matchNo}</span>${teamInline(m.home)}<span class="match-vs">vs</span>${teamInline(m.away, 'right')}</span>`;
@@ -396,7 +461,7 @@ function predictionSideScoreBlock(team, matchId, side, value, locked) {
 function renderPredictions() {
   const list = $('matchList');
   const preds = userPredictions();
-  const filtered = MATCHES.filter(m => currentFilter === 'all' || (currentFilter === 'group' && isGroup(m)) || (currentFilter === 'knockout' && m.matchNo >= 73 && m.matchNo <= 104));
+  const filtered = allMatches().filter(m => currentFilter === 'all' || (currentFilter === 'group' && isGroup(m)) || (currentFilter === 'knockout' && m.matchNo >= 73 && m.matchNo <= 104));
   list.innerHTML = filtered.map(m => {
     const p = preds[m.id] || {};
     const locked = isLocked(m);
@@ -468,7 +533,7 @@ $('savePredictions').addEventListener('click', async () => {
 function renderResults() {
   const preds = userPredictions();
   let total = 0;
-  const playedOrPredicted = MATCHES.filter(m => hasResult(m) || preds[m.id]);
+  const playedOrPredicted = allMatches().filter(m => hasResult(m) || preds[m.id]);
   $('resultsList').innerHTML = playedOrPredicted.length ? playedOrPredicted.map(m => {
     const pred = preds[m.id];
     const realMatch = effectiveMatch(m);
@@ -556,7 +621,7 @@ function roDateKey(iso) {
 function todayRoKey() {
   return roDateKey(new Date().toISOString());
 }
-function computeLeaderboardRows(matchesScope = MATCHES) {
+function computeLeaderboardRows(matchesScope = allMatches()) {
   const users = getUsers().filter(u => !isAdminUser(u));
   const all = getAllPredictions();
   const applyLucky = shouldApplyLuckyBonus(matchesScope);
@@ -582,7 +647,7 @@ function computeLeaderboardRows(matchesScope = MATCHES) {
 function getEmailMatchScopes() {
   const includeAll = $('emailIncludeAllResults')?.checked;
   const selectedDate = $('emailReportDate')?.value || todayRoKey();
-  const resulted = MATCHES.filter(m => hasResult(m));
+  const resulted = allMatches().filter(m => hasResult(m));
   const selectedMatches = resulted.filter(m => includeAll || roDateKey(m.startTimeRo) === selectedDate);
   const cumulativeMatches = includeAll
     ? resulted
@@ -880,6 +945,55 @@ async function testFootballDataApi() {
 }
 
 
+async function syncKnockoutFixtures() {
+  if (!isAdminUser()) return toast('Doar adminul poate sincroniza eliminatoriile.');
+  const output = $('footballDataSyncResult');
+  if (output) output.innerHTML = `<div class="api-status loading">Se verifică echipele reale pentru eliminatorii în football-data.org...</div>`;
+  try {
+    const pin = sessionStorage.getItem('wc2026_admin_pin') || prompt('Introdu PIN-ul de admin:');
+    if (!pin) return;
+    sessionStorage.setItem('wc2026_admin_pin', pin);
+    const response = await fetch('/.netlify/functions/sync-knockout-fixtures', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adminEmail: currentUser.email, adminPin: pin })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || data.ok === false) throw new Error(data.error || 'Sincronizarea eliminatoriilor a eșuat.');
+    if (output) {
+      const updated = Array.isArray(data.updated) ? data.updated : [];
+      const pending = Array.isArray(data.pendingSample) ? data.pendingSample : [];
+      output.innerHTML = `
+        <div class="api-status success">
+          <strong>Sincronizare eliminatorii finalizată.</strong>
+          <span>${Number(data.changed || 0) > 0 ? 'Echipele reale au fost actualizate în Supabase.' : 'Nu au fost găsite modificări noi pentru eliminatorii.'}</span>
+        </div>
+        <div class="api-metrics">
+          <div><span>Eliminatorii API</span><strong>${escapeHtml(String(data.knockoutApi ?? 0))}</strong></div>
+          <div><span>Cu echipe reale</span><strong>${escapeHtml(String(data.ready ?? 0))}</strong></div>
+          <div><span>Potrivite</span><strong>${escapeHtml(String(data.matched ?? 0))}</strong></div>
+          <div><span>Modificate</span><strong>${escapeHtml(String(data.changed ?? 0))}</strong></div>
+        </div>
+        ${updated.length ? `<div class="api-sample"><h3>Eliminatorii actualizate</h3>${updated.map(u => `
+          <article>
+            <span>#${escapeHtml(String(u.matchNo || '—'))} · ${escapeHtml(u.dateRo || '')} · API #${escapeHtml(String(u.apiMatchId || '—'))}</span>
+            <strong>${teamInline(u.home)} <span class="match-vs">vs</span> ${teamInline(u.away, 'right')}</strong>
+            <small>${escapeHtml(u.stage || '')}</small>
+          </article>`).join('')}</div>` : ''}
+        ${pending.length ? `<div class="api-status warning"><strong>Eliminatorii încă în așteptare.</strong><span>football-data.org nu are încă echipe reale pentru aceste meciuri.</span></div><pre>${escapeHtml(JSON.stringify(pending, null, 2))}</pre>` : ''}
+      `;
+    }
+    await refreshData();
+    renderAll();
+    toast('Sincronizarea eliminatoriilor a fost executată.');
+  } catch (err) {
+    console.error(err);
+    if (output) output.innerHTML = `<div class="api-status error"><strong>Sincronizarea eliminatoriilor a eșuat.</strong><span>${escapeHtml(err.message || 'Nu am putut sincroniza eliminatoriile.')}</span></div>`;
+    toast(err.message || 'Nu am putut sincroniza eliminatoriile.');
+  }
+}
+
+
 async function syncFootballDataResults() {
   if (!isAdminUser()) return toast('Doar adminul poate sincroniza scorurile.');
   const output = $('footballDataSyncResult');
@@ -1054,10 +1168,10 @@ async function testSportmonksApi() {
 }
 
 function allSelectableTeams() {
-  return [...new Set(MATCHES.filter(isGroup).flatMap(m => [m.home, m.away]).filter(t => TEAM_FLAGS[t]))].sort((a, b) => a.localeCompare(b));
+  return [...new Set(allMatches().filter(isGroup).flatMap(m => [m.home, m.away]).filter(t => TEAM_FLAGS[t]))].sort((a, b) => a.localeCompare(b));
 }
 function luckyDeadlineMatch() {
-  return MATCHES.find(m => Number(m.matchNo) === 24) || MATCHES.find(m => m.id === 'M024');
+  return allMatches().find(m => Number(m.matchNo) === 24) || allMatches().find(m => m.id === 'M024');
 }
 function luckyDeadlineDate() {
   const m = luckyDeadlineMatch();
@@ -1069,7 +1183,7 @@ function isLuckyLocked() {
   return !!d && Date.now() >= d.getTime();
 }
 function finalMatch() {
-  return MATCHES.find(m => Number(m.matchNo) === 104) || MATCHES.find(m => m.stage === 'Final');
+  return allMatches().find(m => Number(m.matchNo) === 104) || allMatches().find(m => m.stage === 'Final');
 }
 function finalWinnerTeam() {
   const f = finalMatch();
@@ -1087,7 +1201,7 @@ function isLuckyWinner(email) {
   const winner = finalWinnerTeam();
   return !!(pick?.team && winner && normalize(pick.team) === normalize(winner));
 }
-function shouldApplyLuckyBonus(matchesScope = MATCHES) {
+function shouldApplyLuckyBonus(matchesScope = allMatches()) {
   const final = finalMatch();
   return !!(final && matchesScope.some(m => Number(m.matchNo) === Number(final.matchNo)) && hasResult(final));
 }
@@ -1120,7 +1234,7 @@ function bindLuckyDropdown(teams, disabled) {
   menu.innerHTML = teams.map(team => `
     <button type="button" class="lucky-option ${select.value === team ? 'selected' : ''}" data-team="${escapeHtml(team)}" role="option">
       <span class="flag-badge lucky-option-flag" aria-hidden="true">${flagForTeam(team)}</span>
-      <span>${escapeHtml(team)}</span>
+      <span>${escapeHtml(canonicalTeamName(team))}</span>
     </button>`).join('');
 
   const restorePreview = () => updateLuckyPreview(select.value);
@@ -1228,7 +1342,7 @@ function renderAdminScores() {
   if (!wrap) return;
   if (!isAdminUser()) return wrap.innerHTML = `<div class="empty">Această secțiune este disponibilă doar pentru admin.</div>`;
   const overrides = getResultOverrides();
-  wrap.innerHTML = MATCHES.map(m => {
+  wrap.innerHTML = allMatches().map(m => {
     const current = overrides[m.id] || {};
     const realMatch = effectiveMatch(m);
     const stageLabels = { 'Round of 32': 'Eliminatorii · Șaisprezecimi', 'Round of 16': 'Eliminatorii · Optimi', 'Quarterfinals': 'Eliminatorii · Sferturi', 'Semifinals': 'Eliminatorii · Semifinale', 'Third place play-off': 'Eliminatorii · Finala mică', 'Final': 'Eliminatorii · Finala' };
@@ -1346,6 +1460,8 @@ const testFootballDataApiBtn = $('testFootballDataApi');
 if (testFootballDataApiBtn) testFootballDataApiBtn.addEventListener('click', testFootballDataApi);
 const syncFootballDataResultsBtn = $('syncFootballDataResults');
 if (syncFootballDataResultsBtn) syncFootballDataResultsBtn.addEventListener('click', syncFootballDataResults);
+const syncKnockoutFixturesBtn = $('syncKnockoutFixtures');
+if (syncKnockoutFixturesBtn) syncKnockoutFixturesBtn.addEventListener('click', syncKnockoutFixtures);
 const simulateFootballDataSyncBtn = $('simulateFootballDataSync');
 if (simulateFootballDataSyncBtn) simulateFootballDataSyncBtn.addEventListener('click', simulateFootballDataSync);
 const emailReportDateInput = $('emailReportDate');

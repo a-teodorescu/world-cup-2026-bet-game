@@ -2,6 +2,12 @@
   directory = "netlify/functions"
   included_files = ["matches.js"]
 
+
+# 00:15 UTC = 03:15 Romania time in June/July 2026.
+# Sync real knockout team names before score sync and daily emails.
+[functions."sync-knockout-fixtures"]
+  schedule = "15 0 * * *"
+
 # 00:30 UTC = 03:30 Romania time in June/July 2026.
 # Sync final scores before daily email report.
 [functions."sync-football-data-results"]

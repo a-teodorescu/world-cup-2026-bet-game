@@ -140,3 +140,8 @@ Pentru testarea conexiunii cu API-Football, setează în Netlify Environment var
 - `FOOTBALL_API_KEY` – cheia din API-Sports / API-Football
 
 Apoi intră ca admin în aplicație → `Admin API` → `Testează API-Football`.
+
+
+## Knockout flags
+
+Fazele eliminatorii folosesc aceleași asocieri existente de echipă -> steag din aplicație. Datele venite din football-data.org sunt normalizate la denumirile canonice existente (ex. United States -> USA, Bosnia-Herzegovina -> Bosnia and Herzegovina), apoi sunt afișate prin aceeași funcție `flagForTeam`.

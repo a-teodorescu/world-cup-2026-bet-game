@@ -99,6 +99,16 @@ function looseMatchKey(home, away) {
   return `${normalizeTeam(home)}__${normalizeTeam(away)}`;
 }
 
+
+function applyMatchOverrides(matches, overrides) {
+  const byId = new Map((overrides || []).map(row => [row.match_id, row]));
+  return matches.map(m => {
+    const o = byId.get(m.id);
+    if (!o || !o.home || !o.away) return m;
+    return { ...m, home: o.home, away: o.away, apiMatchId: o.api_match_id };
+  });
+}
+
 function buildMatchIndexes(matches) {
   const byTeamAndDate = new Map();
   const byTeams = new Map();
@@ -206,7 +216,13 @@ async function runSync({ mode, adminEmail, adminPin, simulate = false, simulateC
 
   await validateAdmin(SUPABASE_URL, SUPABASE_ANON_KEY, adminEmail, adminPin);
 
-  const matches = parseMatches();
+  let matches = parseMatches();
+  try {
+    const matchOverrides = await supabaseGet(SUPABASE_URL, SUPABASE_ANON_KEY, 'wc2026_match_overrides', '?select=match_id,home,away,api_match_id');
+    matches = applyMatchOverrides(matches, matchOverrides || []);
+  } catch (err) {
+    console.warn('Nu am putut încărca override-urile pentru eliminatorii. Continuăm cu matches.js static:', err.message);
+  }
   const { byTeamAndDate, byTeams } = buildMatchIndexes(matches);
   const apiMatches = await callFootballData(FOOTBALL_DATA_API_TOKEN);
   const allApiSummaries = apiMatches

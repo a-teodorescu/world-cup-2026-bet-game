@@ -182,13 +182,14 @@
         </div>
       </div>
       <div class="admin-note">
-        Această secțiune nu modifică scorurile din aplicație. Verifică API-Football și Sportmonks pentru Cupa Mondială 2026, fără să salveze rezultate în Supabase.
+        Această secțiune testează API-urile și sincronizează scorurile/echipele reale din sursele externe. Admin scoruri rămâne backup manual.
       </div>
       <div class="email-admin-panel api-admin-panel">
         <button id="testFootballApi" class="primary" type="button">Testează API-Football</button>
         <button id="testSportmonksApi" class="ghost" type="button">Testează Sportmonks</button>
         <button id="testFootballDataApi" class="ghost" type="button">Testează football-data.org</button>
         <button id="syncFootballDataResults" class="primary" type="button">Sincronizează scorurile finale</button>
+        <button id="syncKnockoutFixtures" class="ghost" type="button">Sincronizează echipele eliminatorii</button>
         <button id="simulateFootballDataSync" class="ghost" type="button">Simulează mapping complet</button>
         <small>Testele consumă requesturi din limitele zilnice ale furnizorilor. Sportmonks folosește <strong>SPORTMONKS_API_TOKEN</strong>, iar football-data.org folosește <strong>FOOTBALL_DATA_API_TOKEN</strong>.</small>
       </div>
