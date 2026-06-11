@@ -771,22 +771,41 @@ async function testFootballApi() {
     if (!response.ok || data.ok === false) throw new Error(data.error || 'Testul API-Football a eșuat.');
     if (output) {
       const fixtures = Array.isArray(data.fixturesSample) ? data.fixturesSample : [];
+      const tests = Array.isArray(data.tests) ? data.tests : [];
       output.innerHTML = `
         <div class="api-status success">
           <strong>Conexiune reușită.</strong>
-          <span>API-Football răspunde pentru league=1, season=2026.</span>
+          <span>API-Football răspunde pentru league=1, season=2026. Acum testăm mai multe endpoint-uri ca să vedem unde există datele.</span>
         </div>
         <div class="api-metrics">
-          <div><span>Fixtures găsite</span><strong>${data.fixturesCount ?? 0}</strong></div>
-          <div><span>Quota rămasă</span><strong>${data.requestsRemaining ?? '—'}</strong></div>
-          <div><span>Plan/limită</span><strong>${data.requestsLimit ?? '—'}</strong></div>
+          <div><span>Fixtures endpoint simplu</span><strong>${data.fixturesCount ?? 0}</strong></div>
+          <div><span>Total fixtures în teste</span><strong>${data.totalFixtureResults ?? 0}</strong></div>
+          <div><span>Endpoint-uri testate</span><strong>${tests.length}</strong></div>
+        </div>
+        <div class="api-status ${Number(data.totalFixtureResults || 0) > 0 ? 'success' : 'warning'}">${escapeHtml(data.note || '')}</div>
+        <div class="api-debug-list">
+          <h3>Endpoint-uri testate</h3>
+          ${tests.map(t => `
+            <article class="api-debug-card ${t.ok ? 'ok' : 'bad'}">
+              <div class="api-debug-head">
+                <strong>${escapeHtml(t.label || 'Endpoint')}</strong>
+                <span>${t.ok ? 'OK' : 'Eroare'} · ${escapeHtml(String(t.status ?? '—'))}</span>
+              </div>
+              <code>${escapeHtml(t.path || '')}</code>
+              <div class="api-debug-meta">
+                <span>results: <b>${escapeHtml(String(t.apiResults ?? '—'))}</b></span>
+                <span>timp: <b>${escapeHtml(String(t.elapsedMs ?? '—'))}ms</b></span>
+              </div>
+              ${t.apiErrors && Object.keys(t.apiErrors || {}).length ? `<small class="api-error-text">${escapeHtml(JSON.stringify(t.apiErrors))}</small>` : ''}
+              ${Array.isArray(t.sample) && t.sample.length ? `<details><summary>Vezi sample</summary><pre>${escapeHtml(JSON.stringify(t.sample, null, 2))}</pre></details>` : ''}
+            </article>`).join('')}
         </div>
         ${fixtures.length ? `<div class="api-sample"><h3>Primele meciuri citite din API</h3>${fixtures.map(f => `
           <article>
-            <span>#${escapeHtml(f.apiFixtureId || '—')} · ${escapeHtml(f.dateRo || f.date || '')}</span>
+            <span>#${escapeHtml(f.apiFixtureId || '—')} · ${escapeHtml(f.dateRo || f.date || '')} ${f.round ? '· ' + escapeHtml(f.round) : ''}</span>
             <strong>${escapeHtml(f.home)} vs ${escapeHtml(f.away)}</strong>
             <small>${escapeHtml(f.status || '')}</small>
-          </article>`).join('')}</div>` : `<div class="api-status warning">API-ul răspunde, dar nu a returnat încă fixtures pentru World Cup 2026.</div>`}
+          </article>`).join('')}</div>` : ''}
       `;
     }
     toast('Test API-Football reușit.');
