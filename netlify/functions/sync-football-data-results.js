@@ -183,7 +183,7 @@ async function callFootballData(token) {
   return Array.isArray(data.matches) ? data.matches : [];
 }
 
-async function runSync({ mode, adminEmail, adminPin, simulate = false }) {
+async function runSync({ mode, adminEmail, adminPin, simulate = false, simulateCount = 104 }) {
   const FOOTBALL_DATA_API_TOKEN = process.env.FOOTBALL_DATA_API_TOKEN;
   const SUPABASE_URL = cleanUrl(process.env.SUPABASE_URL);
   const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
@@ -208,7 +208,7 @@ async function runSync({ mode, adminEmail, adminPin, simulate = false }) {
       .map(summarizeApiMatch)
       .filter(m => m.home && m.away && m.utcDate)
       .sort((a, b) => new Date(a.utcDate) - new Date(b.utcDate))
-      .slice(0, 24);
+      .slice(0, Math.max(1, Math.min(Number(simulateCount) || 104, 104)));
     if (!candidates.length) throw new Error('Nu am găsit niciun meci API pentru simulare.');
     finished = candidates.map((candidate, index) => ({
       ...candidate,
@@ -270,7 +270,7 @@ async function runSync({ mode, adminEmail, adminPin, simulate = false }) {
     savedTotalResults: payloadRows.length,
     wouldSave: simulate ? matchedUpdates.length : undefined,
     simulatedMatch,
-    simulatedMatches: simulate ? finished.slice(0, 24) : undefined,
+    simulatedMatches: simulate ? finished : undefined,
     updated: matchedUpdates.slice(0, 30),
     unmatchedSample: unmatched.slice(0, 10)
   };
@@ -292,6 +292,7 @@ exports.handler = async (event) => {
     let adminPin = process.env.WC2026_ADMIN_PIN || '';
 
     let simulate = false;
+    let simulateCount = 104;
     if (event.httpMethod === 'POST') {
       mode = 'manual';
       const body = JSON.parse(event.body || '{}');
@@ -299,6 +300,7 @@ exports.handler = async (event) => {
       adminPin = body.adminPin || adminPin;
       simulate = body.simulate === true;
       if (simulate) mode = 'simulate';
+      simulateCount = body.simulateCount || 104;
     } else {
       // Real cron gate: do not consume API outside the useful tournament window.
       const todayRo = getRomaniaIsoDate(new Date());
@@ -307,7 +309,7 @@ exports.handler = async (event) => {
       }
     }
 
-    const summary = await runSync({ mode, adminEmail, adminPin, simulate });
+    const summary = await runSync({ mode, adminEmail, adminPin, simulate, simulateCount });
     return json(200, { ok: true, ...summary });
   } catch (err) {
     console.error(err);

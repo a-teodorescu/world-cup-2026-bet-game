@@ -932,7 +932,7 @@ async function syncFootballDataResults() {
 async function simulateFootballDataSync() {
   if (!isAdminUser()) return toast('Doar adminul poate simula sincronizarea.');
   const output = $('footballDataSyncResult');
-  if (output) output.innerHTML = `<div class="api-status loading">Se simulează primele 24 de meciuri finalizate din football-data.org fără salvare în Supabase...</div>`;
+  if (output) output.innerHTML = `<div class="api-status loading">Se simulează toate cele 104 meciuri finalizate din football-data.org fără salvare în Supabase...</div>`;
   try {
     const pin = sessionStorage.getItem('wc2026_admin_pin') || prompt('Introdu PIN-ul de admin:');
     if (!pin) return;
@@ -940,7 +940,7 @@ async function simulateFootballDataSync() {
     const response = await fetch('/.netlify/functions/sync-football-data-results', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ adminEmail: currentUser.email, adminPin: pin, simulate: true, simulateCount: 24 })
+      body: JSON.stringify({ adminEmail: currentUser.email, adminPin: pin, simulate: true, simulateCount: 104 })
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok || data.ok === false) throw new Error(data.error || 'Simularea a eșuat.');
@@ -951,7 +951,7 @@ async function simulateFootballDataSync() {
       output.innerHTML = `
         <div class="api-status success">
           <strong>Simulare finalizată fără salvare.</strong>
-          <span>Am forțat temporar primele 24 de meciuri API ca FINISHED, cu scoruri simulate, ca să verificăm mapping-ul. Supabase nu a fost modificat.</span>
+          <span>Am forțat temporar toate cele 104 meciuri API ca FINISHED, cu scoruri simulate, ca să verificăm mapping-ul complet. Supabase nu a fost modificat.</span>
         </div>
         <div class="api-metrics">
           <div><span>Meciuri API</span><strong>${escapeHtml(String(data.apiMatches ?? 0))}</strong></div>
