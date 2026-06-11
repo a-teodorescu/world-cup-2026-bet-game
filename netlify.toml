@@ -2,6 +2,11 @@
   directory = "netlify/functions"
   included_files = ["matches.js"]
 
+# 00:30 UTC = 03:30 Romania time in June/July 2026.
+# Sync final scores before daily email report.
+[functions."sync-football-data-results"]
+  schedule = "30 0 * * *"
+
 # Netlify Scheduled Functions use UTC cron.
 # 01:00 UTC = 04:00 Romania time in June/July 2026.
 [functions."scheduled-daily-emails"]

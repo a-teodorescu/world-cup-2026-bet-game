@@ -880,6 +880,55 @@ async function testFootballDataApi() {
 }
 
 
+async function syncFootballDataResults() {
+  if (!isAdminUser()) return toast('Doar adminul poate sincroniza scorurile.');
+  const output = $('footballDataSyncResult');
+  if (output) output.innerHTML = `<div class="api-status loading">Se sincronizează scorurile finale din football-data.org...</div>`;
+  try {
+    const pin = sessionStorage.getItem('wc2026_admin_pin') || prompt('Introdu PIN-ul de admin:');
+    if (!pin) return;
+    sessionStorage.setItem('wc2026_admin_pin', pin);
+    const response = await fetch('/.netlify/functions/sync-football-data-results', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adminEmail: currentUser.email, adminPin: pin })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || data.ok === false) throw new Error(data.error || 'Sincronizarea a eșuat.');
+    if (output) {
+      const updated = Array.isArray(data.updated) ? data.updated : [];
+      const unmatched = Array.isArray(data.unmatchedSample) ? data.unmatchedSample : [];
+      output.innerHTML = `
+        <div class="api-status success">
+          <strong>Sincronizare football-data.org finalizată.</strong>
+          <span>${Number(data.changed || 0) > 0 ? 'Scorurile noi au fost salvate în Supabase.' : 'Nu au fost găsite scoruri noi de salvat.'}</span>
+        </div>
+        <div class="api-metrics">
+          <div><span>Meciuri API</span><strong>${escapeHtml(String(data.apiMatches ?? 0))}</strong></div>
+          <div><span>Finalizate</span><strong>${escapeHtml(String(data.finished ?? 0))}</strong></div>
+          <div><span>Potrivite cu aplicația</span><strong>${escapeHtml(String(data.matched ?? 0))}</strong></div>
+          <div><span>Scoruri modificate</span><strong>${escapeHtml(String(data.changed ?? 0))}</strong></div>
+        </div>
+        ${updated.length ? `<div class="api-sample"><h3>Scoruri sincronizate / găsite</h3>${updated.map(u => `
+          <article>
+            <span>#${escapeHtml(String(u.matchNo || '—'))} · ${escapeHtml(u.dateRo || '')} · API #${escapeHtml(String(u.apiMatchId || '—'))}</span>
+            <strong>${escapeHtml(u.internalHome || u.apiHome)} ${escapeHtml(String(u.home))} - ${escapeHtml(String(u.away))} ${escapeHtml(u.internalAway || u.apiAway)}</strong>
+            <small>${escapeHtml(u.apiHome || '')} vs ${escapeHtml(u.apiAway || '')}</small>
+          </article>`).join('')}</div>` : ''}
+        ${unmatched.length ? `<div class="api-status warning"><strong>Meciuri finalizate neasociate.</strong><span>${unmatched.length} exemple. Pentru eliminatorii poate fi nevoie de actualizarea echipelor reale în aplicație.</span></div><pre>${escapeHtml(JSON.stringify(unmatched, null, 2))}</pre>` : ''}
+      `;
+    }
+    await refreshData();
+    renderAll();
+    toast('Sincronizarea football-data.org a fost executată.');
+  } catch (err) {
+    console.error(err);
+    if (output) output.innerHTML = `<div class="api-status error"><strong>Sincronizarea a eșuat.</strong><span>${escapeHtml(err.message || 'Nu am putut sincroniza scorurile.')}</span></div>`;
+    toast(err.message || 'Nu am putut sincroniza scorurile.');
+  }
+}
+
+
 async function testSportmonksApi() {
   if (!isAdminUser()) return toast('Doar adminul poate testa API-ul.');
   const output = $('sportmonksApiResult');
@@ -1233,6 +1282,8 @@ const testSportmonksApiBtn = $('testSportmonksApi');
 if (testSportmonksApiBtn) testSportmonksApiBtn.addEventListener('click', testSportmonksApi);
 const testFootballDataApiBtn = $('testFootballDataApi');
 if (testFootballDataApiBtn) testFootballDataApiBtn.addEventListener('click', testFootballDataApi);
+const syncFootballDataResultsBtn = $('syncFootballDataResults');
+if (syncFootballDataResultsBtn) syncFootballDataResultsBtn.addEventListener('click', syncFootballDataResults);
 const emailReportDateInput = $('emailReportDate');
 if (emailReportDateInput && !emailReportDateInput.value) emailReportDateInput.value = todayRoKey();
 const emailIncludeAllResultsInput = $('emailIncludeAllResults');
