@@ -153,56 +153,108 @@ function normalizeUserRow(u) {
 }
 
 async function loadOnlineData() {
-  const [{ data: users, error: usersError }, { data: preds, error: predsError }, { data: results, error: resultsError }] = await Promise.all([
-    supabaseClient.from('wc2026_users').select('id, username, email, role, created_at').order('created_at', { ascending: true }),
-    supabaseClient.from('wc2026_predictions').select('user_id, match_id, home, away, updated_at, wc2026_users(email)'),
-    supabaseClient.from('wc2026_results').select('match_id, home, away, updated_at')
+  console.info('[WC2026 login hotfix] loadOnlineData fără join Supabase');
+
+  const [usersResponse, predsResponse, resultsResponse] = await Promise.all([
+    supabaseClient
+      .from('wc2026_users')
+      .select('id, username, email, role, created_at')
+      .order('created_at', { ascending: true }),
+
+    supabaseClient
+      .from('wc2026_predictions')
+      .select('user_id, match_id, home, away, updated_at'),
+
+    supabaseClient
+      .from('wc2026_results')
+      .select('match_id, home, away, updated_at')
   ]);
+
+  const users = usersResponse.data || [];
+  const preds = predsResponse.data || [];
+  const results = resultsResponse.data || [];
+  const usersError = usersResponse.error;
+  const predsError = predsResponse.error;
+  const resultsError = resultsResponse.error;
+
   if (usersError || predsError || resultsError) {
-    console.error({ usersError, predsError, resultsError });
-    throw new Error('Nu am putut încărca datele din Supabase. Verifică dacă ai rulat scriptul SQL și dacă ai completat config.js.');
+    console.error('[WC2026 login hotfix] Supabase load error', { usersError, predsError, resultsError });
+    throw new Error('Nu am putut încărca datele din Supabase. Verifică tabela wc2026_users, RLS și config.js.');
   }
-  usersCache = (users || []).map(normalizeUserRow);
+
+  usersCache = users.map(normalizeUserRow);
+
+  const usersById = {};
+  usersCache.forEach(user => {
+    if (user.id) usersById[user.id] = user;
+  });
+
   predictionsCache = {};
-  (preds || []).forEach(p => {
-    const email = normalize(p.wc2026_users?.email || usersCache.find(u => u.id === p.user_id)?.email);
+  preds.forEach(p => {
+    const email = normalize(usersById[p.user_id]?.email);
     if (!email) return;
     predictionsCache[email] ||= {};
-    predictionsCache[email][p.match_id] = { home: p.home, away: p.away, updatedAt: p.updated_at };
+    predictionsCache[email][p.match_id] = {
+      home: p.home,
+      away: p.away,
+      updatedAt: p.updated_at
+    };
   });
+
   resultsCache = {};
-  (results || []).forEach(r => {
-    resultsCache[r.match_id] = { home: r.home, away: r.away, updatedAt: r.updated_at };
+  results.forEach(r => {
+    resultsCache[r.match_id] = {
+      home: r.home,
+      away: r.away,
+      updatedAt: r.updated_at
+    };
   });
+
   luckyStrikesCache = {};
   try {
     const { data: luckyRows, error: luckyError } = await supabaseClient
       .from('wc2026_lucky_strikes')
-      .select('user_id, team, created_at, wc2026_users(email)');
+      .select('user_id, team, created_at');
+
     if (luckyError) throw luckyError;
+
     (luckyRows || []).forEach(row => {
-      const email = normalize(row.wc2026_users?.email || usersCache.find(u => u.id === row.user_id)?.email);
-      if (email) luckyStrikesCache[email] = { team: row.team, createdAt: row.created_at };
+      const email = normalize(usersById[row.user_id]?.email);
+      if (email) {
+        luckyStrikesCache[email] = {
+          team: row.team,
+          createdAt: row.created_at
+        };
+      }
     });
   } catch (err) {
     console.warn('Lucky Strike nu este încă disponibil în Supabase. Rulează supabase-lucky-strike-schema.sql.', err);
     luckyStrikesCache = {};
   }
+
   matchOverridesCache = {};
   try {
     const { data: overrideRows, error: overrideError } = await supabaseClient
       .from('wc2026_match_overrides')
       .select('match_id, home, away, api_match_id, updated_at');
+
     if (overrideError) throw overrideError;
+
     (overrideRows || []).forEach(row => {
-      if (row.match_id) matchOverridesCache[row.match_id] = { home: row.home, away: row.away, apiMatchId: row.api_match_id, updatedAt: row.updated_at };
+      if (row.match_id) {
+        matchOverridesCache[row.match_id] = {
+          home: row.home,
+          away: row.away,
+          apiMatchId: row.api_match_id,
+          updatedAt: row.updated_at
+        };
+      }
     });
   } catch (err) {
     console.warn('Override-urile pentru eliminatorii nu sunt încă disponibile în Supabase. Rulează supabase-match-overrides-schema.sql.', err);
     matchOverridesCache = {};
   }
 }
-
 function loadLocalData() {
   usersCache = localUsers().map(normalizeUserRow);
   predictionsCache = localPredictions();
