@@ -54,6 +54,7 @@ const TEAM_ALIASES = {
   'united states of america': 'usa',
   'usa': 'usa',
   'bosnia-herzegovina': 'bosnia and herzegovina',
+  'bosnia herzegovina': 'bosnia and herzegovina',
   'bosnia and herzegovina': 'bosnia and herzegovina',
   'côte d’ivoire': 'cote d ivoire',
   'côte d\'ivoire': 'cote d ivoire',
@@ -68,7 +69,13 @@ const TEAM_ALIASES = {
   'england': 'england',
   'scotland': 'scotland',
   'curaçao': 'curacao',
-  'curaçao': 'curacao'
+  'curaçao': 'curacao',
+  'cape verde islands': 'cape verde',
+  'cape verde': 'cape verde',
+  'congo dr': 'dr congo',
+  'dr congo': 'dr congo',
+  'democratic republic of congo': 'dr congo',
+  'd r congo': 'dr congo'
 };
 
 function normalizeTeam(value) {
