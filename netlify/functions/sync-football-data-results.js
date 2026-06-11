@@ -126,6 +126,18 @@ function summarizeApiMatch(match) {
   };
 }
 
+function isGroupStage(apiMatch) {
+  return String(apiMatch?.stage || '').toUpperCase() === 'GROUP_STAGE' || String(apiMatch?.group || '').toUpperCase().startsWith('GROUP_');
+}
+
+function hasKnownTeams(apiMatch) {
+  const home = String(apiMatch?.home || '').trim();
+  const away = String(apiMatch?.away || '').trim();
+  if (!home || !away) return false;
+  const placeholderPattern = /winner|runner|third|group|match|tbd|to be decided|qualified|place/i;
+  return !placeholderPattern.test(home) && !placeholderPattern.test(away);
+}
+
 async function validateAdmin(baseUrl, anonKey, adminEmail, adminPin) {
   const response = await fetch(`${baseUrl}/rest/v1/rpc/wc2026_admin_validate`, {
     method: 'POST',
@@ -197,20 +209,25 @@ async function runSync({ mode, adminEmail, adminPin, simulate = false, simulateC
   const matches = parseMatches();
   const { byTeamAndDate, byTeams } = buildMatchIndexes(matches);
   const apiMatches = await callFootballData(FOOTBALL_DATA_API_TOKEN);
+  const allApiSummaries = apiMatches
+    .map(summarizeApiMatch)
+    .sort((a, b) => new Date(a.utcDate || 0) - new Date(b.utcDate || 0));
+  const groupApiMatches = allApiSummaries.filter(isGroupStage);
+  const knockoutApiMatches = allApiSummaries.filter(m => !isGroupStage(m));
+  const groupReady = groupApiMatches.filter(hasKnownTeams);
+  const knockoutReady = knockoutApiMatches.filter(hasKnownTeams);
   let simulatedMatch = null;
-  let finished = apiMatches.map(summarizeApiMatch).filter(m => {
+  let finished = allApiSummaries.filter(m => {
     const hasScore = m.homeScore !== null && m.homeScore !== undefined && m.awayScore !== null && m.awayScore !== undefined;
-    return String(m.status).toUpperCase() === 'FINISHED' && hasScore;
+    return String(m.status).toUpperCase() === 'FINISHED' && hasScore && hasKnownTeams(m);
   });
 
   if (simulate) {
-    const candidates = apiMatches
-      .map(summarizeApiMatch)
-      .filter(m => m.home && m.away && m.utcDate)
-      .sort((a, b) => new Date(a.utcDate) - new Date(b.utcDate))
+    const readyForSimulation = allApiSummaries
+      .filter(m => m.utcDate && hasKnownTeams(m))
       .slice(0, Math.max(1, Math.min(Number(simulateCount) || 104, 104)));
-    if (!candidates.length) throw new Error('Nu am găsit niciun meci API pentru simulare.');
-    finished = candidates.map((candidate, index) => ({
+    if (!readyForSimulation.length) throw new Error('Nu am găsit niciun meci API cu echipe cunoscute pentru simulare.');
+    finished = readyForSimulation.map((candidate, index) => ({
       ...candidate,
       status: 'SIMULATED_FINISHED',
       // Scoruri simulate diferite, dar stabile, doar pentru test de mapping. Nu se salvează în Supabase.
@@ -240,7 +257,9 @@ async function runSync({ mode, adminEmail, adminPin, simulate = false, simulateC
       internalHome: internal.home,
       internalAway: internal.away,
       matchNo: internal.matchNo,
-      dateRo: internal.romaniaDate
+      dateRo: internal.romaniaDate,
+      apiStage: api.stage,
+      apiGroup: api.group
     });
   }
 
@@ -259,6 +278,25 @@ async function runSync({ mode, adminEmail, adminPin, simulate = false, simulateC
     await replaceResults(SUPABASE_URL, SUPABASE_ANON_KEY, adminEmail, adminPin, payloadRows);
   }
 
+  const matchedGroups = matchedUpdates.filter(u => String(u.apiStage || '').toUpperCase() === 'GROUP_STAGE' || String(u.apiGroup || '').toUpperCase().startsWith('GROUP_')).length;
+  const matchedKnockout = matchedUpdates.length - matchedGroups;
+  const phaseStats = {
+    group: {
+      total: groupApiMatches.length,
+      ready: groupReady.length,
+      simulated: simulate ? finished.filter(isGroupStage).length : undefined,
+      matched: matchedGroups,
+      pending: Math.max(0, groupApiMatches.length - groupReady.length)
+    },
+    knockout: {
+      total: knockoutApiMatches.length,
+      ready: knockoutReady.length,
+      simulated: simulate ? finished.filter(m => !isGroupStage(m)).length : undefined,
+      matched: matchedKnockout,
+      pending: Math.max(0, knockoutApiMatches.length - knockoutReady.length)
+    }
+  };
+
   const summary = {
     mode,
     simulate,
@@ -269,6 +307,7 @@ async function runSync({ mode, adminEmail, adminPin, simulate = false, simulateC
     changed,
     savedTotalResults: payloadRows.length,
     wouldSave: simulate ? matchedUpdates.length : undefined,
+    phaseStats,
     simulatedMatch,
     simulatedMatches: simulate ? finished : undefined,
     updated: matchedUpdates.slice(0, 30),

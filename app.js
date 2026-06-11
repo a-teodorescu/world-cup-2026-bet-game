@@ -932,7 +932,7 @@ async function syncFootballDataResults() {
 async function simulateFootballDataSync() {
   if (!isAdminUser()) return toast('Doar adminul poate simula sincronizarea.');
   const output = $('footballDataSyncResult');
-  if (output) output.innerHTML = `<div class="api-status loading">Se simulează toate cele 104 meciuri finalizate din football-data.org fără salvare în Supabase...</div>`;
+  if (output) output.innerHTML = `<div class="api-status loading">Se simulează toate meciurile cu echipe cunoscute din football-data.org fără salvare în Supabase...</div>`;
   try {
     const pin = sessionStorage.getItem('wc2026_admin_pin') || prompt('Introdu PIN-ul de admin:');
     if (!pin) return;
@@ -948,17 +948,26 @@ async function simulateFootballDataSync() {
       const updated = Array.isArray(data.updated) ? data.updated : [];
       const simulated = data.simulatedMatch || null;
       const unmatched = Array.isArray(data.unmatchedSample) ? data.unmatchedSample : [];
+      const phase = data.phaseStats || {};
+      const group = phase.group || {};
+      const knockout = phase.knockout || {};
+      const groupTotal = Number(group.total || 0);
+      const groupMatched = Number(group.matched || 0);
+      const knockoutTotal = Number(knockout.total || 0);
+      const knockoutReady = Number(knockout.ready || 0);
+      const knockoutPending = Number(knockout.pending || Math.max(0, knockoutTotal - knockoutReady));
       output.innerHTML = `
         <div class="api-status success">
           <strong>Simulare finalizată fără salvare.</strong>
-          <span>Am forțat temporar toate cele 104 meciuri API ca FINISHED, cu scoruri simulate, ca să verificăm mapping-ul complet. Supabase nu a fost modificat.</span>
+          <span>Am forțat temporar meciurile cu echipe cunoscute ca FINISHED, cu scoruri simulate, ca să verificăm mapping-ul complet. Supabase nu a fost modificat.</span>
         </div>
         <div class="api-metrics">
-          <div><span>Meciuri API</span><strong>${escapeHtml(String(data.apiMatches ?? 0))}</strong></div>
-          <div><span>Meciuri simulate</span><strong>${escapeHtml(String(data.finished ?? 0))}</strong></div>
-          <div><span>Potrivite cu aplicația</span><strong>${escapeHtml(String(data.matched ?? 0))}</strong></div>
-          <div><span>Ar fi salvate</span><strong>${escapeHtml(String(data.wouldSave ?? 0))}</strong></div>
+          <div><span>Total meciuri API</span><strong>${escapeHtml(String(data.apiMatches ?? 0))}</strong></div>
+          <div><span>Grupe potrivite</span><strong>${escapeHtml(String(groupMatched))}/${escapeHtml(String(groupTotal))}</strong></div>
+          <div><span>Eliminatorii încă în așteptare</span><strong>${escapeHtml(String(knockoutPending))}/${escapeHtml(String(knockoutTotal))}</strong></div>
+          <div><span>Ar fi salvate acum</span><strong>${escapeHtml(String(data.wouldSave ?? 0))}</strong></div>
         </div>
+        ${knockoutPending ? `<div class="api-status warning"><strong>Eliminatoriile nu sunt încă populate complet.</strong><span>Este normal înainte de terminarea grupelor. Când football-data.org va avea echipele reale pentru meciurile 73-104, funcția de sync le va putea potrivi și salva scorurile.</span></div>` : ''}
         ${simulated ? `<div class="api-sample"><h3>Primul meci API simulat</h3><article>
           <span>API #${escapeHtml(String(simulated.apiMatchId || '—'))} · ${escapeHtml(simulated.dateRo || simulated.utcDate || '')}</span>
           <strong>${escapeHtml(simulated.home || '')} ${escapeHtml(String(simulated.homeScore))} - ${escapeHtml(String(simulated.awayScore))} ${escapeHtml(simulated.away || '')}</strong>
