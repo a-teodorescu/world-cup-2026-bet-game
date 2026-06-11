@@ -1,3 +1,6 @@
+const fs = require('fs');
+const path = require('path');
+
 const json = (statusCode, body) => ({
   statusCode,
   headers: {
@@ -13,6 +16,34 @@ function cleanUrl(url) {
 
 function normalize(value) {
   return String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+
+const LOCK_HOURS_BEFORE_START = 2;
+let matchesCache = null;
+function loadMatches() {
+  if (matchesCache) return matchesCache;
+  const candidates = [
+    path.join(__dirname, '../../matches.js'),
+    path.join(__dirname, '../matches.js'),
+    path.join(__dirname, 'matches.js'),
+    path.join(process.cwd(), 'matches.js')
+  ];
+  for (const candidate of candidates) {
+    if (!fs.existsSync(candidate)) continue;
+    const raw = fs.readFileSync(candidate, 'utf8');
+    const match = raw.match(/window\.WC2026_MATCHES\s*=\s*(\[[\s\S]*?\]);\s*$/);
+    if (!match) throw new Error(`Nu pot interpreta matches.js: ${candidate}`);
+    matchesCache = JSON.parse(match[1]);
+    return matchesCache;
+  }
+  throw new Error('Nu pot citi matches.js. Verifică netlify.toml included_files.');
+}
+function isMatchLocked(matchId) {
+  const match = loadMatches().find(m => m.id === matchId);
+  if (!match || !match.startTimeRo) return false;
+  const lockAt = new Date(match.startTimeRo).getTime() - LOCK_HOURS_BEFORE_START * 60 * 60 * 1000;
+  return Date.now() >= lockAt;
 }
 
 const ADMIN_ACCOUNT = { name: 'admin', email: 'admin@gmail.com' };
@@ -110,16 +141,18 @@ async function registerOrLogin({ name, email }) {
 
 async function savePredictions({ rows }) {
   const safeRows = Array.isArray(rows) ? rows : [];
-  if (!safeRows.length) return { ok: true, saved: 0 };
+  const unlockedRows = safeRows.filter(row => row && row.match_id && !isMatchLocked(row.match_id));
+  const blocked = safeRows.length - unlockedRows.length;
+  if (!unlockedRows.length) return { ok: true, saved: 0, blocked };
   await supabaseFetch('/wc2026_predictions?on_conflict=user_id,match_id', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Prefer: 'resolution=merge-duplicates,return=minimal'
     },
-    body: JSON.stringify(safeRows)
+    body: JSON.stringify(unlockedRows)
   });
-  return { ok: true, saved: safeRows.length };
+  return { ok: true, saved: unlockedRows.length, blocked };
 }
 
 async function saveLuckyStrike({ userId, team }) {

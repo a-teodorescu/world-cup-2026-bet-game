@@ -126,7 +126,7 @@
           <h2>Admin scoruri meciuri</h2>
           <p>Introdu rezultatele reale pentru testare. După salvare, pagina de rezultate, culorile pronosticurilor, clasamentele grupelor și clasamentul userilor se recalculează automat.</p>
         </div>
-        <button id="clearAdminScores" class="ghost small-btn" type="button">Resetează scorurile test</button>
+        <button id="clearAdminScores" class="ghost small-btn test-action" type="button">TEST — Resetează scorurile test</button>
       </div>
       <div class="admin-note">Această secțiune este vizibilă doar pentru admin. În modul online, scorurile se salvează în Supabase și devin vizibile pentru toți userii.</div>
       <div id="adminScoresList" class="admin-scores-list"></div>
@@ -157,7 +157,7 @@
         <div class="email-actions">
           <button id="previewDailyEmails" class="ghost" type="button">Previzualizează emailurile</button>
           <button id="sendDailyEmails" class="primary" type="button">Trimite emailurile acum</button>
-          <button id="testScheduledEmails" class="ghost" type="button">Simulează trimiterea automată acum</button>
+          <button id="testScheduledEmails" class="ghost test-action" type="button">TEST — Simulează trimiterea automată acum</button>
         </div>
         <div class="scheduled-test-box">
           <div class="scheduled-test-copy">
@@ -167,7 +167,7 @@
           <label>Data și ora pornirii testului
             <input id="scheduledTestRunAt" type="datetime-local">
           </label>
-          <button id="scheduleScheduledEmailTest" class="ghost" type="button">Programează test automat</button>
+          <button id="scheduleScheduledEmailTest" class="ghost test-action" type="button">TEST — Programează test automat</button>
           <small id="scheduledTestStatus">Testul va trimite emailuri reale pentru data meciurilor selectată mai sus.</small>
         </div>
       </div>
@@ -185,16 +185,16 @@
         Această secțiune testează API-urile și sincronizează scorurile/echipele reale din sursele externe. Admin scoruri rămâne backup manual.
       </div>
       <div class="email-admin-panel api-admin-panel">
-        <button id="testFootballApi" class="primary" type="button">Testează API-Football</button>
-        <button id="testSportmonksApi" class="ghost" type="button">Testează Sportmonks</button>
-        <button id="testFootballDataApi" class="ghost" type="button">Testează football-data.org</button>
+        <button id="testFootballApi" class="ghost test-action" type="button">TEST — API-Football</button>
+        <button id="testSportmonksApi" class="ghost test-action" type="button">TEST — Sportmonks</button>
+        <button id="testFootballDataApi" class="ghost test-action" type="button">TEST — football-data.org</button>
         <button id="syncFootballDataResults" class="primary" type="button">Sincronizează scorurile finale</button>
         <button id="syncKnockoutFixtures" class="ghost" type="button">Sincronizează echipele eliminatorii</button>
-        <button id="simulateFootballDataSync" class="ghost" type="button">Simulează mapping complet</button>
-        <button id="saveApiScoreTest" class="primary" type="button">Scrie scor API test</button>
-        <button id="resetApiScoreTest" class="ghost" type="button">Resetează scor API test</button>
-        <button id="simulateKnockoutPopulation" class="primary" type="button">Simulează popularea eliminatoriilor</button>
-        <button id="resetKnockoutPopulation" class="ghost" type="button">Resetează eliminatoriile simulate</button>
+        <button id="simulateFootballDataSync" class="ghost test-action" type="button">TEST — Simulează mapping complet</button>
+        <button id="saveApiScoreTest" class="ghost test-action test-write" type="button">TEST — Scrie scor API test</button>
+        <button id="resetApiScoreTest" class="ghost test-action" type="button">TEST — Resetează scor API test</button>
+        <button id="simulateKnockoutPopulation" class="ghost test-action test-write" type="button">TEST — Simulează popularea eliminatoriilor</button>
+        <button id="resetKnockoutPopulation" class="ghost test-action" type="button">TEST — Resetează eliminatoriile simulate</button>
         <small>Testele consumă requesturi din limitele zilnice ale furnizorilor. Sportmonks folosește <strong>SPORTMONKS_API_TOKEN</strong>, iar football-data.org folosește <strong>FOOTBALL_DATA_API_TOKEN</strong>. Butoanele de test pot scrie temporar în Supabase, dar au și reset dedicat.</small>
       </div>
       <div id="footballApiResult" class="api-result"></div>

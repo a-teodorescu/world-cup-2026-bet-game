@@ -524,8 +524,12 @@ $('savePredictions').addEventListener('click', async () => {
       const rows = Object.entries(grouped)
         .filter(([, v]) => v.home != null || v.away != null)
         .map(([matchId, v]) => ({ user_id: currentUser.id, match_id: matchId, home: v.home, away: v.away, updated_at: new Date().toISOString() }));
+      let saveInfo = { saved: 0, blocked: 0 };
       if (rows.length) {
-        await appApi('savePredictions', { rows });
+        saveInfo = await appApi('savePredictions', { rows });
+      }
+      if (saveInfo?.blocked) {
+        toast(`${saveInfo.blocked} pronosticuri blocate nu au fost salvate.`);
       }
     } else {
       const all = localPredictions();

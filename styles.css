@@ -44,6 +44,19 @@ input:disabled { opacity: .45; cursor: not-allowed; }
 button { border: 0; border-radius: 16px; padding: 14px 18px; font-weight: 800; cursor: pointer; color: #07111f; background: var(--text); }
 button.primary { background: linear-gradient(135deg, var(--accent), #d9f99d); }
 button.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+button.test-action {
+  border-color: rgba(253, 176, 34, .65);
+  background: rgba(253, 176, 34, .12);
+  color: #ffe7a3;
+}
+button.test-action:hover {
+  background: rgba(253, 176, 34, .2);
+}
+button.test-action.test-write {
+  border-color: rgba(255, 107, 107, .7);
+  background: rgba(255, 107, 107, .13);
+  color: #ffd1d1;
+}
 .small-btn { padding: 10px 12px; }
 small { color: var(--muted); display: block; margin-top: 12px; }
 .hero-panel { display: flex; justify-content: center; }
