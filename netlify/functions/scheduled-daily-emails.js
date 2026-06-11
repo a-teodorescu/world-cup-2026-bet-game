@@ -225,24 +225,40 @@ async function scheduledDailyEmailsHandler(event = {}) {
     return json(500, { ok: false, error: 'Lipsesc variabilele Netlify pentru Brevo/Supabase.' });
   }
 
-  const isHttpTest = event.httpMethod === 'POST';
+  const isPostRequest = event.httpMethod === 'POST';
   let body = {};
-  if (isHttpTest) {
+  if (isPostRequest) {
     try {
       body = event.body ? JSON.parse(event.body) : {};
     } catch (_) {
       return json(400, { ok: false, error: 'Body JSON invalid.' });
     }
-    const adminEmail = String(body.adminEmail || '').trim().toLowerCase();
-    const adminPin = String(body.adminPin || '');
-    const isAdminValid = await supabaseRpc(SUPABASE_URL, SUPABASE_ANON_KEY, 'wc2026_admin_validate', {
-      admin_email: adminEmail,
-      admin_pin: adminPin
-    });
-    if (isAdminValid !== true) {
-      return json(403, { ok: false, error: 'PIN admin invalid.' });
+
+    // Important: Netlify Scheduled Functions and the Netlify "Run now" button also
+    // invoke the function as POST, usually without our app admin credentials.
+    // We only validate the admin PIN for manual calls coming from the site/Admin UI
+    // where adminEmail/adminPin/reportDate are intentionally sent in the payload.
+    const hasManualAdminPayload = !!(body.adminEmail || body.adminPin || body.reportDate || body.manual === true);
+    console.log('[WC2026 emails][diagnostic] invocation type', JSON.stringify({
+      isPostRequest,
+      hasManualAdminPayload,
+      bodyKeys: Object.keys(body || {})
+    }));
+
+    if (hasManualAdminPayload) {
+      const adminEmail = String(body.adminEmail || '').trim().toLowerCase();
+      const adminPin = String(body.adminPin || '');
+      const isAdminValid = await supabaseRpc(SUPABASE_URL, SUPABASE_ANON_KEY, 'wc2026_admin_validate', {
+        admin_email: adminEmail,
+        admin_pin: adminPin
+      });
+      if (isAdminValid !== true) {
+        return json(403, { ok: false, error: 'PIN admin invalid.' });
+      }
     }
   }
+
+  const isHttpTest = isPostRequest && !!(body.adminEmail || body.adminPin || body.reportDate || body.manual === true);
 
   const todayRo = toIsoDate(getRomaniaDateParts(new Date()));
   const requestedReportDate = String(body.reportDate || '').trim();
