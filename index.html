@@ -191,7 +191,11 @@
         <button id="syncFootballDataResults" class="primary" type="button">Sincronizează scorurile finale</button>
         <button id="syncKnockoutFixtures" class="ghost" type="button">Sincronizează echipele eliminatorii</button>
         <button id="simulateFootballDataSync" class="ghost" type="button">Simulează mapping complet</button>
-        <small>Testele consumă requesturi din limitele zilnice ale furnizorilor. Sportmonks folosește <strong>SPORTMONKS_API_TOKEN</strong>, iar football-data.org folosește <strong>FOOTBALL_DATA_API_TOKEN</strong>.</small>
+        <button id="saveApiScoreTest" class="primary" type="button">Scrie scor API test</button>
+        <button id="resetApiScoreTest" class="ghost" type="button">Resetează scor API test</button>
+        <button id="simulateKnockoutPopulation" class="primary" type="button">Simulează popularea eliminatoriilor</button>
+        <button id="resetKnockoutPopulation" class="ghost" type="button">Resetează eliminatoriile simulate</button>
+        <small>Testele consumă requesturi din limitele zilnice ale furnizorilor. Sportmonks folosește <strong>SPORTMONKS_API_TOKEN</strong>, iar football-data.org folosește <strong>FOOTBALL_DATA_API_TOKEN</strong>. Butoanele de test pot scrie temporar în Supabase, dar au și reset dedicat.</small>
       </div>
       <div id="footballApiResult" class="api-result"></div>
       <div id="sportmonksApiResult" class="api-result"></div>

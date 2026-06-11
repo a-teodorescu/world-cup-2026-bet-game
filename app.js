@@ -1105,6 +1105,159 @@ async function simulateFootballDataSync() {
 }
 
 
+async function saveApiScoreTest() {
+  if (!isAdminUser()) return toast('Doar adminul poate rula testul de scor API.');
+  const output = $('footballDataSyncResult');
+  if (output) output.innerHTML = `<div class="api-status loading">Se scriu scoruri API de test în Supabase...</div>`;
+  try {
+    const pin = sessionStorage.getItem('wc2026_admin_pin') || prompt('Introdu PIN-ul de admin:');
+    if (!pin) return;
+    sessionStorage.setItem('wc2026_admin_pin', pin);
+    const response = await fetch('/.netlify/functions/test-api-score-flow', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adminEmail: currentUser.email, adminPin: pin, action: 'save' })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || data.ok === false) throw new Error(data.error || 'Testul de scor API a eșuat.');
+    const written = Array.isArray(data.written) ? data.written : [];
+    if (output) output.innerHTML = `
+      <div class="api-status success">
+        <strong>Scoruri API de test salvate temporar.</strong>
+        <span>Acest test scrie în Supabase ca să validezi flow-ul complet: Rezultate, Grupe, Clasament și emailuri.</span>
+      </div>
+      <div class="api-metrics">
+        <div><span>Meciuri test scrise</span><strong>${escapeHtml(String(written.length))}</strong></div>
+        <div><span>Total scoruri în Supabase</span><strong>${escapeHtml(String(data.totalResultsAfterWrite ?? '—'))}</strong></div>
+      </div>
+      ${written.length ? `<div class="api-sample"><h3>Scoruri test salvate</h3>${written.map(row => `
+        <article>
+          <span>${escapeHtml(row.match_id || '')} · ${escapeHtml(row.label || '')}</span>
+          <strong>${escapeHtml(String(row.home))} - ${escapeHtml(String(row.away))}</strong>
+          <small>Aceste rezultate sunt temporare. Folosește „Resetează scor API test” după verificare.</small>
+        </article>`).join('')}</div>` : ''}
+    `;
+    await refreshData();
+    renderAll();
+    toast('Scorurile API de test au fost salvate.');
+  } catch (err) {
+    console.error(err);
+    if (output) output.innerHTML = `<div class="api-status error"><strong>Testul a eșuat.</strong><span>${escapeHtml(err.message || 'Nu am putut salva scorurile de test.')}</span></div>`;
+    toast(err.message || 'Nu am putut salva scorurile de test.');
+  }
+}
+
+async function resetApiScoreTest() {
+  if (!isAdminUser()) return toast('Doar adminul poate reseta testul de scor API.');
+  const output = $('footballDataSyncResult');
+  if (output) output.innerHTML = `<div class="api-status loading">Se șterg scorurile API de test din Supabase...</div>`;
+  try {
+    const pin = sessionStorage.getItem('wc2026_admin_pin') || prompt('Introdu PIN-ul de admin:');
+    if (!pin) return;
+    sessionStorage.setItem('wc2026_admin_pin', pin);
+    const response = await fetch('/.netlify/functions/test-api-score-flow', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adminEmail: currentUser.email, adminPin: pin, action: 'reset' })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || data.ok === false) throw new Error(data.error || 'Resetarea scorurilor test a eșuat.');
+    if (output) output.innerHTML = `
+      <div class="api-status success">
+        <strong>Scorurile API de test au fost resetate.</strong>
+        <span>Au fost eliminate rezultatele temporare pentru M001, M002 și M003. Restul rezultatelor, dacă existau, au fost păstrate.</span>
+      </div>
+      <div class="api-metrics">
+        <div><span>Meciuri test eliminate</span><strong>${escapeHtml(String((data.removed || []).length))}</strong></div>
+        <div><span>Scoruri rămase</span><strong>${escapeHtml(String(data.remainingResults ?? 0))}</strong></div>
+      </div>`;
+    await refreshData();
+    renderAll();
+    toast('Scorurile API de test au fost resetate.');
+  } catch (err) {
+    console.error(err);
+    if (output) output.innerHTML = `<div class="api-status error"><strong>Resetarea a eșuat.</strong><span>${escapeHtml(err.message || 'Nu am putut reseta scorurile de test.')}</span></div>`;
+    toast(err.message || 'Nu am putut reseta scorurile de test.');
+  }
+}
+
+async function simulateKnockoutPopulation() {
+  if (!isAdminUser()) return toast('Doar adminul poate simula eliminatoriile.');
+  const output = $('footballDataSyncResult');
+  if (output) output.innerHTML = `<div class="api-status loading">Se populează temporar eliminatoriile cu echipe și steaguri existente...</div>`;
+  try {
+    const pin = sessionStorage.getItem('wc2026_admin_pin') || prompt('Introdu PIN-ul de admin:');
+    if (!pin) return;
+    sessionStorage.setItem('wc2026_admin_pin', pin);
+    const response = await fetch('/.netlify/functions/simulate-knockout-population', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adminEmail: currentUser.email, adminPin: pin, action: 'save' })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || data.ok === false) throw new Error(data.error || 'Simularea eliminatoriilor a eșuat.');
+    const sample = Array.isArray(data.sample) ? data.sample : [];
+    if (output) output.innerHTML = `
+      <div class="api-status success">
+        <strong>Eliminatoriile au fost populate temporar.</strong>
+        <span>Acum poți merge în Pronosticuri → Eliminatorii și să verifici că apar echipe reale simulate, folosind steagurile și dimensiunile deja existente în aplicație.</span>
+      </div>
+      <div class="api-metrics">
+        <div><span>Meciuri populate</span><strong>${escapeHtml(String(data.matchesUpdated ?? 0))}/32</strong></div>
+        <div><span>Steaguri găsite</span><strong>${escapeHtml(String(data.flagsFound ?? 0))}/${escapeHtml(String(data.expectedFlags ?? 64))}</strong></div>
+        <div><span>Placeholder-e rămase</span><strong>${escapeHtml(String(data.placeholdersRemaining ?? 0))}</strong></div>
+      </div>
+      ${sample.length ? `<div class="api-sample"><h3>Exemple eliminatorii simulate</h3>${sample.map(row => `
+        <article>
+          <span>${escapeHtml(row.match_id || '')}</span>
+          <strong>${teamInline(row.home)} <span class="match-vs">vs</span> ${teamInline(row.away, 'right')}</strong>
+          <small>Simulare temporară. Folosește „Resetează eliminatoriile simulate” după verificare.</small>
+        </article>`).join('')}</div>` : ''}`;
+    await refreshData();
+    renderAll();
+    toast('Eliminatoriile au fost populate temporar.');
+  } catch (err) {
+    console.error(err);
+    if (output) output.innerHTML = `<div class="api-status error"><strong>Simularea a eșuat.</strong><span>${escapeHtml(err.message || 'Nu am putut popula eliminatoriile.')}</span></div>`;
+    toast(err.message || 'Nu am putut popula eliminatoriile.');
+  }
+}
+
+async function resetKnockoutPopulation() {
+  if (!isAdminUser()) return toast('Doar adminul poate reseta eliminatoriile simulate.');
+  const output = $('footballDataSyncResult');
+  if (output) output.innerHTML = `<div class="api-status loading">Se readuc eliminatoriile la placeholder-ele inițiale...</div>`;
+  try {
+    const pin = sessionStorage.getItem('wc2026_admin_pin') || prompt('Introdu PIN-ul de admin:');
+    if (!pin) return;
+    sessionStorage.setItem('wc2026_admin_pin', pin);
+    const response = await fetch('/.netlify/functions/simulate-knockout-population', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adminEmail: currentUser.email, adminPin: pin, action: 'reset' })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || data.ok === false) throw new Error(data.error || 'Resetarea eliminatoriilor simulate a eșuat.');
+    if (output) output.innerHTML = `
+      <div class="api-status success">
+        <strong>Eliminatoriile simulate au fost resetate.</strong>
+        <span>Subsecțiunea Eliminatorii revine la placeholder-ele inițiale până când football-data.org va furniza echipele reale.</span>
+      </div>
+      <div class="api-metrics">
+        <div><span>Meciuri resetate</span><strong>${escapeHtml(String(data.matchesUpdated ?? 0))}/32</strong></div>
+        <div><span>Placeholder-e rămase</span><strong>${escapeHtml(String(data.placeholdersRemaining ?? 0))}</strong></div>
+      </div>`;
+    await refreshData();
+    renderAll();
+    toast('Eliminatoriile simulate au fost resetate.');
+  } catch (err) {
+    console.error(err);
+    if (output) output.innerHTML = `<div class="api-status error"><strong>Resetarea a eșuat.</strong><span>${escapeHtml(err.message || 'Nu am putut reseta eliminatoriile simulate.')}</span></div>`;
+    toast(err.message || 'Nu am putut reseta eliminatoriile simulate.');
+  }
+}
+
+
 async function testSportmonksApi() {
   if (!isAdminUser()) return toast('Doar adminul poate testa API-ul.');
   const output = $('sportmonksApiResult');
@@ -1464,6 +1617,14 @@ const syncKnockoutFixturesBtn = $('syncKnockoutFixtures');
 if (syncKnockoutFixturesBtn) syncKnockoutFixturesBtn.addEventListener('click', syncKnockoutFixtures);
 const simulateFootballDataSyncBtn = $('simulateFootballDataSync');
 if (simulateFootballDataSyncBtn) simulateFootballDataSyncBtn.addEventListener('click', simulateFootballDataSync);
+const saveApiScoreTestBtn = $('saveApiScoreTest');
+if (saveApiScoreTestBtn) saveApiScoreTestBtn.addEventListener('click', saveApiScoreTest);
+const resetApiScoreTestBtn = $('resetApiScoreTest');
+if (resetApiScoreTestBtn) resetApiScoreTestBtn.addEventListener('click', resetApiScoreTest);
+const simulateKnockoutPopulationBtn = $('simulateKnockoutPopulation');
+if (simulateKnockoutPopulationBtn) simulateKnockoutPopulationBtn.addEventListener('click', simulateKnockoutPopulation);
+const resetKnockoutPopulationBtn = $('resetKnockoutPopulation');
+if (resetKnockoutPopulationBtn) resetKnockoutPopulationBtn.addEventListener('click', resetKnockoutPopulation);
 const emailReportDateInput = $('emailReportDate');
 if (emailReportDateInput && !emailReportDateInput.value) emailReportDateInput.value = todayRoKey();
 const emailIncludeAllResultsInput = $('emailIncludeAllResults');

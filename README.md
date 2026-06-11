@@ -145,3 +145,15 @@ Apoi intră ca admin în aplicație → `Admin API` → `Testează API-Football`
 ## Knockout flags
 
 Fazele eliminatorii folosesc aceleași asocieri existente de echipă -> steag din aplicație. Datele venite din football-data.org sunt normalizate la denumirile canonice existente (ex. United States -> USA, Bosnia-Herzegovina -> Bosnia and Herzegovina), apoi sunt afișate prin aceeași funcție `flagForTeam`.
+
+
+## Update: teste flow complet API / eliminatorii
+
+Această versiune adaugă în Admin API patru butoane de test:
+
+- `Scrie scor API test` - scrie temporar 3 rezultate în Supabase (`M001`, `M002`, `M003`) ca să validezi Rezultate, Grupe, Clasament și emailuri.
+- `Resetează scor API test` - elimină cele 3 rezultate temporare, păstrând celelalte rezultate existente.
+- `Simulează popularea eliminatoriilor` - populează temporar meciurile 73-104 cu echipe reale simulate din lista deja existentă în aplicație, folosind aceleași steaguri/dimensiuni.
+- `Resetează eliminatoriile simulate` - readuce meciurile 73-104 la placeholder-ele inițiale până când football-data.org va publica echipele reale.
+
+Important: testele scriu temporar în Supabase. După verificare, folosește butoanele de reset.
