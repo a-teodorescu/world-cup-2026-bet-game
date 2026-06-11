@@ -131,7 +131,7 @@ Pentru noua secțiune Lucky Strike, rulează în Supabase SQL Editor fișierul:
 supabase-lucky-strike-schema.sql
 ```
 
-Fiecare user poate salva o singură echipă. Selecția se blochează cu 2 ore înainte de startul meciului #24. Dacă echipa aleasă câștigă finala, userul primește +25p și medalie Lucky Strike în clasament.
+Fiecare user poate salva o singură echipă. Selecția se blochează cu 30 de minute înainte de startul meciului #24. Dacă echipa aleasă câștigă finala, userul primește +25p și medalie Lucky Strike în clasament.
 
 ## API-Football test
 

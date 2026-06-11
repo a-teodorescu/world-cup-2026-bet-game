@@ -19,7 +19,7 @@ function normalize(value) {
 }
 
 
-const LOCK_HOURS_BEFORE_START = 2;
+const LOCK_HOURS_BEFORE_START = 0.5;
 let matchesCache = null;
 function loadMatches() {
   if (matchesCache) return matchesCache;

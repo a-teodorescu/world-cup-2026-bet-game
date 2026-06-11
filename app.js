@@ -8,7 +8,7 @@ const STORAGE = {
   matchOverrides: 'wc2026_match_overrides_v1'
 };
 const ADMIN_ACCOUNT = { name: 'admin', email: 'admin@gmail.com' };
-const LOCK_HOURS_BEFORE_START = 2;
+const LOCK_HOURS_BEFORE_START = 0.5;
 
 const TEAM_FLAGS = {
   'Algeria':'dz','Argentina':'ar','Australia':'au','Austria':'at','Belgium':'be','Bosnia and Herzegovina':'ba','Brazil':'br','Canada':'ca','Cape Verde':'cv','Colombia':'co','Croatia':'hr','Curacao':'cw','Czechia':'cz','DR Congo':'cd','Ecuador':'ec','Egypt':'eg','England':'gb-eng','France':'fr','Germany':'de','Ghana':'gh','Haiti':'ht','Iran':'ir','Iraq':'iq','Ivory Coast':'ci','Japan':'jp','Jordan':'jo','Mexico':'mx','Morocco':'ma','Netherlands':'nl','New Zealand':'nz','Norway':'no','Panama':'pa','Paraguay':'py','Portugal':'pt','Qatar':'qa','Saudi Arabia':'sa','Scotland':'gb-sct','Senegal':'sn','South Africa':'za','South Korea':'kr','Spain':'es','Sweden':'se','Switzerland':'ch','Tunisia':'tn','Turkey':'tr','USA':'us','Uruguay':'uy','Uzbekistan':'uz'
@@ -1459,7 +1459,7 @@ function renderLuckyStrike() {
     const hit = isLuckyWinner(currentUser?.email);
     status.innerHTML = `<div class="lucky-picked"><span class="flag-badge" aria-hidden="true">${flagForTeam(currentPick.team)}</span><div><strong>${escapeHtml(currentPick.team)}</strong><span>${hit ? 'Felicitări! Echipa ta a câștigat finala și primești +25p.' : 'Alegerea este blocată până la finalul turneului.'}</span></div></div>`;
   } else if (lockedByTime) {
-    status.innerHTML = `<div class="lucky-closed"><strong>Selecția Lucky Strike este închisă.</strong><span>Deadline-ul a fost cu 2 ore înainte de startul meciului #24.</span></div>`;
+    status.innerHTML = `<div class="lucky-closed"><strong>Selecția Lucky Strike este închisă.</strong><span>Deadline-ul a fost cu 30 de minute înainte de startul meciului #24.</span></div>`;
   } else {
     status.innerHTML = `<div class="lucky-open"><strong>Selecția este deschisă.</strong><span>Alege echipa despre care crezi că va câștiga finala.</span></div>`;
   }
