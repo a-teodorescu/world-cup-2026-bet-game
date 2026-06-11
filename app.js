@@ -153,41 +153,74 @@ function normalizeUserRow(u) {
 }
 
 async function loadOnlineData() {
-  const [{ data: users, error: usersError }, { data: preds, error: predsError }, { data: results, error: resultsError }] = await Promise.all([
-    supabaseClient.from('wc2026_users').select('id, username, email, role, created_at').order('created_at', { ascending: true }),
-    supabaseClient.from('wc2026_predictions').select('user_id, match_id, home, away, updated_at, wc2026_users(email)'),
-    supabaseClient.from('wc2026_results').select('match_id, home, away, updated_at')
-  ]);
-  if (usersError || predsError || resultsError) {
-    console.error({ usersError, predsError, resultsError });
-    throw new Error('Nu am putut încărca datele din Supabase. Verifică dacă ai rulat scriptul SQL și dacă ai completat config.js.');
+  // Încărcare mai robustă din Supabase: evităm join-urile implicite PostgREST,
+  // pentru ca aplicația să nu pice dacă schema cache-ul Supabase întârzie sau dacă FK-ul nu este expus.
+  let usersResp = await supabaseClient
+    .from('wc2026_users')
+    .select('id, username, email, role, created_at')
+    .order('created_at', { ascending: true });
+
+  // Fallback pentru instalările mai vechi unde coloana role nu există încă.
+  if (usersResp.error) {
+    console.warn('Load users with role failed, retrying without role.', usersResp.error);
+    usersResp = await supabaseClient
+      .from('wc2026_users')
+      .select('id, username, email, created_at')
+      .order('created_at', { ascending: true });
   }
-  usersCache = (users || []).map(normalizeUserRow);
+
+  if (usersResp.error) {
+    console.error({ usersError: usersResp.error });
+    throw new Error('Nu am putut încărca userii din Supabase. Verifică tabela wc2026_users și config.js.');
+  }
+
+  usersCache = (usersResp.data || []).map(normalizeUserRow);
+  const userById = new Map(usersCache.map(u => [u.id, u]));
+
+  const predsResp = await supabaseClient
+    .from('wc2026_predictions')
+    .select('user_id, match_id, home, away, updated_at');
+  if (predsResp.error) {
+    console.error({ predsError: predsResp.error });
+    throw new Error('Nu am putut încărca pronosticurile din Supabase. Verifică tabela wc2026_predictions.');
+  }
+
+  const resultsResp = await supabaseClient
+    .from('wc2026_results')
+    .select('match_id, home, away, updated_at');
+  if (resultsResp.error) {
+    console.error({ resultsError: resultsResp.error });
+    throw new Error('Nu am putut încărca scorurile din Supabase. Verifică tabela wc2026_results.');
+  }
+
   predictionsCache = {};
-  (preds || []).forEach(p => {
-    const email = normalize(p.wc2026_users?.email || usersCache.find(u => u.id === p.user_id)?.email);
+  (predsResp.data || []).forEach(p => {
+    const email = normalize(userById.get(p.user_id)?.email);
     if (!email) return;
     predictionsCache[email] ||= {};
     predictionsCache[email][p.match_id] = { home: p.home, away: p.away, updatedAt: p.updated_at };
   });
+
   resultsCache = {};
-  (results || []).forEach(r => {
+  (resultsResp.data || []).forEach(r => {
     resultsCache[r.match_id] = { home: r.home, away: r.away, updatedAt: r.updated_at };
   });
+
   luckyStrikesCache = {};
   try {
     const { data: luckyRows, error: luckyError } = await supabaseClient
       .from('wc2026_lucky_strikes')
-      .select('user_id, team, created_at, wc2026_users(email)');
+      .select('user_id, team, created_at');
     if (luckyError) throw luckyError;
     (luckyRows || []).forEach(row => {
-      const email = normalize(row.wc2026_users?.email || usersCache.find(u => u.id === row.user_id)?.email);
+      const email = normalize(userById.get(row.user_id)?.email);
       if (email) luckyStrikesCache[email] = { team: row.team, createdAt: row.created_at };
     });
   } catch (err) {
     console.warn('Lucky Strike nu este încă disponibil în Supabase. Rulează supabase-lucky-strike-schema.sql.', err);
     luckyStrikesCache = {};
   }
+
   matchOverridesCache = {};
   try {
     const { data: overrideRows, error: overrideError } = await supabaseClient
