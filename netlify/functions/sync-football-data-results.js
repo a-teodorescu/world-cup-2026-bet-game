@@ -197,15 +197,20 @@ async function runSync({ mode, adminEmail, adminPin, simulate = false }) {
   });
 
   if (simulate) {
-    const candidate = apiMatches.map(summarizeApiMatch).find(m => m.home && m.away && m.utcDate) || null;
-    if (!candidate) throw new Error('Nu am găsit niciun meci API pentru simulare.');
-    simulatedMatch = {
+    const candidates = apiMatches
+      .map(summarizeApiMatch)
+      .filter(m => m.home && m.away && m.utcDate)
+      .sort((a, b) => new Date(a.utcDate) - new Date(b.utcDate))
+      .slice(0, 24);
+    if (!candidates.length) throw new Error('Nu am găsit niciun meci API pentru simulare.');
+    finished = candidates.map((candidate, index) => ({
       ...candidate,
       status: 'SIMULATED_FINISHED',
-      homeScore: 1,
-      awayScore: 0
-    };
-    finished = [simulatedMatch];
+      // Scoruri simulate diferite, dar stabile, doar pentru test de mapping. Nu se salvează în Supabase.
+      homeScore: [1, 2, 0, 1][index % 4],
+      awayScore: [0, 1, 0, 2][index % 4]
+    }));
+    simulatedMatch = finished[0];
   }
 
   const matchedUpdates = [];
@@ -258,7 +263,8 @@ async function runSync({ mode, adminEmail, adminPin, simulate = false }) {
     savedTotalResults: payloadRows.length,
     wouldSave: simulate ? matchedUpdates.length : undefined,
     simulatedMatch,
-    updated: matchedUpdates.slice(0, 20),
+    simulatedMatches: simulate ? finished.slice(0, 24) : undefined,
+    updated: matchedUpdates.slice(0, 30),
     unmatchedSample: unmatched.slice(0, 10)
   };
 
