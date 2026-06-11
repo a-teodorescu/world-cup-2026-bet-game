@@ -76,10 +76,30 @@ function canUseSupabase() {
 }
 
 function initSupabase() {
+  // Keep the existing Supabase config check so the app knows it is in online mode.
+  // Actual DB calls are routed through Netlify Functions to avoid browser CORS/preflight redirects.
   if (!canUseSupabase()) return false;
-  supabaseClient = window.supabase.createClient(window.SUPABASE_CONFIG.url, window.SUPABASE_CONFIG.anonKey);
+  try {
+    supabaseClient = window.supabase.createClient(window.SUPABASE_CONFIG.url, window.SUPABASE_CONFIG.anonKey);
+  } catch (err) {
+    console.warn('Supabase client init failed, but Netlify API can still be used.', err);
+  }
   onlineMode = true;
   return true;
+}
+
+async function appApi(action, payload = {}) {
+  const response = await fetch('/.netlify/functions/app-api', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, ...payload })
+  });
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || data?.error) {
+    throw new Error(data?.error || `API app a eșuat pentru acțiunea ${action}.`);
+  }
+  return data;
 }
 
 function setStorageModeLabel() {
@@ -153,34 +173,14 @@ function normalizeUserRow(u) {
 }
 
 async function loadOnlineData() {
-  console.info('[WC2026 login hotfix] loadOnlineData fără join Supabase');
+  console.info('[WC2026 proxy fix] loadOnlineData prin Netlify Function, fără request direct browser → Supabase');
 
-  const [usersResponse, predsResponse, resultsResponse] = await Promise.all([
-    supabaseClient
-      .from('wc2026_users')
-      .select('id, username, email, role, created_at')
-      .order('created_at', { ascending: true }),
-
-    supabaseClient
-      .from('wc2026_predictions')
-      .select('user_id, match_id, home, away, updated_at'),
-
-    supabaseClient
-      .from('wc2026_results')
-      .select('match_id, home, away, updated_at')
-  ]);
-
-  const users = usersResponse.data || [];
-  const preds = predsResponse.data || [];
-  const results = resultsResponse.data || [];
-  const usersError = usersResponse.error;
-  const predsError = predsResponse.error;
-  const resultsError = resultsResponse.error;
-
-  if (usersError || predsError || resultsError) {
-    console.error('[WC2026 login hotfix] Supabase load error', { usersError, predsError, resultsError });
-    throw new Error('Nu am putut încărca datele din Supabase. Verifică tabela wc2026_users, RLS și config.js.');
-  }
+  const payload = await appApi('loadData');
+  const users = payload.users || [];
+  const preds = payload.predictions || [];
+  const results = payload.results || [];
+  const luckyRows = payload.luckyStrikes || [];
+  const overrideRows = payload.matchOverrides || [];
 
   usersCache = users.map(normalizeUserRow);
 
@@ -211,49 +211,27 @@ async function loadOnlineData() {
   });
 
   luckyStrikesCache = {};
-  try {
-    const { data: luckyRows, error: luckyError } = await supabaseClient
-      .from('wc2026_lucky_strikes')
-      .select('user_id, team, created_at');
-
-    if (luckyError) throw luckyError;
-
-    (luckyRows || []).forEach(row => {
-      const email = normalize(usersById[row.user_id]?.email);
-      if (email) {
-        luckyStrikesCache[email] = {
-          team: row.team,
-          createdAt: row.created_at
-        };
-      }
-    });
-  } catch (err) {
-    console.warn('Lucky Strike nu este încă disponibil în Supabase. Rulează supabase-lucky-strike-schema.sql.', err);
-    luckyStrikesCache = {};
-  }
+  luckyRows.forEach(row => {
+    const email = normalize(usersById[row.user_id]?.email);
+    if (email) {
+      luckyStrikesCache[email] = {
+        team: row.team,
+        createdAt: row.created_at
+      };
+    }
+  });
 
   matchOverridesCache = {};
-  try {
-    const { data: overrideRows, error: overrideError } = await supabaseClient
-      .from('wc2026_match_overrides')
-      .select('match_id, home, away, api_match_id, updated_at');
-
-    if (overrideError) throw overrideError;
-
-    (overrideRows || []).forEach(row => {
-      if (row.match_id) {
-        matchOverridesCache[row.match_id] = {
-          home: row.home,
-          away: row.away,
-          apiMatchId: row.api_match_id,
-          updatedAt: row.updated_at
-        };
-      }
-    });
-  } catch (err) {
-    console.warn('Override-urile pentru eliminatorii nu sunt încă disponibile în Supabase. Rulează supabase-match-overrides-schema.sql.', err);
-    matchOverridesCache = {};
-  }
+  overrideRows.forEach(row => {
+    if (row.match_id) {
+      matchOverridesCache[row.match_id] = {
+        home: row.home,
+        away: row.away,
+        apiMatchId: row.api_match_id,
+        updatedAt: row.updated_at
+      };
+    }
+  });
 }
 function loadLocalData() {
   usersCache = localUsers().map(normalizeUserRow);
@@ -372,19 +350,8 @@ async function registerOrLoginOnline(name, email) {
     throw new Error(`Acest email este deja asociat cu numele „${existing.name}”. Nu poți schimba numele pentru același email.`);
   }
   if (existing) return existing;
-  const role = isAdminUser({ name, email }) ? 'admin' : 'player';
-  const { data, error } = await supabaseClient
-    .from('wc2026_users')
-    .insert({ username: name, email, role })
-    .select('id, username, email, role, created_at')
-    .single();
-  if (error) {
-    if ((error.message || '').toLowerCase().includes('duplicate')) {
-      throw new Error('Acest nume sau email există deja. Reîncarcă pagina și încearcă din nou.');
-    }
-    throw error;
-  }
-  return normalizeUserRow(data);
+  const data = await appApi('registerOrLogin', { name, email });
+  return normalizeUserRow(data.user);
 }
 
 function registerOrLoginLocal(name, email) {
@@ -558,8 +525,7 @@ $('savePredictions').addEventListener('click', async () => {
         .filter(([, v]) => v.home != null || v.away != null)
         .map(([matchId, v]) => ({ user_id: currentUser.id, match_id: matchId, home: v.home, away: v.away, updated_at: new Date().toISOString() }));
       if (rows.length) {
-        const { error } = await supabaseClient.from('wc2026_predictions').upsert(rows, { onConflict: 'user_id,match_id' });
-        if (error) throw error;
+        await appApi('savePredictions', { rows });
       }
     } else {
       const all = localPredictions();
@@ -640,13 +606,12 @@ async function deleteUser(email) {
       const pin = sessionStorage.getItem('wc2026_admin_pin') || prompt('Introdu PIN-ul de admin:');
       if (!pin) return;
       sessionStorage.setItem('wc2026_admin_pin', pin);
-      const { data, error } = await supabaseClient.rpc('wc2026_admin_delete_user', {
-        admin_email: currentUser.email,
-        admin_pin: pin,
-        target_email: email
+      const data = await appApi('adminDeleteUser', {
+        adminEmail: currentUser.email,
+        adminPin: pin,
+        targetEmail: email
       });
-      if (error) throw error;
-      if (data !== true) throw new Error('PIN admin invalid sau user inexistent.');
+      if (data.ok !== true) throw new Error('PIN admin invalid sau user inexistent.');
     } else {
       const users = localUsers().filter(u => normalize(u.email) !== normalize(email));
       saveLocalUsers(users);
@@ -1506,8 +1471,7 @@ async function saveLuckyStrike() {
   if (!ok) return;
   try {
     if (onlineMode) {
-      const { error } = await supabaseClient.from('wc2026_lucky_strikes').insert({ user_id: currentUser.id, team });
-      if (error) throw error;
+      await appApi('saveLuckyStrike', { userId: currentUser.id, team });
     } else {
       const all = localLuckyStrikes();
       all[normalize(currentUser.email)] = { team, createdAt: new Date().toISOString() };
@@ -1596,13 +1560,12 @@ async function saveAdminScores() {
       if (!pin) return;
       sessionStorage.setItem('wc2026_admin_pin', pin);
       const rows = Object.entries(overrides).map(([match_id, v]) => ({ match_id, home: v.home, away: v.away }));
-      const { data, error } = await supabaseClient.rpc('wc2026_admin_replace_results', {
-        admin_email: currentUser.email,
-        admin_pin: pin,
+      const data = await appApi('adminReplaceResults', {
+        adminEmail: currentUser.email,
+        adminPin: pin,
         payload: rows
       });
-      if (error) throw error;
-      if (data !== true) throw new Error('PIN admin invalid.');
+      if (data.ok !== true) throw new Error('PIN admin invalid.');
     } else {
       saveLocalResults(overrides);
     }
@@ -1624,13 +1587,12 @@ async function clearAdminScores() {
       const pin = sessionStorage.getItem('wc2026_admin_pin') || prompt('Introdu PIN-ul de admin:');
       if (!pin) return;
       sessionStorage.setItem('wc2026_admin_pin', pin);
-      const { data, error } = await supabaseClient.rpc('wc2026_admin_replace_results', {
-        admin_email: currentUser.email,
-        admin_pin: pin,
+      const data = await appApi('adminReplaceResults', {
+        adminEmail: currentUser.email,
+        adminPin: pin,
         payload: []
       });
-      if (error) throw error;
-      if (data !== true) throw new Error('PIN admin invalid.');
+      if (data.ok !== true) throw new Error('PIN admin invalid.');
     } else {
       localStorage.removeItem(STORAGE.resultOverrides);
     }
