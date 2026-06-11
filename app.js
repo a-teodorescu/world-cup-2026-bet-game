@@ -771,41 +771,22 @@ async function testFootballApi() {
     if (!response.ok || data.ok === false) throw new Error(data.error || 'Testul API-Football a eșuat.');
     if (output) {
       const fixtures = Array.isArray(data.fixturesSample) ? data.fixturesSample : [];
-      const tests = Array.isArray(data.tests) ? data.tests : [];
       output.innerHTML = `
         <div class="api-status success">
           <strong>Conexiune reușită.</strong>
-          <span>API-Football răspunde pentru league=1, season=2026. Acum testăm mai multe endpoint-uri ca să vedem unde există datele.</span>
+          <span>API-Football răspunde pentru league=1, season=2026.</span>
         </div>
         <div class="api-metrics">
-          <div><span>Fixtures endpoint simplu</span><strong>${data.fixturesCount ?? 0}</strong></div>
-          <div><span>Total fixtures în teste</span><strong>${data.totalFixtureResults ?? 0}</strong></div>
-          <div><span>Endpoint-uri testate</span><strong>${tests.length}</strong></div>
-        </div>
-        <div class="api-status ${Number(data.totalFixtureResults || 0) > 0 ? 'success' : 'warning'}">${escapeHtml(data.note || '')}</div>
-        <div class="api-debug-list">
-          <h3>Endpoint-uri testate</h3>
-          ${tests.map(t => `
-            <article class="api-debug-card ${t.ok ? 'ok' : 'bad'}">
-              <div class="api-debug-head">
-                <strong>${escapeHtml(t.label || 'Endpoint')}</strong>
-                <span>${t.ok ? 'OK' : 'Eroare'} · ${escapeHtml(String(t.status ?? '—'))}</span>
-              </div>
-              <code>${escapeHtml(t.path || '')}</code>
-              <div class="api-debug-meta">
-                <span>results: <b>${escapeHtml(String(t.apiResults ?? '—'))}</b></span>
-                <span>timp: <b>${escapeHtml(String(t.elapsedMs ?? '—'))}ms</b></span>
-              </div>
-              ${t.apiErrors && Object.keys(t.apiErrors || {}).length ? `<small class="api-error-text">${escapeHtml(JSON.stringify(t.apiErrors))}</small>` : ''}
-              ${Array.isArray(t.sample) && t.sample.length ? `<details><summary>Vezi sample</summary><pre>${escapeHtml(JSON.stringify(t.sample, null, 2))}</pre></details>` : ''}
-            </article>`).join('')}
+          <div><span>Fixtures găsite</span><strong>${data.fixturesCount ?? 0}</strong></div>
+          <div><span>Quota rămasă</span><strong>${data.requestsRemaining ?? '—'}</strong></div>
+          <div><span>Plan/limită</span><strong>${data.requestsLimit ?? '—'}</strong></div>
         </div>
         ${fixtures.length ? `<div class="api-sample"><h3>Primele meciuri citite din API</h3>${fixtures.map(f => `
           <article>
-            <span>#${escapeHtml(f.apiFixtureId || '—')} · ${escapeHtml(f.dateRo || f.date || '')} ${f.round ? '· ' + escapeHtml(f.round) : ''}</span>
+            <span>#${escapeHtml(f.apiFixtureId || '—')} · ${escapeHtml(f.dateRo || f.date || '')}</span>
             <strong>${escapeHtml(f.home)} vs ${escapeHtml(f.away)}</strong>
             <small>${escapeHtml(f.status || '')}</small>
-          </article>`).join('')}</div>` : ''}
+          </article>`).join('')}</div>` : `<div class="api-status warning">API-ul răspunde, dar nu a returnat încă fixtures pentru World Cup 2026.</div>`}
       `;
     }
     toast('Test API-Football reușit.');
@@ -813,69 +794,6 @@ async function testFootballApi() {
     console.error(err);
     if (output) output.innerHTML = `<div class="api-status error"><strong>Test eșuat.</strong><span>${escapeHtml(err.message || 'Nu am putut testa API-ul.')}</span></div>`;
     toast(err.message || 'Nu am putut testa API-ul.');
-  }
-}
-
-
-async function testSportmonksApi() {
-  if (!isAdminUser()) return toast('Doar adminul poate testa API-ul.');
-  const output = $('sportmonksApiResult');
-  if (output) output.innerHTML = `<div class="api-status loading">Se verifică Sportmonks pentru World Cup 2026...</div>`;
-  try {
-    const pin = sessionStorage.getItem('wc2026_admin_pin') || prompt('Introdu PIN-ul de admin:');
-    if (!pin) return;
-    sessionStorage.setItem('wc2026_admin_pin', pin);
-    const response = await fetch('/.netlify/functions/test-sportmonks-api', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ adminEmail: currentUser.email, adminPin: pin })
-    });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok || data.ok === false) throw new Error(data.error || 'Testul Sportmonks a eșuat.');
-    if (output) {
-      const fixtures = Array.isArray(data.fixturesSample) ? data.fixturesSample : [];
-      const tests = Array.isArray(data.tests) ? data.tests : [];
-      output.innerHTML = `
-        <div class="api-status success">
-          <strong>Conexiune Sportmonks reușită.</strong>
-          <span>Sportmonks răspunde pentru League ID ${escapeHtml(String(data.leagueId || '—'))}, Season ID ${escapeHtml(String(data.seasonId || '—'))}.</span>
-        </div>
-        <div class="api-metrics">
-          <div><span>Total rezultate fixtures/schedules</span><strong>${escapeHtml(String(data.totalFixtureResults ?? 0))}</strong></div>
-          <div><span>Endpoint-uri testate</span><strong>${tests.length}</strong></div>
-          <div><span>Provider</span><strong>${escapeHtml(data.provider || 'Sportmonks')}</strong></div>
-        </div>
-        <div class="api-status ${Number(data.totalFixtureResults || 0) > 0 ? 'success' : 'warning'}">${escapeHtml(data.note || '')}</div>
-        <div class="api-debug-list">
-          <h3>Endpoint-uri Sportmonks testate</h3>
-          ${tests.map(t => `
-            <article class="api-debug-card ${t.ok ? 'ok' : 'bad'}">
-              <div class="api-debug-head">
-                <strong>${escapeHtml(t.label || 'Endpoint')}</strong>
-                <span>${t.ok ? 'OK' : 'Eroare'} · ${escapeHtml(String(t.status ?? '—'))}</span>
-              </div>
-              <code>${escapeHtml(t.path || '')}</code>
-              <div class="api-debug-meta">
-                <span>results: <b>${escapeHtml(String(t.apiResults ?? '—'))}</b></span>
-                <span>timp: <b>${escapeHtml(String(t.elapsedMs ?? '—'))}ms</b></span>
-              </div>
-              ${t.message ? `<small class="api-error-text">${escapeHtml(typeof t.message === 'string' ? t.message : JSON.stringify(t.message))}</small>` : ''}
-              ${Array.isArray(t.sample) && t.sample.length ? `<details><summary>Vezi sample</summary><pre>${escapeHtml(JSON.stringify(t.sample, null, 2))}</pre></details>` : ''}
-            </article>`).join('')}
-        </div>
-        ${fixtures.length ? `<div class="api-sample"><h3>Primele meciuri citite din Sportmonks</h3>${fixtures.map(f => `
-          <article>
-            <span>#${escapeHtml(f.fixtureId || '—')} · ${escapeHtml(f.dateRo || f.startingAt || '')} ${f.stage ? '· ' + escapeHtml(f.stage) : ''}</span>
-            <strong>${escapeHtml(f.home)} vs ${escapeHtml(f.away)}</strong>
-            <small>${escapeHtml(f.state || '')}</small>
-          </article>`).join('')}</div>` : ''}
-      `;
-    }
-    toast('Test Sportmonks reușit.');
-  } catch (err) {
-    console.error(err);
-    if (output) output.innerHTML = `<div class="api-status error"><strong>Test Sportmonks eșuat.</strong><span>${escapeHtml(err.message || 'Nu am putut testa Sportmonks.')}</span></div>`;
-    toast(err.message || 'Nu am putut testa Sportmonks.');
   }
 }
 
@@ -1166,8 +1084,6 @@ const scheduleScheduledEmailTestBtn = $('scheduleScheduledEmailTest');
 if (scheduleScheduledEmailTestBtn) scheduleScheduledEmailTestBtn.addEventListener('click', scheduleScheduledEmailTest);
 const testFootballApiBtn = $('testFootballApi');
 if (testFootballApiBtn) testFootballApiBtn.addEventListener('click', testFootballApi);
-const testSportmonksApiBtn = $('testSportmonksApi');
-if (testSportmonksApiBtn) testSportmonksApiBtn.addEventListener('click', testSportmonksApi);
 const emailReportDateInput = $('emailReportDate');
 if (emailReportDateInput && !emailReportDateInput.value) emailReportDateInput.value = todayRoKey();
 const emailIncludeAllResultsInput = $('emailIncludeAllResults');

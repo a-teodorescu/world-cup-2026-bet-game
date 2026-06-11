@@ -43,70 +43,6 @@ async function validateAdmin(baseUrl, anonKey, adminEmail, adminPin) {
   if (isAdminValid !== true) throw new Error('PIN admin invalid.');
 }
 
-function summarizeFixture(item) {
-  return {
-    apiFixtureId: item?.fixture?.id,
-    date: item?.fixture?.date,
-    dateRo: roDateTime(item?.fixture?.date),
-    home: item?.teams?.home?.name || '—',
-    away: item?.teams?.away?.name || '—',
-    status: item?.fixture?.status?.long || item?.fixture?.status?.short || '—',
-    round: item?.league?.round || '',
-    venue: item?.fixture?.venue?.name || ''
-  };
-}
-
-function safeArray(data) {
-  return Array.isArray(data?.response) ? data.response : [];
-}
-
-async function callApi(path, apiKey) {
-  const url = `https://v3.football.api-sports.io${path}`;
-  const started = Date.now();
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: {
-      'x-apisports-key': apiKey,
-      'Accept': 'application/json'
-    }
-  });
-  const data = await response.json().catch(() => ({}));
-  const items = safeArray(data);
-  return {
-    path,
-    ok: response.ok,
-    status: response.status,
-    elapsedMs: Date.now() - started,
-    apiErrors: data?.errors || null,
-    apiResults: typeof data?.results === 'number' ? data.results : items.length,
-    paging: data?.paging || null,
-    sample: items.slice(0, 5).map(item => {
-      if (path.startsWith('/fixtures')) return summarizeFixture(item);
-      if (path.startsWith('/leagues')) return {
-        leagueId: item?.league?.id,
-        leagueName: item?.league?.name,
-        country: item?.country?.name,
-        season: item?.seasons?.[0]?.year,
-        current: item?.seasons?.[0]?.current
-      };
-      if (path.startsWith('/teams')) return {
-        teamId: item?.team?.id,
-        name: item?.team?.name,
-        country: item?.team?.country,
-        founded: item?.team?.founded
-      };
-      if (path.startsWith('/standings')) return {
-        league: item?.league?.name,
-        season: item?.league?.season,
-        groups: Array.isArray(item?.league?.standings) ? item.league.standings.length : 0,
-        firstGroupTeams: Array.isArray(item?.league?.standings?.[0]) ? item.league.standings[0].slice(0, 5).map(row => row?.team?.name) : []
-      };
-      return item;
-    }),
-    rawKeys: data ? Object.keys(data) : []
-  };
-}
-
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') return json(405, { ok: false, error: 'Method not allowed' });
 
@@ -127,41 +63,45 @@ exports.handler = async (event) => {
   try {
     await validateAdmin(SUPABASE_URL, SUPABASE_ANON_KEY, adminEmail, adminPin);
 
-    const endpoints = [
-      { label: 'League info', path: '/leagues?id=1&season=2026' },
-      { label: 'Fixtures simple', path: '/fixtures?league=1&season=2026' },
-      { label: 'Fixtures by date 2026-06-11', path: '/fixtures?league=1&season=2026&date=2026-06-11' },
-      { label: 'Fixtures group stage round 1', path: '/fixtures?league=1&season=2026&round=Group Stage - 1' },
-      { label: 'Fixtures group stage', path: '/fixtures?league=1&season=2026&round=Group Stage' },
-      { label: 'Standings', path: '/standings?league=1&season=2026' },
-      { label: 'Teams', path: '/teams?league=1&season=2026' }
-    ];
-
-    const tests = [];
-    for (const endpoint of endpoints) {
-      try {
-        const result = await callApi(endpoint.path, FOOTBALL_API_KEY);
-        tests.push({ label: endpoint.label, ...result });
-      } catch (err) {
-        tests.push({ label: endpoint.label, path: endpoint.path, ok: false, status: 0, error: err.message || 'Request eșuat.' });
+    const url = 'https://v3.football.api-sports.io/fixtures?league=1&season=2026';
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'x-apisports-key': FOOTBALL_API_KEY,
+        'Accept': 'application/json'
       }
+    });
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      return json(response.status, {
+        ok: false,
+        error: data?.message || data?.errors || `API-Football a răspuns cu status ${response.status}`,
+        raw: data
+      });
     }
 
-    const fixturesTest = tests.find(t => t.path === '/fixtures?league=1&season=2026') || tests.find(t => t.path?.startsWith('/fixtures'));
-    const fixtureSamples = tests.flatMap(t => Array.isArray(t.sample) && t.path?.startsWith('/fixtures') ? t.sample : []).slice(0, 8);
-    const totalFixtureResults = tests.filter(t => t.path?.startsWith('/fixtures')).reduce((sum, t) => sum + (Number(t.apiResults) || 0), 0);
+    const fixtures = Array.isArray(data.response) ? data.response : [];
+    const sample = fixtures.slice(0, 8).map(item => ({
+      apiFixtureId: item?.fixture?.id,
+      date: item?.fixture?.date,
+      dateRo: roDateTime(item?.fixture?.date),
+      home: item?.teams?.home?.name || '—',
+      away: item?.teams?.away?.name || '—',
+      status: item?.fixture?.status?.long || item?.fixture?.status?.short || '—',
+      venue: item?.fixture?.venue?.name || ''
+    }));
 
     return json(200, {
       ok: true,
       league: 1,
       season: 2026,
-      fixturesCount: fixturesTest?.apiResults || 0,
-      totalFixtureResults,
-      fixturesSample: fixtureSamples,
-      tests,
-      note: totalFixtureResults > 0
-        ? 'API-ul returnează fixtures pentru cel puțin unul dintre endpoint-urile testate.'
-        : 'API-ul răspunde, dar endpoint-urile testate nu returnează momentan fixtures pentru World Cup 2026.'
+      fixturesCount: fixtures.length,
+      fixturesSample: sample,
+      requestsRemaining: data?.paging ? undefined : (data?.response ? undefined : undefined),
+      requestsLimit: data?.errors ? undefined : undefined,
+      apiResults: data?.results,
+      apiPaging: data?.paging || null
     });
   } catch (err) {
     console.error(err);
