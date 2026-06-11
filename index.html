@@ -178,17 +178,21 @@
       <div class="section-head">
         <div>
           <h2>Admin API rezultate</h2>
-          <p>Testează conexiunea cu API-Football pentru Cupa Mondială 2026 înainte să activăm sincronizarea automată a scorurilor.</p>
+          <p>Testează și compară sursele API pentru Cupa Mondială 2026 înainte să activăm sincronizarea automată a scorurilor.</p>
         </div>
       </div>
       <div class="admin-note">
-        Această secțiune nu modifică scorurile din aplicație. Verifică doar dacă variabila Netlify <strong>FOOTBALL_API_KEY</strong> este setată corect și dacă API-ul răspunde pentru <strong>league=1</strong>, <strong>season=2026</strong>.
+        Această secțiune nu modifică scorurile din aplicație. Verifică API-Football și Sportmonks pentru Cupa Mondială 2026, fără să salveze rezultate în Supabase.
       </div>
       <div class="email-admin-panel api-admin-panel">
         <button id="testFootballApi" class="primary" type="button">Testează API-Football</button>
-        <small>Testul consumă un request din limita zilnică API-Sports.</small>
+        <button id="testSportmonksApi" class="ghost" type="button">Testează Sportmonks</button>
+        <button id="testFootballDataApi" class="ghost" type="button">Testează football-data.org</button>
+        <small>Testele consumă requesturi din limitele zilnice ale furnizorilor. Sportmonks folosește <strong>SPORTMONKS_API_TOKEN</strong>, iar football-data.org folosește <strong>FOOTBALL_DATA_API_TOKEN</strong>.</small>
       </div>
       <div id="footballApiResult" class="api-result"></div>
+      <div id="sportmonksApiResult" class="api-result"></div>
+      <div id="footballDataApiResult" class="api-result"></div>
     </section>
 
 
