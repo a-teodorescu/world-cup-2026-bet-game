@@ -113,7 +113,7 @@ exports.handler = async (event) => {
 
     await upsertOverrides(SUPABASE_URL, SUPABASE_ANON_KEY, rows);
     const flagsFound = rows.reduce((acc, row) => acc + (TEAM_FLAGS[row.home] ? 1 : 0) + (TEAM_FLAGS[row.away] ? 1 : 0), 0);
-    const placeholderPattern = /winner|runner|third|group|match|tbd|to be decided|qualified|place|\d+[a-z]|\d+[a-z]\//i;
+    const placeholderPattern = /winner|loser|runner|third|group|match|tbd|to be decided|qualified|place|\d+[a-z]|\d+[a-z]\//i;
     const placeholdersRemaining = rows.filter(r => placeholderPattern.test(String(r.home)) || placeholderPattern.test(String(r.away))).length;
     const summary = {
       action,
