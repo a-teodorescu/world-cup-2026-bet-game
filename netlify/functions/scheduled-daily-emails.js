@@ -256,13 +256,38 @@ exports.handler = async (event = {}) => {
   // the 2026-06-11 04:00 run sends an informational no-results email for 2026-06-10.
   // The 2026-07-20 04:00 run sends the report for the final day, 2026-07-19.
   if (reportDate < '2026-06-10' || reportDate > '2026-07-19') {
+    console.log('[WC2026 emails] skipped outside competition', JSON.stringify({ mode: reportType, todayRo, reportDate }));
+    await supabaseInsert(SUPABASE_URL, SUPABASE_ANON_KEY, 'wc2026_api_sync_logs', {
+      provider: 'scheduled-daily-emails',
+      mode: reportType,
+      status: 'skipped',
+      summary: { todayRo, reportDate, reason: 'În afara perioadei competiției.' },
+      error_message: null
+    }).catch(() => {});
     return json(200, { ok: true, skipped: true, mode: reportType, reason: 'În afara perioadei competiției.', todayRo, reportDate });
   }
 
+  console.log('[WC2026 emails] start', JSON.stringify({ mode: reportType, todayRo, reportDate, httpTest: isHttpTest }));
+
   const matches = parseMatches();
-  const players = (await supabaseGet(SUPABASE_URL, SUPABASE_ANON_KEY, 'wc2026_users', '?select=id,username,email,role&role=eq.player'))
-    .filter(u => u.email && String(u.email).toLowerCase() !== 'admin@gmail.com')
-    .map(u => ({ id: u.id, name: u.username, email: String(u.email).toLowerCase() }));
+
+  // Important: do not filter directly with role=eq.player. Some early users may have
+  // missing/older role values after schema changes, but they still must receive emails.
+  // We load all users and exclude only explicit admin accounts.
+  const rawUsers = await supabaseGet(SUPABASE_URL, SUPABASE_ANON_KEY, 'wc2026_users', '?select=id,username,email,role');
+  const players = rawUsers
+    .filter(u => {
+      const email = String(u.email || '').trim().toLowerCase();
+      const username = String(u.username || '').trim().toLowerCase();
+      const role = String(u.role || 'player').trim().toLowerCase();
+      if (!email || !email.includes('@')) return false;
+      if (role === 'admin') return false;
+      if (email === 'admin@gmail.com' && username === 'admin') return false;
+      return true;
+    })
+    .map(u => ({ id: u.id, name: u.username || String(u.email).split('@')[0], email: String(u.email).toLowerCase() }));
+
+  console.log('[WC2026 emails] users loaded', JSON.stringify({ rawUsers: rawUsers.length, players: players.length }));
 
   const predictions = await supabaseGet(SUPABASE_URL, SUPABASE_ANON_KEY, 'wc2026_predictions', '?select=user_id,match_id,home,away');
   const resultsRows = await supabaseGet(SUPABASE_URL, SUPABASE_ANON_KEY, 'wc2026_results', '?select=match_id,home,away');
@@ -282,8 +307,16 @@ exports.handler = async (event = {}) => {
     ? (Number(finalResult.home) > Number(finalResult.away) ? finalMatch.home : Number(finalResult.away) > Number(finalResult.home) ? finalMatch.away : null)
     : null;
 
-  const reportMatches = matches.filter(m => m.romaniaDate === reportDate && resultsByMatch.has(m.id));
+  const scheduledMatchesForReportDate = matches.filter(m => m.romaniaDate === reportDate);
+  const reportMatches = scheduledMatchesForReportDate.filter(m => resultsByMatch.has(m.id));
   const noResultsMode = reportMatches.length === 0;
+
+  console.log('[WC2026 emails] report mode', JSON.stringify({
+    reportDate,
+    scheduledMatchesForDate: scheduledMatchesForReportDate.length,
+    finishedResultsForDate: reportMatches.length,
+    noResultsMode
+  }));
 
   const matchesUntilReportDate = matches.filter(m => m.romaniaDate <= reportDate && resultsByMatch.has(m.id));
 
@@ -386,5 +419,33 @@ exports.handler = async (event = {}) => {
     }
   }
 
-  return json(200, { ok: true, mode: reportType, todayRo, reportDate, reportDateRo: formatRoDate(reportDate), matchCount: reportMatches.length, ...summary });
+  const runStatus = summary.failed > 0 ? (summary.sent > 0 ? 'partial' : 'error') : 'success';
+  const runSummary = {
+    todayRo,
+    reportDate,
+    reportDateRo: formatRoDate(reportDate),
+    reportType,
+    scheduledMatchesForDate: scheduledMatchesForReportDate.length,
+    finishedResultsForDate: reportMatches.length,
+    noResultsMode,
+    players: players.length,
+    attempted: summary.attempted,
+    sent: summary.sent,
+    skippedDuplicate: summary.skippedDuplicate,
+    failed: summary.failed
+  };
+
+  await supabaseInsert(SUPABASE_URL, SUPABASE_ANON_KEY, 'wc2026_api_sync_logs', {
+    provider: 'scheduled-daily-emails',
+    mode: reportType,
+    status: runStatus,
+    summary: runSummary,
+    error_message: summary.failed ? `${summary.failed} emailuri au eșuat.` : null
+  }).catch((error) => {
+    console.log('[WC2026 emails] sync log insert failed', error.message);
+  });
+
+  console.log('[WC2026 emails] finished', JSON.stringify({ status: runStatus, ...runSummary }));
+
+  return json(200, { ok: true, mode: reportType, matchCount: reportMatches.length, ...runSummary, ...summary });
 };

@@ -157,3 +157,19 @@ Această versiune adaugă în Admin API patru butoane de test:
 - `Resetează eliminatoriile simulate` - readuce meciurile 73-104 la placeholder-ele inițiale până când football-data.org va publica echipele reale.
 
 Important: testele scriu temporar în Supabase. După verificare, folosește butoanele de reset.
+
+## Fix emailuri automate no-results / logging
+
+Această versiune repară trimiterea emailurilor automate zilnice astfel încât utilizatorii să primească email și în zilele fără meciuri. Funcția `scheduled-daily-emails` nu mai filtrează strict `role=player` în query-ul Supabase, ci încarcă toți userii și exclude doar conturile admin explicite. Astfel, userii creați înainte de modificările de schemă sau cu valori vechi/missing la `role` primesc emailurile.
+
+Au fost adăugate loguri clare în Netlify Function logs:
+- start rulare
+- data raportului
+- număr useri încărcați
+- număr useri eligibili
+- număr meciuri programate în ziua raportului
+- număr rezultate finalizate găsite
+- mod `noResultsMode`
+- emailuri attempted / sent / duplicate / failed
+
+Fiecare rulare scrie și un rezumat în `wc2026_api_sync_logs` cu provider `scheduled-daily-emails`.

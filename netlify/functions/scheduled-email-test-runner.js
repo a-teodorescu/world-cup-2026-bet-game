@@ -237,9 +237,22 @@ async function runOneScheduledTest(test, env) {
   const reportDate = test.report_date;
   const reportType = `one-time-test-${test.id}`;
 
-  const players = (await supabaseGet(SUPABASE_URL, SUPABASE_ANON_KEY, 'wc2026_users', '?select=id,username,email,role&role=eq.player'))
-    .filter(u => u.email && String(u.email).toLowerCase() !== 'admin@gmail.com')
-    .map(u => ({ id: u.id, name: u.username, email: String(u.email).toLowerCase() }));
+  // Load all users and exclude only explicit admin accounts. Older users may not have
+  // a clean role value, but they still must receive scheduled test emails.
+  const rawUsers = await supabaseGet(SUPABASE_URL, SUPABASE_ANON_KEY, 'wc2026_users', '?select=id,username,email,role');
+  const players = rawUsers
+    .filter(u => {
+      const email = String(u.email || '').trim().toLowerCase();
+      const username = String(u.username || '').trim().toLowerCase();
+      const role = String(u.role || 'player').trim().toLowerCase();
+      if (!email || !email.includes('@')) return false;
+      if (role === 'admin') return false;
+      if (email === 'admin@gmail.com' && username === 'admin') return false;
+      return true;
+    })
+    .map(u => ({ id: u.id, name: u.username || String(u.email).split('@')[0], email: String(u.email).toLowerCase() }));
+
+  console.log('[WC2026 one-time emails] users loaded', JSON.stringify({ rawUsers: rawUsers.length, players: players.length }));
   const predictions = await supabaseGet(SUPABASE_URL, SUPABASE_ANON_KEY, 'wc2026_predictions', '?select=user_id,match_id,home,away');
   const resultsRows = await supabaseGet(SUPABASE_URL, SUPABASE_ANON_KEY, 'wc2026_results', '?select=match_id,home,away');
   let luckyRows = [];
@@ -258,8 +271,16 @@ async function runOneScheduledTest(test, env) {
     ? (Number(finalResult.home) > Number(finalResult.away) ? finalMatch.home : Number(finalResult.away) > Number(finalResult.home) ? finalMatch.away : null)
     : null;
 
-  const reportMatches = matches.filter(m => m.romaniaDate === reportDate && resultsByMatch.has(m.id));
+  const scheduledMatchesForReportDate = matches.filter(m => m.romaniaDate === reportDate);
+  const reportMatches = scheduledMatchesForReportDate.filter(m => resultsByMatch.has(m.id));
   const noResultsMode = reportMatches.length === 0;
+
+  console.log('[WC2026 emails] report mode', JSON.stringify({
+    reportDate,
+    scheduledMatchesForDate: scheduledMatchesForReportDate.length,
+    finishedResultsForDate: reportMatches.length,
+    noResultsMode
+  }));
 
   const matchesUntilReportDate = matches.filter(m => m.romaniaDate <= reportDate && resultsByMatch.has(m.id));
   const rankedPlayers = denseRanks(players.map(player => {
