@@ -929,6 +929,59 @@ async function syncFootballDataResults() {
 }
 
 
+async function simulateFootballDataSync() {
+  if (!isAdminUser()) return toast('Doar adminul poate simula sincronizarea.');
+  const output = $('footballDataSyncResult');
+  if (output) output.innerHTML = `<div class="api-status loading">Se simulează un meci finalizat din football-data.org fără salvare în Supabase...</div>`;
+  try {
+    const pin = sessionStorage.getItem('wc2026_admin_pin') || prompt('Introdu PIN-ul de admin:');
+    if (!pin) return;
+    sessionStorage.setItem('wc2026_admin_pin', pin);
+    const response = await fetch('/.netlify/functions/sync-football-data-results', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adminEmail: currentUser.email, adminPin: pin, simulate: true })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || data.ok === false) throw new Error(data.error || 'Simularea a eșuat.');
+    if (output) {
+      const updated = Array.isArray(data.updated) ? data.updated : [];
+      const simulated = data.simulatedMatch || null;
+      const unmatched = Array.isArray(data.unmatchedSample) ? data.unmatchedSample : [];
+      output.innerHTML = `
+        <div class="api-status success">
+          <strong>Simulare finalizată fără salvare.</strong>
+          <span>Am forțat temporar primul meci API ca FINISHED cu scor 1-0 ca să verificăm mapping-ul. Supabase nu a fost modificat.</span>
+        </div>
+        <div class="api-metrics">
+          <div><span>Meciuri API</span><strong>${escapeHtml(String(data.apiMatches ?? 0))}</strong></div>
+          <div><span>Finalizate simulate</span><strong>${escapeHtml(String(data.finished ?? 0))}</strong></div>
+          <div><span>Potrivite cu aplicația</span><strong>${escapeHtml(String(data.matched ?? 0))}</strong></div>
+          <div><span>Ar fi salvate</span><strong>${escapeHtml(String(data.wouldSave ?? 0))}</strong></div>
+        </div>
+        ${simulated ? `<div class="api-sample"><h3>Meci API simulat</h3><article>
+          <span>API #${escapeHtml(String(simulated.apiMatchId || '—'))} · ${escapeHtml(simulated.dateRo || simulated.utcDate || '')}</span>
+          <strong>${escapeHtml(simulated.home || '')} ${escapeHtml(String(simulated.homeScore))} - ${escapeHtml(String(simulated.awayScore))} ${escapeHtml(simulated.away || '')}</strong>
+          <small>${escapeHtml(simulated.status || '')}</small>
+        </article></div>` : ''}
+        ${updated.length ? `<div class="api-sample"><h3>Mapping găsit în aplicație</h3>${updated.map(u => `
+          <article>
+            <span>#${escapeHtml(String(u.matchNo || '—'))} · ${escapeHtml(u.dateRo || '')} · match_id ${escapeHtml(u.match_id || '')}</span>
+            <strong>${escapeHtml(u.internalHome || u.apiHome)} ${escapeHtml(String(u.home))} - ${escapeHtml(String(u.away))} ${escapeHtml(u.internalAway || u.apiAway)}</strong>
+            <small>${escapeHtml(u.apiHome || '')} vs ${escapeHtml(u.apiAway || '')}</small>
+          </article>`).join('')}</div>` : ''}
+        ${unmatched.length ? `<div class="api-status warning"><strong>Simularea nu s-a potrivit cu aplicația.</strong><span>Verificăm aliasurile de echipe sau data meciului.</span></div><pre>${escapeHtml(JSON.stringify(unmatched, null, 2))}</pre>` : ''}
+      `;
+    }
+    toast('Simularea football-data.org a fost executată.');
+  } catch (err) {
+    console.error(err);
+    if (output) output.innerHTML = `<div class="api-status error"><strong>Simularea a eșuat.</strong><span>${escapeHtml(err.message || 'Nu am putut simula sincronizarea.')}</span></div>`;
+    toast(err.message || 'Nu am putut simula sincronizarea.');
+  }
+}
+
+
 async function testSportmonksApi() {
   if (!isAdminUser()) return toast('Doar adminul poate testa API-ul.');
   const output = $('sportmonksApiResult');
@@ -1284,6 +1337,8 @@ const testFootballDataApiBtn = $('testFootballDataApi');
 if (testFootballDataApiBtn) testFootballDataApiBtn.addEventListener('click', testFootballDataApi);
 const syncFootballDataResultsBtn = $('syncFootballDataResults');
 if (syncFootballDataResultsBtn) syncFootballDataResultsBtn.addEventListener('click', syncFootballDataResults);
+const simulateFootballDataSyncBtn = $('simulateFootballDataSync');
+if (simulateFootballDataSyncBtn) simulateFootballDataSyncBtn.addEventListener('click', simulateFootballDataSync);
 const emailReportDateInput = $('emailReportDate');
 if (emailReportDateInput && !emailReportDateInput.value) emailReportDateInput.value = todayRoKey();
 const emailIncludeAllResultsInput = $('emailIncludeAllResults');

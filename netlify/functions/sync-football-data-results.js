@@ -176,7 +176,7 @@ async function callFootballData(token) {
   return Array.isArray(data.matches) ? data.matches : [];
 }
 
-async function runSync({ mode, adminEmail, adminPin }) {
+async function runSync({ mode, adminEmail, adminPin, simulate = false }) {
   const FOOTBALL_DATA_API_TOKEN = process.env.FOOTBALL_DATA_API_TOKEN;
   const SUPABASE_URL = cleanUrl(process.env.SUPABASE_URL);
   const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
@@ -190,10 +190,23 @@ async function runSync({ mode, adminEmail, adminPin }) {
   const matches = parseMatches();
   const { byTeamAndDate, byTeams } = buildMatchIndexes(matches);
   const apiMatches = await callFootballData(FOOTBALL_DATA_API_TOKEN);
-  const finished = apiMatches.map(summarizeApiMatch).filter(m => {
+  let simulatedMatch = null;
+  let finished = apiMatches.map(summarizeApiMatch).filter(m => {
     const hasScore = m.homeScore !== null && m.homeScore !== undefined && m.awayScore !== null && m.awayScore !== undefined;
     return String(m.status).toUpperCase() === 'FINISHED' && hasScore;
   });
+
+  if (simulate) {
+    const candidate = apiMatches.map(summarizeApiMatch).find(m => m.home && m.away && m.utcDate) || null;
+    if (!candidate) throw new Error('Nu am găsit niciun meci API pentru simulare.');
+    simulatedMatch = {
+      ...candidate,
+      status: 'SIMULATED_FINISHED',
+      homeScore: 1,
+      awayScore: 0
+    };
+    finished = [simulatedMatch];
+  }
 
   const matchedUpdates = [];
   const unmatched = [];
@@ -230,18 +243,21 @@ async function runSync({ mode, adminEmail, adminPin }) {
   }
 
   const payloadRows = Array.from(merged.values()).sort((a, b) => String(a.match_id).localeCompare(String(b.match_id)));
-  if (changed > 0) {
+  if (!simulate && changed > 0) {
     await replaceResults(SUPABASE_URL, SUPABASE_ANON_KEY, adminEmail, adminPin, payloadRows);
   }
 
   const summary = {
     mode,
+    simulate,
     apiMatches: apiMatches.length,
     finished: finished.length,
     matched: matchedUpdates.length,
     unmatched: unmatched.length,
     changed,
     savedTotalResults: payloadRows.length,
+    wouldSave: simulate ? matchedUpdates.length : undefined,
+    simulatedMatch,
     updated: matchedUpdates.slice(0, 20),
     unmatchedSample: unmatched.slice(0, 10)
   };
@@ -249,7 +265,7 @@ async function runSync({ mode, adminEmail, adminPin }) {
   await supabaseInsertLog(SUPABASE_URL, SUPABASE_ANON_KEY, {
     provider: 'football-data.org',
     mode,
-    status: 'success',
+    status: simulate ? 'simulated' : 'success',
     summary
   });
 
@@ -262,11 +278,14 @@ exports.handler = async (event) => {
     let adminEmail = process.env.WC2026_ADMIN_EMAIL || 'admin@gmail.com';
     let adminPin = process.env.WC2026_ADMIN_PIN || '';
 
+    let simulate = false;
     if (event.httpMethod === 'POST') {
       mode = 'manual';
       const body = JSON.parse(event.body || '{}');
       adminEmail = body.adminEmail || adminEmail;
       adminPin = body.adminPin || adminPin;
+      simulate = body.simulate === true;
+      if (simulate) mode = 'simulate';
     } else {
       // Real cron gate: do not consume API outside the useful tournament window.
       const todayRo = getRomaniaIsoDate(new Date());
@@ -275,7 +294,7 @@ exports.handler = async (event) => {
       }
     }
 
-    const summary = await runSync({ mode, adminEmail, adminPin });
+    const summary = await runSync({ mode, adminEmail, adminPin, simulate });
     return json(200, { ok: true, ...summary });
   } catch (err) {
     console.error(err);
