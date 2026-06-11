@@ -213,7 +213,7 @@ async function sendBrevo({ apiKey, fromEmail, fromName, to, username, subject, h
   return data.messageId || data.messageIds || data.id || 'sent';
 }
 
-exports.handler = async (event = {}) => {
+async function scheduledDailyEmailsHandler(event = {}) {
   const BREVO_API_KEY = process.env.BREVO_API_KEY;
   const BREVO_FROM_EMAIL = process.env.BREVO_FROM_EMAIL;
   const BREVO_FROM_NAME = process.env.BREVO_FROM_NAME || 'Cupa Mondială Predictor';
@@ -249,7 +249,7 @@ exports.handler = async (event = {}) => {
   const reportDate = isHttpTest && /^\d{4}-\d{2}-\d{2}$/.test(requestedReportDate)
     ? requestedReportDate
     : addDaysIso(todayRo, -1);
-  const reportType = isHttpTest ? 'daily-test' : 'daily';
+  let reportType = isHttpTest ? 'daily-test' : 'daily';
 
   // Competition-day guard. Useful automatic run dates are 2026-06-11 through 2026-07-20.
   // Because the daily cron sends the report for the previous Romania date,
@@ -310,6 +310,7 @@ exports.handler = async (event = {}) => {
   const scheduledMatchesForReportDate = matches.filter(m => m.romaniaDate === reportDate);
   const reportMatches = scheduledMatchesForReportDate.filter(m => resultsByMatch.has(m.id));
   const noResultsMode = reportMatches.length === 0;
+  if (!isHttpTest) reportType = noResultsMode ? 'no_results' : 'daily';
 
   console.log('[WC2026 emails] report mode', JSON.stringify({
     reportDate,
@@ -448,4 +449,45 @@ exports.handler = async (event = {}) => {
   console.log('[WC2026 emails] finished', JSON.stringify({ status: runStatus, ...runSummary }));
 
   return json(200, { ok: true, mode: reportType, matchCount: reportMatches.length, ...runSummary, ...summary });
+};
+
+
+exports.handler = async (event = {}, context = {}) => {
+  const startedAt = new Date().toISOString();
+  console.log('[WC2026 emails][diagnostic] handler invoked', JSON.stringify({
+    startedAt,
+    httpMethod: event && event.httpMethod ? event.httpMethod : null,
+    hasBody: !!(event && event.body),
+    env: {
+      BREVO_API_KEY: !!process.env.BREVO_API_KEY,
+      BREVO_FROM_EMAIL: !!process.env.BREVO_FROM_EMAIL,
+      SUPABASE_URL: !!process.env.SUPABASE_URL,
+      SUPABASE_ANON_KEY: !!process.env.SUPABASE_ANON_KEY,
+      SITE_URL: !!(process.env.SITE_URL || process.env.URL)
+    }
+  }));
+  try {
+    const result = await scheduledDailyEmailsHandler(event);
+    console.log('[WC2026 emails][diagnostic] handler completed', JSON.stringify({
+      statusCode: result && result.statusCode ? result.statusCode : null,
+      finishedAt: new Date().toISOString()
+    }));
+    return result;
+  } catch (error) {
+    console.error('[WC2026 emails][diagnostic] unhandled error', error && (error.stack || error.message) ? (error.stack || error.message) : String(error));
+    try {
+      const baseUrl = cleanUrl(process.env.SUPABASE_URL);
+      const anonKey = process.env.SUPABASE_ANON_KEY;
+      if (baseUrl && anonKey) {
+        await supabaseInsert(baseUrl, anonKey, 'wc2026_api_sync_logs', {
+          provider: 'scheduled-daily-emails',
+          mode: 'diagnostic-error',
+          status: 'error',
+          summary: { startedAt, finishedAt: new Date().toISOString() },
+          error_message: error && error.message ? error.message : String(error)
+        }).catch(() => {});
+      }
+    } catch (_) {}
+    return json(500, { ok: false, error: error && error.message ? error.message : String(error) });
+  }
 };

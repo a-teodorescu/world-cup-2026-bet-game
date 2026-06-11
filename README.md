@@ -173,3 +173,8 @@ Au fost adăugate loguri clare în Netlify Function logs:
 - emailuri attempted / sent / duplicate / failed
 
 Fiecare rulare scrie și un rezumat în `wc2026_api_sync_logs` cu provider `scheduled-daily-emails`.
+
+## Fix diagnostic email automation
+- Added first-line diagnostic logs for `scheduled-daily-emails` so Netlify shows whether the handler is invoked and whether env vars are available.
+- Daily no-match reports now use `report_type = no_results` in `wc2026_email_logs`.
+- Full run status is written to `wc2026_api_sync_logs` when the function completes or fails.
