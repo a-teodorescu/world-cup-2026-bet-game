@@ -358,6 +358,14 @@ code { background: rgba(255,255,255,.1); padding: 2px 7px; border-radius: 8px; c
 .admin-mode .admin-only-section.active {
   display: block !important;
 }
+
+/* Informational text visible only for admin users */
+.admin-info-only {
+  display: none !important;
+}
+.admin-mode .admin-info-only {
+  display: block !important;
+}
 .admin-note {
   margin-bottom: 16px;
   padding: 14px 16px;
