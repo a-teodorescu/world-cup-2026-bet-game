@@ -197,7 +197,8 @@ const NAV_ITEMS = [
   { id: 'lucky-strike', label: 'Lucky Strike' },
   { id: 'clasament', label: 'Clasament' },
   { id: 'admin-scoruri', label: 'Admin scoruri', admin: true },
-  { id: 'admin-emailuri', label: 'Admin emailuri', admin: true }
+  { id: 'admin-emailuri', label: 'Admin emailuri', admin: true },
+  { id: 'admin-api', label: 'Admin API', admin: true }
 ];
 
 function allowedSections() {
@@ -752,6 +753,50 @@ async function scheduleScheduledEmailTest() {
 }
 
 
+
+async function testFootballApi() {
+  if (!isAdminUser()) return toast('Doar adminul poate testa API-ul.');
+  const output = $('footballApiResult');
+  if (output) output.innerHTML = `<div class="api-status loading">Se verifică API-Football pentru World Cup 2026...</div>`;
+  try {
+    const pin = sessionStorage.getItem('wc2026_admin_pin') || prompt('Introdu PIN-ul de admin:');
+    if (!pin) return;
+    sessionStorage.setItem('wc2026_admin_pin', pin);
+    const response = await fetch('/.netlify/functions/test-football-api', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adminEmail: currentUser.email, adminPin: pin })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || data.ok === false) throw new Error(data.error || 'Testul API-Football a eșuat.');
+    if (output) {
+      const fixtures = Array.isArray(data.fixturesSample) ? data.fixturesSample : [];
+      output.innerHTML = `
+        <div class="api-status success">
+          <strong>Conexiune reușită.</strong>
+          <span>API-Football răspunde pentru league=1, season=2026.</span>
+        </div>
+        <div class="api-metrics">
+          <div><span>Fixtures găsite</span><strong>${data.fixturesCount ?? 0}</strong></div>
+          <div><span>Quota rămasă</span><strong>${data.requestsRemaining ?? '—'}</strong></div>
+          <div><span>Plan/limită</span><strong>${data.requestsLimit ?? '—'}</strong></div>
+        </div>
+        ${fixtures.length ? `<div class="api-sample"><h3>Primele meciuri citite din API</h3>${fixtures.map(f => `
+          <article>
+            <span>#${escapeHtml(f.apiFixtureId || '—')} · ${escapeHtml(f.dateRo || f.date || '')}</span>
+            <strong>${escapeHtml(f.home)} vs ${escapeHtml(f.away)}</strong>
+            <small>${escapeHtml(f.status || '')}</small>
+          </article>`).join('')}</div>` : `<div class="api-status warning">API-ul răspunde, dar nu a returnat încă fixtures pentru World Cup 2026.</div>`}
+      `;
+    }
+    toast('Test API-Football reușit.');
+  } catch (err) {
+    console.error(err);
+    if (output) output.innerHTML = `<div class="api-status error"><strong>Test eșuat.</strong><span>${escapeHtml(err.message || 'Nu am putut testa API-ul.')}</span></div>`;
+    toast(err.message || 'Nu am putut testa API-ul.');
+  }
+}
+
 function allSelectableTeams() {
   return [...new Set(MATCHES.filter(isGroup).flatMap(m => [m.home, m.away]).filter(t => TEAM_FLAGS[t]))].sort((a, b) => a.localeCompare(b));
 }
@@ -1037,6 +1082,8 @@ const testScheduledEmailsBtn = $('testScheduledEmails');
 if (testScheduledEmailsBtn) testScheduledEmailsBtn.addEventListener('click', testScheduledEmails);
 const scheduleScheduledEmailTestBtn = $('scheduleScheduledEmailTest');
 if (scheduleScheduledEmailTestBtn) scheduleScheduledEmailTestBtn.addEventListener('click', scheduleScheduledEmailTest);
+const testFootballApiBtn = $('testFootballApi');
+if (testFootballApiBtn) testFootballApiBtn.addEventListener('click', testFootballApi);
 const emailReportDateInput = $('emailReportDate');
 if (emailReportDateInput && !emailReportDateInput.value) emailReportDateInput.value = todayRoKey();
 const emailIncludeAllResultsInput = $('emailIncludeAllResults');

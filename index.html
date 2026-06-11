@@ -27,6 +27,7 @@
       <a href="#clasament">Clasament</a>
       <a href="#admin-scoruri" class="admin-only">Admin scoruri</a>
       <a href="#admin-emailuri" class="admin-only">Admin emailuri</a>
+      <a href="#admin-api" class="admin-only">Admin API</a>
     </nav>
 
     <div class="mobile-nav-wrap" aria-label="Navigare secțiuni">
@@ -39,6 +40,7 @@
         <option value="clasament">Clasament</option>
         <option value="admin-scoruri" class="admin-only-option">Admin scoruri</option>
         <option value="admin-emailuri" class="admin-only-option">Admin emailuri</option>
+        <option value="admin-api" class="admin-only-option">Admin API</option>
       </select>
     </div>
 
@@ -171,6 +173,24 @@
       </div>
       <div id="emailPreview" class="email-preview-list"></div>
     </section>
+
+    <section id="admin-api" class="section app-section admin-only-section" data-section="admin-api">
+      <div class="section-head">
+        <div>
+          <h2>Admin API rezultate</h2>
+          <p>Testează conexiunea cu API-Football pentru Cupa Mondială 2026 înainte să activăm sincronizarea automată a scorurilor.</p>
+        </div>
+      </div>
+      <div class="admin-note">
+        Această secțiune nu modifică scorurile din aplicație. Verifică doar dacă variabila Netlify <strong>FOOTBALL_API_KEY</strong> este setată corect și dacă API-ul răspunde pentru <strong>league=1</strong>, <strong>season=2026</strong>.
+      </div>
+      <div class="email-admin-panel api-admin-panel">
+        <button id="testFootballApi" class="primary" type="button">Testează API-Football</button>
+        <small>Testul consumă un request din limita zilnică API-Sports.</small>
+      </div>
+      <div id="footballApiResult" class="api-result"></div>
+    </section>
+
 
     <section id="lucky-strike" class="section app-section" data-section="lucky-strike">
       <div class="section-head">

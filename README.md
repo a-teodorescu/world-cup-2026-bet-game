@@ -132,3 +132,11 @@ supabase-lucky-strike-schema.sql
 ```
 
 Fiecare user poate salva o singură echipă. Selecția se blochează cu 2 ore înainte de startul meciului #24. Dacă echipa aleasă câștigă finala, userul primește +25p și medalie Lucky Strike în clasament.
+
+## API-Football test
+
+Pentru testarea conexiunii cu API-Football, setează în Netlify Environment variables:
+
+- `FOOTBALL_API_KEY` – cheia din API-Sports / API-Football
+
+Apoi intră ca admin în aplicație → `Admin API` → `Testează API-Football`.
