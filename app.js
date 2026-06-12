@@ -1588,10 +1588,13 @@ function leaderboardTopClass(rank) {
 function leaderboardTopCardMarkup(r, admin) {
   if (!r) return '';
   const adminEmail = admin ? `<span class="leaderboard-email">${escapeHtml(r.email)}</span>` : '';
-  return `<article class="leaderboard-top-card ${leaderboardTopClass(r.rank)}" aria-label="Locul ${r.rank}: ${escapeHtml(r.name)}">
+  const hasAvatar = r.rank === 1;
+  const avatarMarkup = hasAvatar ? `<div class="leaderboard-top-avatar" aria-hidden="true">${leaderboardTopIcon(r.rank)}</div>` : '';
+  const avatarClass = hasAvatar ? 'has-avatar' : 'no-avatar';
+  return `<article class="leaderboard-top-card ${leaderboardTopClass(r.rank)} ${avatarClass}" aria-label="Locul ${r.rank}: ${escapeHtml(r.name)}">
     <div class="leaderboard-top-main">
       <div class="leaderboard-top-rank">#${r.rank}</div>
-      <div class="leaderboard-top-avatar" aria-hidden="true">${leaderboardTopIcon(r.rank)}</div>
+      ${avatarMarkup}
       <div class="leaderboard-top-user"><strong>${escapeHtml(r.name)}</strong>${adminEmail}<span>${r.total} puncte</span></div>
     </div>
     ${leaderboardStatMarkup(r)}

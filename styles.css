@@ -2058,6 +2058,19 @@ section[data-section="clasament"] .admin-visible-note {
   }
 }
 
+
+#clasament .leaderboard-intro-note {
+  margin: 0 auto;
+  max-width: 760px;
+  color: var(--text);
+  opacity: .92;
+}
+
+#clasament .leaderboard-intro-icon {
+  display: inline-block;
+  margin-right: 6px;
+  color: rgba(247,251,255,.92);
+}
 /* CLASAMENT_TOP3_STATS_STRICT_UPDATE
    Only touches the Clasament content below the existing archive header.
    Does not modify .topbar, .brand, .brand-mark, .nav, .desktop-nav or page background. */
@@ -2082,7 +2095,7 @@ section[data-section="clasament"] .admin-visible-note {
 
 #clasament .leaderboard-top-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.03fr) minmax(0, 1.18fr) minmax(0, .92fr);
   align-items: stretch;
   gap: 14px;
 }
@@ -2093,7 +2106,7 @@ section[data-section="clasament"] .admin-visible-note {
   overflow: hidden;
   display: grid;
   align-content: space-between;
-  min-height: 148px;
+  min-height: 154px;
   padding: 16px;
   border: 1px solid color-mix(in srgb, var(--rank-color) 58%, rgba(255,255,255,.16));
   border-radius: 18px;
@@ -2105,13 +2118,13 @@ section[data-section="clasament"] .admin-visible-note {
 
 #clasament .leaderboard-top-card.first {
   --rank-color: var(--yellow);
-  min-height: 162px;
+  min-height: 170px;
   border-width: 1.5px;
   box-shadow: 0 20px 56px rgba(0,0,0,.30), 0 0 30px rgba(253,176,34,.23);
 }
 
-#clasament .leaderboard-top-card.second { --rank-color: #7bb7ff; }
-#clasament .leaderboard-top-card.third { --rank-color: #ff8b3d; }
+#clasament .leaderboard-top-card.second { --rank-color: #7bb7ff; min-height: 156px; }
+#clasament .leaderboard-top-card.third { --rank-color: #ff8b3d; min-height: 146px; }
 
 #clasament .leaderboard-top-main {
   position: relative;
@@ -2121,6 +2134,11 @@ section[data-section="clasament"] .admin-visible-note {
   gap: 12px;
   z-index: 1;
 }
+
+#clasament .leaderboard-top-card.no-avatar .leaderboard-top-main {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
 
 #clasament .leaderboard-top-rank {
   display: grid;
@@ -2369,7 +2387,7 @@ section[data-section="clasament"] .admin-visible-note {
     gap: 16px !important;
   }
   #clasament .leaderboard-top-card {
-    min-height: auto;
+    min-height: auto !important;
     padding: 14px;
   }
   #clasament .leaderboard-top-main {
