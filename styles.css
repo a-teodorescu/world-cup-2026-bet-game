@@ -1374,31 +1374,33 @@ code { background: rgba(255,255,255,.1); padding: 2px 7px; border-radius: 8px; c
   line-height: 1.45;
 }
 
-/* Leaderboard Top 3 podium - reference layout 2026-06-12 */
+/* Leaderboard reference layout - exact visual target, no extra badges */
 .leaderboard-section .leaderboard-head {
   justify-content: center;
   text-align: center;
-  margin-bottom: 38px;
+  margin-bottom: 46px;
 }
 .leaderboard-section .leaderboard-head > div {
   width: 100%;
 }
 .leaderboard-section .leaderboard-head h2 {
   text-align: center;
-  margin-left: auto;
-  margin-right: auto;
+  margin: 0 auto;
+  font-size: clamp(2rem, 3.3vw, 2.75rem);
+  line-height: 1.06;
+  letter-spacing: -0.055em;
 }
 .leaderboard-section .leaderboard-head p {
-  margin-left: auto;
-  margin-right: auto;
+  display: none;
 }
+
 .leaderboard-top {
   display: flex;
   justify-content: center;
   align-items: flex-end;
-  gap: clamp(34px, 5vw, 78px);
-  width: min(100%, 1050px);
-  margin: 0 auto 42px;
+  gap: clamp(42px, 5.2vw, 76px);
+  width: min(100%, 1060px);
+  margin: 0 auto 30px;
 }
 .top-podium-card {
   position: relative;
@@ -1407,103 +1409,106 @@ code { background: rgba(255,255,255,.1); padding: 2px 7px; border-radius: 8px; c
   align-items: center;
   justify-content: center;
   text-align: center;
-  background:
-    radial-gradient(circle at 50% 7%, rgba(255,255,255,.13), transparent 34%),
-    linear-gradient(180deg, rgba(255,255,255,.075), rgba(255,255,255,.035));
-  border: 1.5px solid var(--podium-line, rgba(110,231,249,.58));
-  border-radius: 999px 999px 34px 34px;
-  box-shadow: 0 0 0 1px rgba(255,255,255,.035) inset, 0 18px 64px rgba(0,0,0,.26), 0 0 30px var(--podium-glow, rgba(110,231,249,.08));
-  color: var(--text);
   overflow: visible;
+  background:
+    radial-gradient(circle at 50% 5%, rgba(255,255,255,.12), transparent 38%),
+    linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.025));
+  border: 1.45px solid var(--podium-line, rgba(125,176,255,.72));
+  border-radius: 999px 999px 34px 34px;
+  color: var(--text);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.028) inset,
+    0 22px 58px rgba(0,0,0,.23),
+    0 0 34px var(--podium-glow, rgba(125,176,255,.10));
 }
 .top-podium-first {
-  width: clamp(286px, 26vw, 374px);
-  min-height: clamp(304px, 29vw, 364px);
-  --podium-line: rgba(253, 176, 34, .88);
-  --podium-glow: rgba(253, 176, 34, .20);
+  width: clamp(300px, 25.6vw, 356px);
+  min-height: clamp(286px, 27.6vw, 342px);
+  --podium-line: rgba(250, 204, 21, .88);
+  --podium-glow: rgba(168, 85, 247, .28);
   --podium-accent: #fdb022;
 }
 .top-podium-second {
-  width: clamp(236px, 22vw, 306px);
-  min-height: clamp(250px, 24vw, 304px);
+  width: clamp(252px, 22.2vw, 300px);
+  min-height: clamp(236px, 23vw, 286px);
   --podium-line: rgba(125, 176, 255, .78);
-  --podium-glow: rgba(96, 165, 250, .17);
+  --podium-glow: rgba(96, 165, 250, .18);
   --podium-accent: #8fb8ff;
-  transform: translateY(-10px);
 }
 .top-podium-third {
-  width: clamp(208px, 20vw, 266px);
-  min-height: clamp(224px, 21vw, 270px);
+  width: clamp(218px, 19.6vw, 262px);
+  min-height: clamp(212px, 20.6vw, 260px);
   --podium-line: rgba(251, 146, 60, .88);
-  --podium-glow: rgba(251, 146, 60, .16);
+  --podium-glow: rgba(251, 146, 60, .18);
   --podium-accent: #fb923c;
-  transform: translateY(-4px);
 }
 .top-podium-medal {
   line-height: 1;
-  font-size: clamp(1.4rem, 2.4vw, 2.35rem);
+  font-size: clamp(1.35rem, 2.4vw, 2.15rem);
   margin-bottom: 12px;
-  filter: drop-shadow(0 8px 18px rgba(0,0,0,.28));
+  filter: drop-shadow(0 8px 16px rgba(0,0,0,.28));
 }
 .top-podium-first .top-podium-medal {
-  font-size: clamp(2.1rem, 3.2vw, 3rem);
-  margin-bottom: 10px;
+  font-size: clamp(2rem, 3.15vw, 2.9rem);
+  margin-bottom: 12px;
 }
 .top-podium-rank {
   color: var(--podium-accent);
   font-weight: 950;
-  font-size: clamp(1.55rem, 3vw, 2.4rem);
+  font-size: clamp(1.7rem, 3vw, 2.35rem);
   line-height: 1;
-  letter-spacing: -.04em;
+  letter-spacing: -.045em;
   text-shadow: 0 0 18px var(--podium-glow);
 }
 .top-podium-first .top-podium-rank {
-  font-size: clamp(2rem, 3.8vw, 3.1rem);
+  font-size: clamp(2.15rem, 3.9vw, 3.05rem);
 }
 .top-podium-name {
   max-width: 82%;
   margin-top: 14px;
+  color: #fff;
   font-weight: 900;
-  font-size: clamp(1rem, 2vw, 1.55rem);
+  font-size: clamp(1.05rem, 2vw, 1.48rem);
   line-height: 1.1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .top-podium-first .top-podium-name {
-  font-size: clamp(1.35rem, 2.6vw, 2rem);
+  font-size: clamp(1.35rem, 2.55vw, 1.9rem);
 }
 .top-podium-points {
   margin-top: 14px;
   color: var(--podium-accent);
   font-weight: 950;
-  font-size: clamp(1.45rem, 3vw, 2.6rem);
+  font-size: clamp(1.55rem, 3vw, 2.35rem);
   line-height: 1;
+  letter-spacing: -.04em;
 }
 .top-podium-first .top-podium-points {
-  font-size: clamp(2rem, 4vw, 3.25rem);
+  font-size: clamp(2.1rem, 4vw, 3.1rem);
 }
 .top-podium-divider {
   width: 72%;
   height: 1px;
   margin: 18px 0 14px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.20), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.18), transparent);
 }
 .top-podium-stats {
   display: flex;
   flex-direction: column;
-  gap: 10px;
   align-items: flex-start;
+  gap: 10px;
   min-width: 70%;
   color: rgba(226,232,240,.9);
-  font-size: clamp(.78rem, 1.2vw, .98rem);
+  font-size: clamp(.78rem, 1.12vw, .98rem);
 }
 .lb-stat {
   display: inline-flex !important;
   align-items: center;
   gap: 8px;
   margin: 0 !important;
-  color: rgba(226,232,240,.88) !important;
+  color: rgba(226,232,240,.9) !important;
   line-height: 1.25;
 }
 .lb-stat i {
@@ -1516,50 +1521,52 @@ code { background: rgba(255,255,255,.1); padding: 2px 7px; border-radius: 8px; c
 }
 .lb-stat-exact i {
   border: 2px solid #34d399;
-  box-shadow: 0 0 10px rgba(52,211,153,.22);
+  box-shadow: 0 0 10px rgba(52,211,153,.24);
 }
 .lb-stat-exact i::after {
   content: '';
   width: 4px;
   height: 4px;
-  border-radius: 50%;
+  border-radius: 999px;
   background: #34d399;
 }
 .lb-stat-winner i {
   background: #fdb022;
-  box-shadow: 0 0 12px rgba(253,176,34,.26);
+  box-shadow: 0 0 12px rgba(253,176,34,.30);
 }
 .lb-stat-separator {
   color: rgba(226,232,240,.42) !important;
   margin: 0 2px !important;
 }
+
 .leaderboard-cards {
-  width: min(100%, 1080px);
+  display: grid;
+  gap: 10px;
+  width: min(100%, 1160px);
   margin: 0 auto;
-  gap: 12px;
 }
 .leaderboard-row-card.leaderboard-card {
   position: relative;
   display: grid;
-  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 14px;
-  min-height: 76px;
-  padding: 13px 18px;
-  border-radius: 22px;
-  background: linear-gradient(90deg, rgba(53, 211, 255, .10), rgba(139,92,246,.10));
-  border: 1px solid rgba(110,231,249,.20);
-  box-shadow: 0 12px 34px rgba(0,0,0,.16);
+  gap: 16px;
+  min-height: 74px;
+  padding: 12px 20px;
+  border-radius: 18px;
+  background: linear-gradient(90deg, rgba(53, 211, 255, .095), rgba(139, 92, 246, .095));
+  border: 1px solid rgba(110,231,249,.18);
+  box-shadow: 0 12px 34px rgba(0,0,0,.15);
 }
 .leaderboard-row-card .rank-badge {
   width: 52px;
   height: 52px;
-  border-radius: 15px;
+  border-radius: 14px;
   background: rgba(255,255,255,.095);
   color: #52e7ff;
-  font-size: 1.1rem;
+  font-size: 1.08rem;
   font-weight: 950;
-  text-shadow: 0 0 14px rgba(82,231,255,.28);
+  text-shadow: 0 0 14px rgba(82,231,255,.26);
 }
 .leaderboard-row-card .leaderboard-user {
   min-width: 0;
@@ -1573,13 +1580,18 @@ code { background: rgba(255,255,255,.1); padding: 2px 7px; border-radius: 8px; c
 .leaderboard-row-card .leaderboard-user strong {
   flex: 0 1 auto;
   min-width: 0;
-  max-width: 250px;
+  max-width: 255px;
+  color: #fff;
   font-size: 1rem;
+  font-weight: 900;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .leaderboard-row-card .leaderboard-email {
   display: inline-block;
   margin: 0;
-  max-width: 280px;
+  max-width: 315px;
   color: rgba(226,232,240,.72);
   font-size: .78rem;
   overflow: hidden;
@@ -1589,90 +1601,38 @@ code { background: rgba(255,255,255,.1); padding: 2px 7px; border-radius: 8px; c
 .leaderboard-row-card .leaderboard-stats-line {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   margin-top: 6px;
-  flex-wrap: wrap;
 }
 .leaderboard-row-card .leaderboard-stats-line .lb-stat {
   font-size: .82rem;
 }
+.leaderboard-row-card .leaderboard-points {
+  justify-self: end;
+  min-width: 58px;
+  text-align: center;
+}
 .leaderboard-row-card .leaderboard-points strong {
   color: #c4b5fd;
   font-size: 1.45rem;
+  line-height: 1;
 }
 .leaderboard-row-card .leaderboard-points span {
-  font-size: .7rem;
+  margin-top: 5px;
+  color: rgba(226,232,240,.78);
+  font-size: .68rem;
+  letter-spacing: .08em;
 }
-.lucky-striker-medal {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  pointer-events: none;
-  filter: drop-shadow(0 8px 14px rgba(0,0,0,.34));
-}
-.lucky-coin {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 25%, #fff7ad, #fdb022 42%, #a15c00 100%);
-  border: 2px solid #ffd66b;
-  color: #3b2500;
-  font-size: 1.05rem;
-  font-weight: 950;
-  box-shadow: 0 0 0 2px rgba(255,214,107,.16), 0 0 18px rgba(253,176,34,.38);
-}
-.lucky-ribbon {
-  margin-top: -2px;
-  padding: 2px 4px 3px;
-  border-radius: 3px;
-  background: linear-gradient(180deg, #111827, #020617);
-  border: 1px solid rgba(253,176,34,.78);
-  color: #f8c85a;
-  font-size: .36rem;
-  font-weight: 950;
-  line-height: .86;
-  text-transform: uppercase;
-  letter-spacing: .02em;
-}
-.lucky-striker-medal-top {
-  position: absolute;
-  top: 26px;
-  right: 26px;
-  transform: scale(.92);
-}
-.lucky-striker-medal-row {
-  transform: scale(.72);
-  transform-origin: center;
-  margin-left: -2px;
-  margin-right: -6px;
-}
-.leaderboard-row-card .delete-user {
-  position: absolute;
-  right: 12px;
-  bottom: 10px;
-  width: 30px;
-  height: 30px;
-  min-width: 0;
-  padding: 0;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  background: rgba(255,107,107,.16);
-  border: 1px solid rgba(255,107,107,.42);
-  color: #ffd1d1;
-}
-.admin-mode .leaderboard-row-card .delete-user + * {
-  display: none;
-}
+
 @media (max-width: 900px) {
+  .leaderboard-section .leaderboard-head {
+    margin-bottom: 30px;
+  }
   .leaderboard-top {
-    gap: 14px;
+    gap: 16px;
     align-items: stretch;
-    margin-bottom: 28px;
+    margin-bottom: 24px;
   }
   .top-podium-card,
   .top-podium-first,
@@ -1680,7 +1640,6 @@ code { background: rgba(255,255,255,.1); padding: 2px 7px; border-radius: 8px; c
   .top-podium-third {
     width: 33.333%;
     min-height: 230px;
-    transform: none;
   }
   .top-podium-stats {
     min-width: 82%;
@@ -1688,11 +1647,6 @@ code { background: rgba(255,255,255,.1); padding: 2px 7px; border-radius: 8px; c
   }
   .top-podium-name {
     max-width: 88%;
-  }
-  .lucky-striker-medal-top {
-    top: 16px;
-    right: 12px;
-    transform: scale(.70);
   }
 }
 @media (max-width: 640px) {
@@ -1704,6 +1658,7 @@ code { background: rgba(255,255,255,.1); padding: 2px 7px; border-radius: 8px; c
     align-items: center;
     gap: 16px;
     width: 100%;
+    margin-bottom: 24px;
   }
   .top-podium-card,
   .top-podium-first,
@@ -1716,10 +1671,11 @@ code { background: rgba(255,255,255,.1); padding: 2px 7px; border-radius: 8px; c
   .top-podium-second { order: 2; }
   .top-podium-third { order: 3; }
   .leaderboard-row-card.leaderboard-card {
-    grid-template-columns: auto auto minmax(0, 1fr) auto;
-    gap: 9px;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 10px;
+    min-height: 76px;
     padding: 12px;
-    border-radius: 20px;
+    border-radius: 18px;
   }
   .leaderboard-row-card .rank-badge {
     width: 44px;
@@ -1743,9 +1699,5 @@ code { background: rgba(255,255,255,.1); padding: 2px 7px; border-radius: 8px; c
   }
   .leaderboard-row-card .leaderboard-points strong {
     font-size: 1.18rem;
-  }
-  .lucky-striker-medal-row {
-    transform: scale(.58);
-    margin-right: -10px;
   }
 }

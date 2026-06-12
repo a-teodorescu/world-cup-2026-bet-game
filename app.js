@@ -1504,11 +1504,6 @@ function renderLeaderboard() {
   }
 
   const statLine = (r) => `<span class="lb-stat lb-stat-exact"><i aria-hidden="true"></i>${r.exact} scoruri exacte</span><span class="lb-stat-separator">•</span><span class="lb-stat lb-stat-winner"><i aria-hidden="true"></i>${r.winner} pronosticuri corecte</span>`;
-  const luckyMedal = (r, placement = 'row') => {
-    if (!r.luckyTeam) return '';
-    const title = `Lucky Striker: ${escapeHtml(r.luckyTeam)}`;
-    return `<span class="lucky-striker-medal lucky-striker-medal-${placement}" title="${title}" aria-label="${title}"><span class="lucky-coin">⚡</span><span class="lucky-ribbon">Lucky<br>Striker</span></span>`;
-  };
 
   if (topWrap) {
     const podiumSlots = [
@@ -1520,7 +1515,6 @@ function renderLeaderboard() {
     topWrap.innerHTML = podiumSlots.map(({ row: r, place, cls, medal }) => `
       <article class="top-podium-card top-podium-${cls}">
         <div class="top-podium-medal">${medal}</div>
-        ${luckyMedal(r, 'top')}
         <div class="top-podium-rank">#${place}</div>
         <div class="top-podium-name">${escapeHtml(r.name)}</div>
         <div class="top-podium-points">${r.total}p</div>
@@ -1538,17 +1532,13 @@ function renderLeaderboard() {
 
   list.innerHTML = rest.map((r, index) => {
     const visualPlace = index + 4;
-    const removeButton = admin ? `<button class="delete-user" data-delete-email="${r.email}" title="Șterge userul ${escapeHtml(r.name)}" aria-label="Șterge userul ${escapeHtml(r.name)}">×</button>` : '';
     const adminEmail = admin ? `<span class="leaderboard-email">${escapeHtml(r.email)}</span>` : '';
-    const luckyLine = r.luckyHit ? `<span class="leaderboard-lucky">Lucky Strike: ${escapeHtml(r.luckyTeam)} · +25p</span>` : '';
-    return `<article class="leaderboard-card leaderboard-row-card ${r.luckyHit ? 'lucky-hit' : ''}">
+    return `<article class="leaderboard-card leaderboard-row-card">
       <div class="rank-badge"><span>#${visualPlace}</span></div>
-      ${luckyMedal(r, 'row')}
-      <div class="leaderboard-user"><div class="leaderboard-name-line"><strong>${escapeHtml(r.name)}</strong>${adminEmail}</div><span class="leaderboard-stats-line">${statLine(r)}</span>${luckyLine}</div>
-      <div class="leaderboard-points"><strong>${r.total}p</strong><span>Total</span></div>${removeButton}
+      <div class="leaderboard-user"><div class="leaderboard-name-line"><strong>${escapeHtml(r.name)}</strong>${adminEmail}</div><span class="leaderboard-stats-line">${statLine(r)}</span></div>
+      <div class="leaderboard-points"><strong>${r.total}p</strong><span>Total</span></div>
     </article>`;
   }).join('');
-  document.querySelectorAll('[data-delete-email]').forEach(btn => btn.addEventListener('click', () => deleteUser(btn.dataset.deleteEmail)));
 }
 
 function renderAdminScores() {
