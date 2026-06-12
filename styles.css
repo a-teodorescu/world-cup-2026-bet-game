@@ -1417,3 +1417,328 @@ code { background: rgba(255,255,255,.1); padding: 2px 7px; border-radius: 8px; c
   flex: 1 1 auto;
   text-align: right;
 }
+
+/* SMOOTH_LEADERBOARD_BUBBLES_REFERENCE
+   Design pentru pagina Clasament: buline Top 3 fără colțuri/unghiuri ascuțite.
+   Modifică doar prezentarea vizuală a clasamentului. */
+section[data-section="clasament"] .section-head {
+  display: block;
+  text-align: center;
+  margin-bottom: 28px;
+}
+section[data-section="clasament"] .section-head h2 {
+  margin-bottom: 8px;
+  font-size: clamp(2rem, 3vw, 2.7rem);
+}
+section[data-section="clasament"] .admin-visible-note {
+  margin: 0 auto;
+  max-width: 720px;
+}
+
+.leaderboard-cards {
+  display: block;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.leaderboard-smooth-layout {
+  width: 100%;
+  margin: 0 auto;
+}
+
+.leaderboard-podium {
+  --podium-gap: clamp(22px, 4vw, 56px);
+  display: grid;
+  grid-template-columns: minmax(230px, .92fr) minmax(280px, 1.14fr) minmax(230px, .92fr);
+  align-items: end;
+  justify-content: center;
+  gap: var(--podium-gap);
+  max-width: 920px;
+  margin: 0 auto 28px;
+}
+.leaderboard-podium.single,
+.leaderboard-podium.double {
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.podium-bubble {
+  --podium-color: #7bb7ff;
+  --podium-color-soft: rgba(123, 183, 255, .16);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  max-width: 315px;
+  min-height: 245px;
+  padding: 25px 28px 31px;
+  text-align: center;
+  color: #f7fbff;
+  border: 1.6px solid color-mix(in srgb, var(--podium-color) 92%, transparent);
+  background:
+    radial-gradient(circle at 50% 10%, color-mix(in srgb, var(--podium-color) 18%, transparent) 0 16%, transparent 42%),
+    radial-gradient(circle at 18% 78%, color-mix(in srgb, var(--podium-color) 22%, transparent), transparent 36%),
+    linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.035));
+  border-radius: 48% 48% 40% 40% / 56% 56% 34% 34%;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.035) inset,
+    0 0 28px color-mix(in srgb, var(--podium-color) 40%, transparent),
+    0 26px 70px rgba(0,0,0,.38);
+  transform: translateZ(0);
+}
+.podium-bubble::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at 50% 6%, rgba(255,255,255,.20), transparent 22%),
+    radial-gradient(circle at 73% 76%, color-mix(in srgb, var(--podium-color) 17%, transparent), transparent 38%);
+  opacity: .85;
+}
+.podium-bubble::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  border-radius: inherit;
+  box-shadow: inset 0 -22px 55px rgba(6, 13, 28, .62);
+  pointer-events: none;
+}
+
+.podium-first {
+  --podium-color: #fdb022;
+  --podium-color-soft: rgba(253,176,34,.18);
+  max-width: 360px;
+  min-height: 285px;
+  padding-top: 28px;
+  border-radius: 48% 48% 39% 39% / 57% 57% 33% 33%;
+}
+.podium-second {
+  --podium-color: #7db5ff;
+  max-width: 315px;
+  min-height: 245px;
+}
+.podium-third {
+  --podium-color: #ff8b3d;
+  max-width: 295px;
+  min-height: 235px;
+}
+
+.podium-medal {
+  font-size: clamp(1.9rem, 3vw, 2.5rem);
+  line-height: 1;
+  filter: drop-shadow(0 6px 12px rgba(0,0,0,.35));
+  margin-bottom: 8px;
+}
+.podium-rank {
+  color: var(--podium-color);
+  font-weight: 900;
+  font-size: clamp(1.75rem, 3vw, 2.45rem);
+  line-height: 1;
+  text-shadow: 0 0 22px color-mix(in srgb, var(--podium-color) 46%, transparent);
+  margin-bottom: 14px;
+}
+.podium-name {
+  width: 100%;
+  max-width: 100%;
+  color: #ffffff;
+  font-weight: 900;
+  font-size: clamp(1rem, 1.7vw, 1.55rem);
+  line-height: 1.15;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow: 0 2px 14px rgba(0,0,0,.28);
+  margin-bottom: 12px;
+}
+.podium-points {
+  color: var(--podium-color);
+  font-weight: 900;
+  font-size: clamp(1.75rem, 3.4vw, 2.65rem);
+  line-height: 1;
+  letter-spacing: -.04em;
+  text-shadow: 0 0 25px color-mix(in srgb, var(--podium-color) 42%, transparent);
+}
+.podium-divider {
+  width: 80%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.18), transparent);
+  margin: 18px 0 14px;
+}
+.lb-smooth-stats {
+  width: 100%;
+  display: grid;
+  gap: 9px;
+  color: rgba(235,244,255,.84);
+  font-weight: 600;
+  font-size: clamp(.76rem, 1vw, .94rem);
+}
+.lb-smooth-stat {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  min-width: 0;
+  white-space: nowrap;
+}
+.lb-smooth-stat i {
+  width: 14px;
+  height: 14px;
+  display: inline-block;
+  flex: 0 0 auto;
+  border-radius: 999px;
+}
+.lb-smooth-stat.exact i {
+  border: 2px solid #20f6aa;
+  box-shadow: inset 0 0 0 3px rgba(6,13,28,.85), 0 0 10px rgba(32,246,170,.45);
+}
+.lb-smooth-stat.winner i {
+  background: #fdb022;
+  box-shadow: 0 0 12px rgba(253,176,34,.42);
+}
+
+.leaderboard-list-smooth {
+  display: grid;
+  gap: 8px;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+.leaderboard-row-card {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  min-height: 64px;
+  padding: 10px 18px 10px 14px;
+  border: 1px solid rgba(110, 231, 249, .16);
+  border-radius: 22px;
+  background: linear-gradient(90deg, rgba(255,255,255,.105), rgba(255,255,255,.055));
+  box-shadow: 0 14px 42px rgba(0,0,0,.24);
+}
+.leaderboard-rank-box {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  color: #42ecff;
+  font-weight: 900;
+  font-size: 1.15rem;
+  background: rgba(255,255,255,.08);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+}
+.leaderboard-row-main {
+  min-width: 0;
+}
+.leaderboard-row-user {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  min-width: 0;
+  margin-bottom: 5px;
+}
+.leaderboard-row-user strong {
+  color: #ffffff;
+  font-size: .98rem;
+  font-weight: 900;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.leaderboard-row-user .leaderboard-email {
+  color: rgba(210,222,241,.72);
+  font-size: .82rem;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.leaderboard-row-card .lb-smooth-stats {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  font-size: .82rem;
+}
+.leaderboard-row-card .lb-smooth-stat i {
+  width: 13px;
+  height: 13px;
+}
+.leaderboard-total {
+  min-width: 58px;
+  text-align: right;
+  color: #cdb7ff;
+}
+.leaderboard-total strong {
+  display: block;
+  font-size: 1.35rem;
+  line-height: 1;
+  font-weight: 900;
+}
+.leaderboard-total span {
+  display: block;
+  margin-top: 5px;
+  color: rgba(230,238,255,.74);
+  font-size: .68rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 980px) {
+  .leaderboard-podium {
+    grid-template-columns: 1fr;
+    max-width: 420px;
+    gap: 18px;
+  }
+  .podium-first,
+  .podium-second,
+  .podium-third {
+    max-width: 100%;
+    min-height: 235px;
+  }
+  .podium-first { order: 1; }
+  .podium-second { order: 2; }
+  .podium-third { order: 3; }
+}
+
+@media (max-width: 640px) {
+  section[data-section="clasament"] .section-head {
+    margin-bottom: 20px;
+  }
+  .podium-bubble {
+    min-height: 218px;
+    padding: 22px 22px 26px;
+    border-radius: 48% 48% 38% 38% / 55% 55% 32% 32%;
+  }
+  .leaderboard-row-card {
+    grid-template-columns: 46px minmax(0,1fr) auto;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 18px;
+  }
+  .leaderboard-rank-box {
+    width: 42px;
+    height: 42px;
+    font-size: 1rem;
+  }
+  .leaderboard-row-user {
+    display: block;
+  }
+  .leaderboard-row-user strong,
+  .leaderboard-row-user .leaderboard-email {
+    display: block;
+  }
+  .leaderboard-total strong {
+    font-size: 1.1rem;
+  }
+}

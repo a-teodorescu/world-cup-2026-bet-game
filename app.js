@@ -1530,20 +1530,57 @@ function renderLeaderboard() {
   const rows = computeLeaderboardRows();
   const admin = isAdminUser();
   const list = $('leaderboardCards');
-  if (!rows.length) return list.innerHTML = `<div class="empty">Nu există useri încă.</div>`;
-  list.innerHTML = rows.map((r) => {
-    const medal = r.rank === 1 ? '🥇' : r.rank === 2 ? '🥈' : r.rank === 3 ? '🥉' : `#${r.rank}`;
-    const luckyMedal = r.luckyHit ? '<span class="lucky-rank-medal" title="Lucky Strike câștigător">🍀</span>' : '';
-    const luckyLine = r.luckyHit ? `<span class="leaderboard-lucky">Lucky Strike: ${escapeHtml(r.luckyTeam)} · +25p</span>` : '';
-    const removeButton = admin ? `<button class="delete-user" data-delete-email="${r.email}" title="Șterge userul ${r.name}" aria-label="Șterge userul ${r.name}">×</button>` : '';
-    const adminEmail = admin ? `<span class="leaderboard-email">${r.email}</span>` : '';
-    return `<article class="leaderboard-card ${r.rank <= 3 ? 'podium' : ''} ${r.luckyHit ? 'lucky-hit' : ''}">
-      <div class="rank-badge"><span>${medal}</span>${luckyMedal}</div>
-      <div class="leaderboard-user"><strong>${r.name}</strong>${adminEmail}<span>${r.exact} scoruri exacte · ${r.winner} pronosticuri corecte</span>${luckyLine}</div>
-      <div class="leaderboard-points"><strong>${r.total}p</strong><span>Total</span></div>${removeButton}
+  if (!list) return;
+  if (!rows.length) {
+    list.innerHTML = `<div class="empty">Nu există useri încă.</div>`;
+    return;
+  }
+
+  const statLine = (r) => `<div class="lb-smooth-stats">
+    <span class="lb-smooth-stat exact"><i aria-hidden="true"></i>${r.exact} scoruri exacte</span>
+    <span class="lb-smooth-stat winner"><i aria-hidden="true"></i>${r.winner} pronosticuri corecte</span>
+  </div>`;
+
+  const podiumCard = (r, slot) => {
+    if (!r) return '';
+    const slotClass = slot === 1 ? 'first' : slot === 2 ? 'second' : 'third';
+    const medal = slot === 1 ? '👑' : slot === 2 ? '🥈' : '🥉';
+    return `<article class="podium-bubble podium-${slotClass}" aria-label="Locul ${r.rank}: ${escapeHtml(r.name)}">
+      <div class="podium-medal" aria-hidden="true">${medal}</div>
+      <div class="podium-rank">#${r.rank}</div>
+      <div class="podium-name">${escapeHtml(r.name)}</div>
+      <div class="podium-points">${r.total}p</div>
+      <div class="podium-divider"></div>
+      ${statLine(r)}
+    </article>`;
+  };
+
+  const podiumRows = [
+    { row: rows[1], slot: 2 },
+    { row: rows[0], slot: 1 },
+    { row: rows[2], slot: 3 }
+  ].filter(item => item.row);
+
+  const restRows = rows.slice(3).map((r) => {
+    const adminEmail = admin ? `<span class="leaderboard-email">${escapeHtml(r.email)}</span>` : '';
+    return `<article class="leaderboard-row-card" aria-label="Locul ${r.rank}: ${escapeHtml(r.name)}">
+      <div class="leaderboard-rank-box">#${r.rank}</div>
+      <div class="leaderboard-row-main">
+        <div class="leaderboard-row-user"><strong>${escapeHtml(r.name)}</strong>${adminEmail}</div>
+        ${statLine(r)}
+      </div>
+      <div class="leaderboard-total"><strong>${r.total}p</strong><span>Total</span></div>
     </article>`;
   }).join('');
-  document.querySelectorAll('[data-delete-email]').forEach(btn => btn.addEventListener('click', () => deleteUser(btn.dataset.deleteEmail)));
+
+  list.innerHTML = `<div class="leaderboard-smooth-layout">
+    <div class="leaderboard-podium ${podiumRows.length === 1 ? 'single' : podiumRows.length === 2 ? 'double' : ''}">
+      ${podiumRows.map(item => podiumCard(item.row, item.slot)).join('')}
+    </div>
+    <div class="leaderboard-list-smooth">
+      ${restRows || `<div class="empty">Clasamentul are momentan doar ${rows.length} useri.</div>`}
+    </div>
+  </div>`;
 }
 
 function renderAdminScores() {
