@@ -657,7 +657,8 @@ function computeLeaderboardRows(matchesScope = allMatches()) {
     });
     const luckyHit = applyLucky && isLuckyWinner(u.email);
     if (luckyHit) total += 25;
-    return { ...u, exact, winner, total, luckyHit, luckyTeam: luckyForEmail(u.email)?.team || null };
+    const luckyPick = luckyForEmail(u.email);
+    return { ...u, exact, winner, total, luckyHit, luckyTeam: luckyPick?.team || null, hasLuckyPick: !!luckyPick?.team };
   }).sort((a,b) => b.total-a.total || b.exact-a.exact || a.name.localeCompare(b.name));
   let currentRank = 0, previousPoints = null;
   return rows.map(r => {
@@ -1518,8 +1519,8 @@ function renderTopLeaderboard(topRows) {
   wrap.innerHTML = ordered.map(({ row, displayRank }) => {
     const placeClass = `place-${displayRank}`;
     const placeIcon = displayRank === 1 ? '👑' : displayRank === 2 ? '🥈' : '🥉';
-    const lucky = row.luckyHit ? luckyStrikerMedal('top-lucky-striker') : '';
-    return `<article class="top-leader-card ${placeClass} ${row.luckyHit ? 'has-lucky-striker' : ''}">
+    const lucky = row.hasLuckyPick ? luckyStrikerMedal('top-lucky-striker') : '';
+    return `<article class="top-leader-card ${placeClass} ${row.hasLuckyPick ? 'has-lucky-striker' : ''}">
       <div class="top-place-icon" aria-hidden="true">${placeIcon}</div>
       ${lucky}
       <div class="top-place">#${displayRank}</div>
@@ -1553,10 +1554,10 @@ function renderLeaderboard() {
 
   list.innerHTML = restRows.map(({ row: r, displayRank }) => {
     const luckyLine = r.luckyHit ? `<span class="leaderboard-lucky">Lucky Strike: ${escapeHtml(r.luckyTeam)} · +25p</span>` : '';
-    const luckyMedal = r.luckyHit ? `<div class="leaderboard-lucky-medal-wrap">${luckyStrikerMedal('row-lucky-striker')}</div>` : '';
+    const luckyMedal = r.hasLuckyPick ? `<div class="leaderboard-lucky-medal-wrap">${luckyStrikerMedal('row-lucky-striker')}</div>` : '';
     const removeButton = admin ? `<button class="delete-user" data-delete-email="${r.email}" title="Șterge userul ${r.name}" aria-label="Șterge userul ${r.name}">×</button>` : '';
     const adminEmail = admin ? `<span class="leaderboard-email">${r.email}</span>` : '';
-    return `<article class="leaderboard-card ${r.luckyHit ? 'lucky-hit has-lucky-medal' : ''}">
+    return `<article class="leaderboard-card ${r.luckyHit ? 'lucky-hit' : ''} ${r.hasLuckyPick ? 'has-lucky-medal' : ''}">
       <div class="rank-badge"><span>#${displayRank}</span></div>
       ${luckyMedal}
       <div class="leaderboard-user"><div class="leaderboard-name-line"><strong>${escapeHtml(r.name)}</strong>${adminEmail}</div><span class="leaderboard-stats">${leaderboardStatLine(r)}</span>${luckyLine}</div>
