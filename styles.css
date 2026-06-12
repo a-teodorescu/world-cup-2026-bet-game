@@ -1765,3 +1765,107 @@ section[data-section="clasament"] .admin-visible-note {
 }
 
 /* MOBILE_CLASSIC_LEADERBOARD_REFERENCE */
+
+/* DESKTOP_PODIUM_RANK_GROUPS_DYNAMIC_HEIGHT
+   Desktop only: top 3 are grouped by rank, center is largest, left medium, right smallest.
+   Bubbles use min-height so they grow when a rank contains multiple users. */
+@media (min-width: 981px) {
+  .leaderboard-podium {
+    display: grid;
+    grid-template-columns: clamp(295px, 25vw, 350px) clamp(350px, 30vw, 420px) clamp(260px, 22vw, 315px);
+    align-items: end;
+    justify-content: center;
+    gap: clamp(28px, 4vw, 62px);
+    max-width: 1120px;
+    margin: 0 auto 28px;
+  }
+
+  .podium-bubble {
+    width: 100%;
+    height: auto;
+    overflow: hidden;
+    justify-self: center;
+    border-radius: 48% 48% 34% 34% / 44% 44% 18% 18%;
+  }
+
+  .podium-first {
+    width: clamp(350px, 30vw, 420px);
+    max-width: 420px;
+    min-height: 300px;
+    padding: 30px 34px 36px;
+    border-radius: 49% 49% 35% 35% / 45% 45% 18% 18%;
+  }
+
+  .podium-second {
+    width: clamp(295px, 25vw, 350px);
+    max-width: 350px;
+    min-height: 258px;
+    padding: 25px 30px 31px;
+    border-radius: 48% 48% 34% 34% / 44% 44% 18% 18%;
+  }
+
+  .podium-third {
+    width: clamp(260px, 22vw, 315px);
+    max-width: 315px;
+    min-height: 238px;
+    padding: 24px 28px 30px;
+    border-radius: 48% 48% 34% 34% / 44% 44% 18% 18%;
+  }
+}
+
+.podium-name-list {
+  width: 100%;
+  display: grid;
+  gap: 5px;
+  margin: 0 0 12px;
+}
+
+.podium-name-item {
+  width: 100%;
+  color: #fff;
+  font-weight: 900;
+  font-size: clamp(.95rem, 1.55vw, 1.42rem);
+  line-height: 1.12;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow: 0 2px 14px rgba(0,0,0,.28);
+}
+
+.podium-tie-stats {
+  width: 100%;
+  display: grid;
+  gap: 8px;
+  color: rgba(235,244,255,.84);
+}
+
+.podium-tie-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  font-size: .78rem;
+  min-width: 0;
+}
+
+.podium-tie-row strong {
+  color: #fff;
+  font-size: .78rem;
+  font-weight: 800;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.podium-tie-row .lb-smooth-stat {
+  justify-content: center;
+  gap: 5px;
+  font-size: .78rem;
+}
+
+.podium-tie-row .lb-smooth-stat i {
+  width: 12px;
+  height: 12px;
+}
