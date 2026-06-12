@@ -2307,11 +2307,11 @@ section[data-section="clasament"] .admin-visible-note {
 }
 
 #clasament .leaderboard-row-card .rank-badge {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
   font-size: .92rem;
-  color: rgba(247,251,255,.92);
+  color: var(--accent);
 }
 
 #clasament .leaderboard-row-card .leaderboard-user strong {
@@ -2411,4 +2411,25 @@ section[data-section="clasament"] .admin-visible-note {
     justify-self: start;
     text-align: left;
   }
+}
+
+
+/* REST_LEADERBOARD_ORIGINAL_RANK_AND_TEXT_FIX
+   Keeps Restul clasamentului rank numbering and descriptive text aligned with the original archive style. */
+#clasament .leaderboard-row-card .leaderboard-user {
+  min-width: 0;
+}
+
+#clasament .leaderboard-row-card .leaderboard-user span:not(.leaderboard-email) {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: .82rem;
+  line-height: 1.35;
+  white-space: normal;
+}
+
+#clasament .leaderboard-row-card .leaderboard-user .leaderboard-email {
+  display: block;
+  margin-top: 3px;
 }

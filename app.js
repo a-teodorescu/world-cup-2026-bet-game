@@ -1622,8 +1622,8 @@ function renderLeaderboard() {
   const restHtml = rest.length ? rest.map((r) => {
     const adminEmail = admin ? `<span class="leaderboard-email">${escapeHtml(r.email)}</span>` : '';
     return `<article class="leaderboard-card leaderboard-row-card" aria-label="Locul ${r.rank}: ${escapeHtml(r.name)}">
-      <div class="rank-badge"><span>${r.rank}</span></div>
-      <div class="leaderboard-user"><strong>${escapeHtml(r.name)}</strong>${adminEmail}</div>
+      <div class="rank-badge"><span>#${r.rank}</span></div>
+      <div class="leaderboard-user"><strong>${escapeHtml(r.name)}</strong>${adminEmail}<span>${r.exact} scoruri exacte • ${r.winner} (doar) pronosticuri corecte</span></div>
       ${leaderboardStatMarkup(r, true)}
       <div class="leaderboard-points"><strong>${r.total}</strong><span>puncte</span></div>
     </article>`;
