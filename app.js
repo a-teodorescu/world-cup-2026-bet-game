@@ -657,8 +657,7 @@ function computeLeaderboardRows(matchesScope = allMatches()) {
     });
     const luckyHit = applyLucky && isLuckyWinner(u.email);
     if (luckyHit) total += 25;
-    const luckyPick = luckyForEmail(u.email);
-    return { ...u, exact, winner, total, luckyHit, luckyTeam: luckyPick?.team || null, hasLuckyPick: !!luckyPick?.team };
+    return { ...u, exact, winner, total, luckyHit, luckyTeam: luckyForEmail(u.email)?.team || null };
   }).sort((a,b) => b.total-a.total || b.exact-a.exact || a.name.localeCompare(b.name));
   let currentRank = 0, previousPoints = null;
   return rows.map(r => {
@@ -1492,75 +1491,60 @@ async function saveLuckyStrike() {
   }
 }
 
-function leaderboardStatLine(row) {
-  const exactLabel = row.exact === 1 ? 'scor exact' : 'scoruri exacte';
-  const winnerLabel = row.winner === 1 ? 'pronostic corect' : 'pronosticuri corecte';
-  return `<span class="leader-stat exact"><span class="stat-icon" aria-hidden="true"></span>${row.exact} ${exactLabel}</span><span class="leader-stat winner"><span class="stat-icon" aria-hidden="true"></span>${row.winner} ${winnerLabel}</span>`;
-}
-
-function luckyStrikerMedal(extraClass = '') {
-  return `<span class="lucky-striker-medal ${extraClass}" title="Lucky Striker" aria-label="Lucky Striker">
-    <span class="lucky-striker-coin"><span>ϟ</span></span>
-    <span class="lucky-striker-ribbons" aria-hidden="true"></span>
-    <span class="lucky-striker-label">Lucky<br>Striker</span>
-  </span>`;
-}
-
-function renderTopLeaderboard(topRows) {
-  const wrap = $('leaderboardTop');
-  if (!wrap) return;
-  wrap.dataset.count = String(topRows.length);
-  if (!topRows.length) {
-    wrap.innerHTML = '';
-    return;
-  }
-
-  const ordered = [topRows[1], topRows[0], topRows[2]].filter(Boolean);
-  wrap.innerHTML = ordered.map(({ row, displayRank }) => {
-    const placeClass = `place-${displayRank}`;
-    const placeIcon = displayRank === 1 ? '👑' : displayRank === 2 ? '🥈' : '🥉';
-    const lucky = row.hasLuckyPick ? luckyStrikerMedal('top-lucky-striker') : '';
-    return `<article class="top-leader-card ${placeClass} ${row.hasLuckyPick ? 'has-lucky-striker' : ''}">
-      <div class="top-place-icon" aria-hidden="true">${placeIcon}</div>
-      ${lucky}
-      <div class="top-place">#${displayRank}</div>
-      <strong class="top-name">${escapeHtml(row.name)}</strong>
-      <div class="top-points">${row.total}p</div>
-      <div class="top-divider" aria-hidden="true"></div>
-      <div class="top-stats">${leaderboardStatLine(row)}</div>
-    </article>`;
-  }).join('');
-}
-
 function renderLeaderboard() {
   const rows = computeLeaderboardRows();
   const admin = isAdminUser();
   const topWrap = $('leaderboardTop');
   const list = $('leaderboardCards');
+  if (!list) return;
   if (!rows.length) {
     if (topWrap) topWrap.innerHTML = '';
-    return list.innerHTML = `<div class="empty">Nu există useri încă.</div>`;
-  }
-
-  const rowsWithDisplayRank = rows.map((row, index) => ({ row, displayRank: index + 1 }));
-  const topRows = rowsWithDisplayRank.slice(0, 3);
-  const restRows = rowsWithDisplayRank.slice(3);
-  renderTopLeaderboard(topRows);
-
-  if (!restRows.length) {
-    list.innerHTML = '';
+    list.innerHTML = `<div class="empty">Nu există useri încă.</div>`;
     return;
   }
 
-  list.innerHTML = restRows.map(({ row: r, displayRank }) => {
+  const statLine = (r) => `<span class="lb-stat lb-stat-exact"><i aria-hidden="true"></i>${r.exact} scoruri exacte</span><span class="lb-stat-separator">•</span><span class="lb-stat lb-stat-winner"><i aria-hidden="true"></i>${r.winner} pronosticuri corecte</span>`;
+  const luckyMedal = (r, placement = 'row') => {
+    if (!r.luckyTeam) return '';
+    const title = `Lucky Striker: ${escapeHtml(r.luckyTeam)}`;
+    return `<span class="lucky-striker-medal lucky-striker-medal-${placement}" title="${title}" aria-label="${title}"><span class="lucky-coin">⚡</span><span class="lucky-ribbon">Lucky<br>Striker</span></span>`;
+  };
+
+  if (topWrap) {
+    const podiumSlots = [
+      { row: rows[1], place: 2, cls: 'second', medal: '🥈' },
+      { row: rows[0], place: 1, cls: 'first', medal: '👑' },
+      { row: rows[2], place: 3, cls: 'third', medal: '🥉' }
+    ].filter(item => item.row);
+
+    topWrap.innerHTML = podiumSlots.map(({ row: r, place, cls, medal }) => `
+      <article class="top-podium-card top-podium-${cls}">
+        <div class="top-podium-medal">${medal}</div>
+        ${luckyMedal(r, 'top')}
+        <div class="top-podium-rank">#${place}</div>
+        <div class="top-podium-name">${escapeHtml(r.name)}</div>
+        <div class="top-podium-points">${r.total}p</div>
+        <div class="top-podium-divider"></div>
+        <div class="top-podium-stats">${statLine(r)}</div>
+      </article>
+    `).join('');
+  }
+
+  const rest = rows.slice(3);
+  if (!rest.length) {
+    list.innerHTML = `<div class="empty">Nu mai există alți useri în clasament.</div>`;
+    return;
+  }
+
+  list.innerHTML = rest.map((r, index) => {
+    const visualPlace = index + 4;
+    const removeButton = admin ? `<button class="delete-user" data-delete-email="${r.email}" title="Șterge userul ${escapeHtml(r.name)}" aria-label="Șterge userul ${escapeHtml(r.name)}">×</button>` : '';
+    const adminEmail = admin ? `<span class="leaderboard-email">${escapeHtml(r.email)}</span>` : '';
     const luckyLine = r.luckyHit ? `<span class="leaderboard-lucky">Lucky Strike: ${escapeHtml(r.luckyTeam)} · +25p</span>` : '';
-    const luckyMedal = r.hasLuckyPick ? `<div class="leaderboard-lucky-medal-wrap">${luckyStrikerMedal('row-lucky-striker')}</div>` : '';
-    const removeButton = admin ? `<button class="delete-user" data-delete-email="${r.email}" title="Șterge userul ${r.name}" aria-label="Șterge userul ${r.name}">×</button>` : '';
-    const adminEmail = admin ? `<span class="leaderboard-email">${r.email}</span>` : '';
-    return `<article class="leaderboard-card ${r.luckyHit ? 'lucky-hit' : ''} ${r.hasLuckyPick ? 'has-lucky-medal' : ''}">
-      <div class="rank-badge"><span>#${displayRank}</span></div>
-      ${luckyMedal}
-      <div class="leaderboard-user"><div class="leaderboard-name-line"><strong>${escapeHtml(r.name)}</strong>${adminEmail}</div><span class="leaderboard-stats">${leaderboardStatLine(r)}</span>${luckyLine}</div>
+    return `<article class="leaderboard-card leaderboard-row-card ${r.luckyHit ? 'lucky-hit' : ''}">
+      <div class="rank-badge"><span>#${visualPlace}</span></div>
+      ${luckyMedal(r, 'row')}
+      <div class="leaderboard-user"><div class="leaderboard-name-line"><strong>${escapeHtml(r.name)}</strong>${adminEmail}</div><span class="leaderboard-stats-line">${statLine(r)}</span>${luckyLine}</div>
       <div class="leaderboard-points"><strong>${r.total}p</strong><span>Total</span></div>${removeButton}
     </article>`;
   }).join('');
