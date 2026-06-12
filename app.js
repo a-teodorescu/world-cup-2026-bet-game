@@ -1494,51 +1494,21 @@ async function saveLuckyStrike() {
 function renderLeaderboard() {
   const rows = computeLeaderboardRows();
   const admin = isAdminUser();
-  const topWrap = $('leaderboardTop');
   const list = $('leaderboardCards');
-  if (!list) return;
-  if (!rows.length) {
-    if (topWrap) topWrap.innerHTML = '';
-    list.innerHTML = `<div class="empty">Nu există useri încă.</div>`;
-    return;
-  }
-
-  const statLine = (r) => `<span class="lb-stat lb-stat-exact"><i aria-hidden="true"></i>${r.exact} scoruri exacte</span><span class="lb-stat-separator">•</span><span class="lb-stat lb-stat-winner"><i aria-hidden="true"></i>${r.winner} pronosticuri corecte</span>`;
-
-  if (topWrap) {
-    const podiumSlots = [
-      { row: rows[1], place: 2, cls: 'second', medal: '🥈' },
-      { row: rows[0], place: 1, cls: 'first', medal: '👑' },
-      { row: rows[2], place: 3, cls: 'third', medal: '🥉' }
-    ].filter(item => item.row);
-
-    topWrap.innerHTML = podiumSlots.map(({ row: r, place, cls, medal }) => `
-      <article class="top-podium-card top-podium-${cls}">
-        <div class="top-podium-medal">${medal}</div>
-        <div class="top-podium-rank">#${place}</div>
-        <div class="top-podium-name">${escapeHtml(r.name)}</div>
-        <div class="top-podium-points">${r.total}p</div>
-        <div class="top-podium-divider"></div>
-        <div class="top-podium-stats">${statLine(r)}</div>
-      </article>
-    `).join('');
-  }
-
-  const rest = rows.slice(3);
-  if (!rest.length) {
-    list.innerHTML = `<div class="empty">Nu mai există alți useri în clasament.</div>`;
-    return;
-  }
-
-  list.innerHTML = rest.map((r, index) => {
-    const visualPlace = index + 4;
-    const adminEmail = admin ? `<span class="leaderboard-email">${escapeHtml(r.email)}</span>` : '';
-    return `<article class="leaderboard-card leaderboard-row-card">
-      <div class="rank-badge"><span>#${visualPlace}</span></div>
-      <div class="leaderboard-user"><div class="leaderboard-name-line"><strong>${escapeHtml(r.name)}</strong>${adminEmail}</div><span class="leaderboard-stats-line">${statLine(r)}</span></div>
-      <div class="leaderboard-points"><strong>${r.total}p</strong><span>Total</span></div>
+  if (!rows.length) return list.innerHTML = `<div class="empty">Nu există useri încă.</div>`;
+  list.innerHTML = rows.map((r) => {
+    const medal = r.rank === 1 ? '🥇' : r.rank === 2 ? '🥈' : r.rank === 3 ? '🥉' : `#${r.rank}`;
+    const luckyMedal = r.luckyHit ? '<span class="lucky-rank-medal" title="Lucky Strike câștigător">🍀</span>' : '';
+    const luckyLine = r.luckyHit ? `<span class="leaderboard-lucky">Lucky Strike: ${escapeHtml(r.luckyTeam)} · +25p</span>` : '';
+    const removeButton = admin ? `<button class="delete-user" data-delete-email="${r.email}" title="Șterge userul ${r.name}" aria-label="Șterge userul ${r.name}">×</button>` : '';
+    const adminEmail = admin ? `<span class="leaderboard-email">${r.email}</span>` : '';
+    return `<article class="leaderboard-card ${r.rank <= 3 ? 'podium' : ''} ${r.luckyHit ? 'lucky-hit' : ''}">
+      <div class="rank-badge"><span>${medal}</span>${luckyMedal}</div>
+      <div class="leaderboard-user"><strong>${r.name}</strong>${adminEmail}<span>${r.exact} scoruri exacte · ${r.winner} pronosticuri corecte</span>${luckyLine}</div>
+      <div class="leaderboard-points"><strong>${r.total}p</strong><span>Total</span></div>${removeButton}
     </article>`;
   }).join('');
+  document.querySelectorAll('[data-delete-email]').forEach(btn => btn.addEventListener('click', () => deleteUser(btn.dataset.deleteEmail)));
 }
 
 function renderAdminScores() {
