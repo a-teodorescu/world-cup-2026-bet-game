@@ -316,17 +316,28 @@ function updateNavigationState() {
 }
 
 async function showApp() {
-  await refreshData();
+  const requestedHash = location.hash && location.hash !== '#home' ? location.hash.slice(1) : 'predictii';
+  const hash = allowedSections().includes(requestedHash) ? requestedHash : 'predictii';
+
+  // Ascundem landing-ul imediat, înainte de refreshData(), ca să nu apară un flash
+  // cu fundalul/scroll-ul de pe pagina de login în timpul tranziției către Pronosticuri.
   $('home').classList.remove('active');
   $('topbar').classList.remove('hidden');
   document.querySelectorAll('.app-section').forEach(s => s.classList.remove('active'));
-  const requestedHash = location.hash && location.hash !== '#home' ? location.hash.slice(1) : 'predictii';
-  const hash = allowedSections().includes(requestedHash) ? requestedHash : 'predictii';
-  if (requestedHash !== hash) location.hash = hash;
   ($(hash) || $('predictii')).classList.add('active');
+
+  if (location.hash !== `#${hash}`) {
+    try { history.replaceState(null, '', `#${hash}`); }
+    catch { location.hash = hash; }
+  }
+
+  window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+
+  await refreshData();
   $('currentPlayerLabel').textContent = isAdminUser() ? `${currentUser.name} · Admin` : currentUser.name;
   updateNavigationState();
   renderAll();
+  window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
 }
 function showLanding() {
   $('topbar').classList.add('hidden');
@@ -387,7 +398,8 @@ $('loginForm').addEventListener('submit', async (e) => {
     const user = onlineMode ? await registerOrLoginOnline(name, email) : registerOrLoginLocal(name, email);
     currentUser = { id: user.id, name: user.name, username: user.name, email: user.email, role: user.role };
     localStorage.setItem(STORAGE.current, JSON.stringify(currentUser));
-    location.hash = 'predictii';
+    try { history.replaceState(null, '', '#predictii'); }
+    catch { location.hash = 'predictii'; }
     await showApp();
     toast(isAdminUser() ? 'Te-ai conectat ca admin.' : 'Te-ai conectat cu succes.');
   } catch (err) {
