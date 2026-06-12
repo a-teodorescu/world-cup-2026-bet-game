@@ -1541,7 +1541,7 @@ function renderLeaderboard() {
     const adminEmail = admin ? `<span class="leaderboard-email">${escapeHtml(r.email)}</span>` : '';
     return `<article class="leaderboard-card ${r.rank <= 3 ? 'podium' : ''}" aria-label="Locul ${r.rank}: ${escapeHtml(r.name)}">
       <div class="rank-badge"><span>${medal}</span></div>
-      <div class="leaderboard-user"><strong>${escapeHtml(r.name)}</strong>${adminEmail}<span>${r.exact} scoruri exacte · ${r.winner} pronosticuri corecte</span></div>
+      <div class="leaderboard-user"><strong>${escapeHtml(r.name)}</strong>${adminEmail}<span>${r.exact} scoruri exacte · ${r.winner} doar pronosticuri corecte</span></div>
       <div class="leaderboard-points"><strong>${r.total}p</strong><span>Total</span></div>
     </article>`;
   }).join('');
