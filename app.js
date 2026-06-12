@@ -691,18 +691,41 @@ function computeLeaderboardRows(matchesScope = allMatches()) {
   const users = getUsers().filter(u => !isAdminUser(u));
   const all = getAllPredictions();
   const applyLucky = shouldApplyLuckyBonus(matchesScope);
+  const resultedMatches = matchesScope
+    .filter(m => hasResult(m))
+    .slice()
+    .sort((a, b) => new Date(a.startTimeRo).getTime() - new Date(b.startTimeRo).getTime() || Number(a.matchNo || 0) - Number(b.matchNo || 0));
+
   const rows = users.map(u => {
     let exact = 0, winner = 0, total = 0;
+    let predictedResolved = 0, correct = 0, currentStreak = 0, bestStreak = 0;
     const p = all[u.email] || {};
+
     matchesScope.forEach(m => {
       const sc = scorePrediction(m, p[m.id]);
       total += sc.points;
       if (sc.type === 'exact') exact++;
       if (sc.type === 'winner') winner++;
     });
+
+    resultedMatches.forEach(m => {
+      const pred = p[m.id];
+      const sc = scorePrediction(m, pred);
+      if (pred) predictedResolved++;
+
+      if (sc.type === 'exact' || sc.type === 'winner') {
+        correct++;
+        currentStreak += 1;
+        bestStreak = Math.max(bestStreak, currentStreak);
+      } else {
+        currentStreak = 0;
+      }
+    });
+
+    const accuracy = predictedResolved ? Math.round((correct / predictedResolved) * 100) : 0;
     const luckyHit = applyLucky && isLuckyWinner(u.email);
     if (luckyHit) total += 25;
-    return { ...u, exact, winner, total, luckyHit, luckyTeam: luckyForEmail(u.email)?.team || null };
+    return { ...u, exact, winner, correct, accuracy, streak: bestStreak, total, luckyHit, luckyTeam: luckyForEmail(u.email)?.team || null };
   }).sort((a,b) => b.total-a.total || b.exact-a.exact || a.name.localeCompare(b.name));
   let currentRank = 0, previousPoints = null;
   return rows.map(r => {
@@ -1536,6 +1559,45 @@ async function saveLuckyStrike() {
   }
 }
 
+
+function leaderboardStatMarkup(r, compact = false) {
+  const correct = Number(r.correct ?? ((r.exact || 0) + (r.winner || 0)));
+  const accuracy = Number(r.accuracy || 0);
+  const streak = Number(r.streak || 0);
+  return `<div class="leaderboard-stats ${compact ? 'compact' : ''}">
+    <div class="leaderboard-stat accuracy"><i>✓</i><strong>${accuracy}%</strong><small>Acuratețe</small></div>
+    <div class="leaderboard-stat correct"><i>◎</i><strong>${correct}</strong><small>Predicții corecte</small></div>
+    <div class="leaderboard-stat streak"><i>♨</i><strong>${streak}</strong><small>Serie maximă</small></div>
+  </div>`;
+}
+
+function leaderboardTopIcon(rank) {
+  if (rank === 1) return '👑';
+  if (rank === 2) return '🪐';
+  if (rank === 3) return '⚽';
+  return '⭐';
+}
+
+function leaderboardTopClass(rank) {
+  if (rank === 1) return 'first';
+  if (rank === 2) return 'second';
+  if (rank === 3) return 'third';
+  return '';
+}
+
+function leaderboardTopCardMarkup(r, admin) {
+  if (!r) return '';
+  const adminEmail = admin ? `<span class="leaderboard-email">${escapeHtml(r.email)}</span>` : '';
+  return `<article class="leaderboard-top-card ${leaderboardTopClass(r.rank)}" aria-label="Locul ${r.rank}: ${escapeHtml(r.name)}">
+    <div class="leaderboard-top-main">
+      <div class="leaderboard-top-rank">#${r.rank}</div>
+      <div class="leaderboard-top-avatar" aria-hidden="true">${leaderboardTopIcon(r.rank)}</div>
+      <div class="leaderboard-top-user"><strong>${escapeHtml(r.name)}</strong>${adminEmail}<span>${r.total} puncte</span></div>
+    </div>
+    ${leaderboardStatMarkup(r)}
+  </article>`;
+}
+
 function renderLeaderboard() {
   const rows = computeLeaderboardRows();
   const admin = isAdminUser();
@@ -1546,15 +1608,43 @@ function renderLeaderboard() {
     return;
   }
 
-  list.innerHTML = rows.map((r) => {
-    const medal = r.rank === 1 ? '🥇' : r.rank === 2 ? '🥈' : r.rank === 3 ? '🥉' : `#${r.rank}`;
+  const first = rows.find(r => r.rank === 1);
+  const second = rows.find(r => r.rank === 2);
+  const third = rows.find(r => r.rank === 3);
+  const rest = rows.filter(r => r.rank > 3);
+
+  const topCards = [
+    leaderboardTopCardMarkup(second, admin),
+    leaderboardTopCardMarkup(first, admin),
+    leaderboardTopCardMarkup(third, admin)
+  ].filter(Boolean).join('');
+
+  const restHtml = rest.length ? rest.map((r) => {
     const adminEmail = admin ? `<span class="leaderboard-email">${escapeHtml(r.email)}</span>` : '';
-    return `<article class="leaderboard-card ${r.rank <= 3 ? 'podium' : ''}" aria-label="Locul ${r.rank}: ${escapeHtml(r.name)}">
-      <div class="rank-badge"><span>${medal}</span></div>
-      <div class="leaderboard-user"><strong>${escapeHtml(r.name)}</strong>${adminEmail}<span>${r.exact} scoruri exacte · ${r.winner} (doar) pronosticuri corecte</span></div>
-      <div class="leaderboard-points"><strong>${r.total}p</strong><span>Total</span></div>
+    return `<article class="leaderboard-card leaderboard-row-card" aria-label="Locul ${r.rank}: ${escapeHtml(r.name)}">
+      <div class="rank-badge"><span>${r.rank}</span></div>
+      <div class="leaderboard-user"><strong>${escapeHtml(r.name)}</strong>${adminEmail}</div>
+      ${leaderboardStatMarkup(r, true)}
+      <div class="leaderboard-points"><strong>${r.total}</strong><span>puncte</span></div>
     </article>`;
-  }).join('');
+  }).join('') : `<div class="empty">Nu există useri după poziția #3.</div>`;
+
+  list.innerHTML = `<div class="leaderboard-top-three">
+    <h3>Top 3</h3>
+    <div class="leaderboard-top-grid">${topCards}</div>
+  </div>
+  <div class="leaderboard-rest">
+    <div class="leaderboard-rest-head">
+      <h3>Restul clasamentului</h3>
+      <div class="leaderboard-rest-columns" aria-hidden="true">
+        <span>#</span>
+        <span>Utilizator</span>
+        <span>Statistici</span>
+        <span>Puncte totale</span>
+      </div>
+    </div>
+    <div class="leaderboard-rest-list">${restHtml}</div>
+  </div>`;
 }
 function renderAdminScores() {
   const wrap = $('adminScoresList');
