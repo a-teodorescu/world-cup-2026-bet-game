@@ -67,17 +67,7 @@
 
           <div class="forgot-username">
             <button id="forgotUsernameToggle" class="forgot-username-btn" type="button">Forgot Username?</button>
-            <div id="forgotUsernamePanel" class="forgot-username-panel hidden" aria-live="polite">
-              <label for="recoverUsernameEmail">Introdu emailul folosit la înregistrare</label>
-              <div class="name-row stacked-mobile">
-                <input id="recoverUsernameEmail" type="email" placeholder="exemplu@email.com" />
-                <button id="recoverUsernameBtn" class="ghost" type="button">Trimite</button>
-              </div>
-              <small id="recoverUsernameMessage">Dacă emailul există în joc, vei primi username-ul pe email.</small>
-            </div>
           </div>
-
-          <small id="storageModeMessage" class="storage-mode-message">Mod local: datele se salvează doar în browser până configurezi Supabase.</small>
         </form>
       </div>
       <div class="hero-panel">
@@ -267,10 +257,29 @@
     </section>
   </main>
 
+  <div id="forgotUsernameModal" class="forgot-username-modal hidden" role="dialog" aria-modal="true" aria-labelledby="forgotUsernameTitle">
+    <div class="forgot-username-backdrop" data-forgot-username-close></div>
+    <div class="forgot-username-dialog">
+      <button id="forgotUsernameClose" class="forgot-username-close" type="button" aria-label="Închide popup-ul">×</button>
+      <p class="eyebrow">Recover username</p>
+      <h2 id="forgotUsernameTitle">Forgot Username?</h2>
+      <p class="forgot-username-description">Introdu emailul folosit la înregistrare și îți trimitem username-ul pe email.</p>
+      <form id="forgotUsernameForm" class="forgot-username-form">
+        <label for="recoverUsernameEmail">Email folosit la înregistrare</label>
+        <div class="name-row stacked-mobile">
+          <input id="recoverUsernameEmail" type="email" placeholder="exemplu@email.com" required />
+          <button id="recoverUsernameBtn" class="ghost" type="submit">Trimite</button>
+        </div>
+        <small id="recoverUsernameMessage">Dacă emailul există în joc, vei primi username-ul pe email.</small>
+      </form>
+    </div>
+  </div>
+
   <div id="toast" class="toast" role="status"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js?v=20260611-proxy-supabase"></script>
-  <script src="matches.js?v=20260611-login-hotfix"></script>
-  <script src="app.js?v=20260611-proxy-admin-notes"></script>
+  <script src="config.js?v=20260612-popup-final-fix"></script>
+  <script src="matches.js?v=20260612-popup-final-fix"></script>
+  <script src="app.js?v=20260612-popup-final-fix"></script>
+  <script src="forgot-username.js?v=20260612-popup-final-fix"></script>
 </body>
 </html>

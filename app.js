@@ -397,84 +397,8 @@ $('loginForm').addEventListener('submit', async (e) => {
   }
 });
 
-const forgotUsernameToggle = $('forgotUsernameToggle');
-const forgotUsernameModal = $('forgotUsernameModal');
-const forgotUsernameClose = $('forgotUsernameClose');
-const forgotUsernameForm = $('forgotUsernameForm');
-const recoverUsernameBtn = $('recoverUsernameBtn');
+// Forgot Username popup/recovery is handled independently in forgot-username.js.
 
-function openForgotUsernameModal() {
-  if (!forgotUsernameModal) return;
-  const recoverInput = $('recoverUsernameEmail');
-  const message = $('recoverUsernameMessage');
-  const loginEmail = $('playerEmail')?.value?.trim() || '';
-
-  if (recoverInput && loginEmail && !recoverInput.value) recoverInput.value = loginEmail;
-  if (message) {
-    message.textContent = 'Dacă emailul există în joc, vei primi username-ul pe email.';
-    message.style.color = '';
-  }
-
-  forgotUsernameModal.classList.remove('hidden');
-  document.body.classList.add('modal-open');
-  setTimeout(() => recoverInput?.focus(), 0);
-}
-
-function closeForgotUsernameModal() {
-  if (!forgotUsernameModal) return;
-  forgotUsernameModal.classList.add('hidden');
-  document.body.classList.remove('modal-open');
-}
-
-forgotUsernameToggle?.addEventListener('click', openForgotUsernameModal);
-forgotUsernameClose?.addEventListener('click', closeForgotUsernameModal);
-forgotUsernameModal?.addEventListener('click', (event) => {
-  if (event.target?.hasAttribute?.('data-forgot-username-close')) closeForgotUsernameModal();
-});
-
-document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && forgotUsernameModal && !forgotUsernameModal.classList.contains('hidden')) {
-    closeForgotUsernameModal();
-  }
-});
-
-async function handleRecoverUsernameSubmit(event) {
-  event?.preventDefault?.();
-  const message = $('recoverUsernameMessage');
-  const input = $('recoverUsernameEmail');
-  const email = String(input?.value || '').trim().toLowerCase();
-  if (!message || !input || !recoverUsernameBtn) return;
-
-  message.style.color = '';
-  if (!isAllowedEmail(email)) {
-    message.textContent = 'Te rog introdu un email valid.';
-    message.style.color = 'var(--red)';
-    return;
-  }
-
-  try {
-    recoverUsernameBtn.disabled = true;
-    recoverUsernameBtn.textContent = 'Se trimite...';
-    const response = await fetch('/.netlify/functions/recover-username', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email })
-    });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok || data?.error) throw new Error(data?.error || 'Nu am putut trimite emailul de recuperare.');
-    message.textContent = 'Dacă emailul există în joc, vei primi username-ul pe email.';
-    message.style.color = 'var(--green)';
-  } catch (err) {
-    console.error(err);
-    message.textContent = err.message || 'Nu am putut trimite emailul de recuperare.';
-    message.style.color = 'var(--red)';
-  } finally {
-    recoverUsernameBtn.disabled = false;
-    recoverUsernameBtn.textContent = 'Trimite';
-  }
-}
-
-forgotUsernameForm?.addEventListener('submit', handleRecoverUsernameSubmit);
 
 $('logoutBtn').addEventListener('click', () => {
   localStorage.removeItem(STORAGE.current);
