@@ -1869,3 +1869,25 @@ section[data-section="clasament"] .admin-visible-note {
   width: 12px;
   height: 12px;
 }
+
+/* CLASSIC_LEADERBOARD_ALL_VIEWPORTS
+   Clasamentul revine la formatul clasic listă pe desktop și mobil.
+   Elimină doar prezentarea de tip buline/podium din randare; funcționalitățile rămân neschimbate. */
+.leaderboard-cards {
+  display: grid !important;
+  gap: 12px !important;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.leaderboard-smooth-layout,
+.desktop-leaderboard-layout,
+.leaderboard-podium,
+.leaderboard-list-smooth,
+.leaderboard-mobile-classic {
+  display: none !important;
+}
+
+.leaderboard-card {
+  display: grid !important;
+}

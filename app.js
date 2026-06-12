@@ -1536,76 +1536,7 @@ function renderLeaderboard() {
     return;
   }
 
-  const statLine = (r) => `<div class="lb-smooth-stats">
-    <span class="lb-smooth-stat exact"><i aria-hidden="true"></i>${r.exact} scoruri exacte</span>
-    <span class="lb-smooth-stat winner"><i aria-hidden="true"></i>${r.winner} pronosticuri corecte</span>
-  </div>`;
-
-  const rankGroups = [];
-  rows.forEach((row) => {
-    let group = rankGroups.find(g => g.rank === row.rank);
-    if (!group) {
-      group = { rank: row.rank, total: row.total, players: [] };
-      rankGroups.push(group);
-    }
-    group.players.push(row);
-  });
-
-  const groupByRank = (rank) => rankGroups.find(g => g.rank === rank);
-
-  const podiumNames = (group) => {
-    if (group.players.length === 1) {
-      return `<div class="podium-name">${escapeHtml(group.players[0].name)}</div>`;
-    }
-    return `<div class="podium-name-list" aria-label="Useri pe poziția ${group.rank}">
-      ${group.players.map(player => `<div class="podium-name-item">${escapeHtml(player.name)}</div>`).join('')}
-    </div>`;
-  };
-
-  const podiumStats = (group) => {
-    if (group.players.length === 1) return statLine(group.players[0]);
-    return `<div class="podium-tie-stats">
-      ${group.players.map(player => `<div class="podium-tie-row">
-        <strong>${escapeHtml(player.name)}</strong>
-        <span class="lb-smooth-stat exact"><i aria-hidden="true"></i>${player.exact}</span>
-        <span class="lb-smooth-stat winner"><i aria-hidden="true"></i>${player.winner}</span>
-      </div>`).join('')}
-    </div>`;
-  };
-
-  const podiumCard = (group, slot) => {
-    if (!group) return '';
-    const slotClass = slot === 1 ? 'first' : slot === 2 ? 'second' : 'third';
-    const medal = slot === 1 ? '👑' : slot === 2 ? '🥈' : '🥉';
-    return `<article class="podium-bubble podium-${slotClass}" aria-label="Locul ${group.rank}: ${group.players.map(p => escapeHtml(p.name)).join(', ')}">
-      <div class="podium-medal" aria-hidden="true">${medal}</div>
-      <div class="podium-rank">#${group.rank}</div>
-      ${podiumNames(group)}
-      <div class="podium-points">${group.total}p</div>
-      <div class="podium-divider"></div>
-      ${podiumStats(group)}
-    </article>`;
-  };
-
-  const podiumGroups = [
-    { group: groupByRank(2), slot: 2 },
-    { group: groupByRank(1), slot: 1 },
-    { group: groupByRank(3), slot: 3 }
-  ].filter(item => item.group);
-
-  const restRows = rows.filter(r => r.rank > 3).map((r) => {
-    const adminEmail = admin ? `<span class="leaderboard-email">${escapeHtml(r.email)}</span>` : '';
-    return `<article class="leaderboard-row-card" aria-label="Locul ${r.rank}: ${escapeHtml(r.name)}">
-      <div class="leaderboard-rank-box">#${r.rank}</div>
-      <div class="leaderboard-row-main">
-        <div class="leaderboard-row-user"><strong>${escapeHtml(r.name)}</strong>${adminEmail}</div>
-        ${statLine(r)}
-      </div>
-      <div class="leaderboard-total"><strong>${r.total}p</strong><span>Total</span></div>
-    </article>`;
-  }).join('');
-
-  const mobileRows = rows.map((r) => {
+  list.innerHTML = rows.map((r) => {
     const medal = r.rank === 1 ? '🥇' : r.rank === 2 ? '🥈' : r.rank === 3 ? '🥉' : `#${r.rank}`;
     const adminEmail = admin ? `<span class="leaderboard-email">${escapeHtml(r.email)}</span>` : '';
     return `<article class="leaderboard-card ${r.rank <= 3 ? 'podium' : ''}" aria-label="Locul ${r.rank}: ${escapeHtml(r.name)}">
@@ -1614,18 +1545,6 @@ function renderLeaderboard() {
       <div class="leaderboard-points"><strong>${r.total}p</strong><span>Total</span></div>
     </article>`;
   }).join('');
-
-  list.innerHTML = `<div class="leaderboard-smooth-layout desktop-leaderboard-layout">
-    <div class="leaderboard-podium ${podiumGroups.length === 1 ? 'single' : podiumGroups.length === 2 ? 'double' : ''}">
-      ${podiumGroups.map(item => podiumCard(item.group, item.slot)).join('')}
-    </div>
-    <div class="leaderboard-list-smooth">
-      ${restRows || `<div class="empty">Nu există momentan useri sub poziția #3.</div>`}
-    </div>
-  </div>
-  <div class="leaderboard-mobile-classic" aria-label="Clasament mobil clasic">
-    ${mobileRows}
-  </div>`;
 }
 function renderAdminScores() {
   const wrap = $('adminScoresList');
