@@ -1891,3 +1891,82 @@ section[data-section="clasament"] .admin-visible-note {
 .leaderboard-card {
   display: grid !important;
 }
+
+/* GROUP_B_TABLE_HEADER_CONSTRAINT_FIX
+   Grupe: keep the table header and all columns inside each group card.
+   This fixes the overflow visible in Grupa B without changing layout or functionality. */
+#grupe .group-card {
+  overflow: hidden;
+}
+
+#grupe .group-table {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+}
+
+#grupe .group-table th,
+#grupe .group-table td {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#grupe .group-table th:first-child,
+#grupe .group-table td:first-child {
+  width: 44%;
+  text-align: left;
+}
+
+#grupe .group-table th:not(:first-child),
+#grupe .group-table td:not(:first-child) {
+  width: 9.333%;
+  text-align: center;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#grupe .group-table .team-inline {
+  display: flex;
+  max-width: 100%;
+  min-width: 0;
+}
+
+#grupe .group-table .team-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  #grupe .group-card {
+    padding: 12px;
+  }
+
+  #grupe .group-table {
+    font-size: .76rem;
+  }
+
+  #grupe .group-table th,
+  #grupe .group-table td {
+    padding: 8px 3px;
+  }
+
+  #grupe .group-table th {
+    font-size: .68rem;
+    letter-spacing: .035em;
+  }
+
+  #grupe .group-table th:first-child,
+  #grupe .group-table td:first-child {
+    width: 46%;
+  }
+
+  #grupe .group-table th:not(:first-child),
+  #grupe .group-table td:not(:first-child) {
+    width: 9%;
+  }
+}
