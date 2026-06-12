@@ -1573,13 +1573,26 @@ function renderLeaderboard() {
     </article>`;
   }).join('');
 
-  list.innerHTML = `<div class="leaderboard-smooth-layout">
+  const mobileRows = rows.map((r) => {
+    const medal = r.rank === 1 ? '🥇' : r.rank === 2 ? '🥈' : r.rank === 3 ? '🥉' : `#${r.rank}`;
+    const adminEmail = admin ? `<span class="leaderboard-email">${escapeHtml(r.email)}</span>` : '';
+    return `<article class="leaderboard-card ${r.rank <= 3 ? 'podium' : ''}" aria-label="Locul ${r.rank}: ${escapeHtml(r.name)}">
+      <div class="rank-badge"><span>${medal}</span></div>
+      <div class="leaderboard-user"><strong>${escapeHtml(r.name)}</strong>${adminEmail}<span>${r.exact} scoruri exacte · ${r.winner} pronosticuri corecte</span></div>
+      <div class="leaderboard-points"><strong>${r.total}p</strong><span>Total</span></div>
+    </article>`;
+  }).join('');
+
+  list.innerHTML = `<div class="leaderboard-smooth-layout desktop-leaderboard-layout">
     <div class="leaderboard-podium ${podiumRows.length === 1 ? 'single' : podiumRows.length === 2 ? 'double' : ''}">
       ${podiumRows.map(item => podiumCard(item.row, item.slot)).join('')}
     </div>
     <div class="leaderboard-list-smooth">
       ${restRows || `<div class="empty">Clasamentul are momentan doar ${rows.length} useri.</div>`}
     </div>
+  </div>
+  <div class="leaderboard-mobile-classic" aria-label="Clasament mobil clasic">
+    ${mobileRows}
   </div>`;
 }
 

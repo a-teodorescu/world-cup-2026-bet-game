@@ -1453,7 +1453,7 @@ section[data-section="clasament"] .admin-visible-note {
   align-items: end;
   justify-content: center;
   gap: var(--podium-gap);
-  max-width: 920px;
+  max-width: 980px;
   margin: 0 auto 28px;
 }
 .leaderboard-podium.single,
@@ -1475,8 +1475,8 @@ section[data-section="clasament"] .admin-visible-note {
   align-items: center;
   justify-content: flex-start;
   width: 100%;
-  max-width: 315px;
-  min-height: 245px;
+  max-width: 330px;
+  min-height: 250px;
   padding: 25px 28px 31px;
   text-align: center;
   color: #f7fbff;
@@ -1485,7 +1485,8 @@ section[data-section="clasament"] .admin-visible-note {
     radial-gradient(circle at 50% 10%, color-mix(in srgb, var(--podium-color) 18%, transparent) 0 16%, transparent 42%),
     radial-gradient(circle at 18% 78%, color-mix(in srgb, var(--podium-color) 22%, transparent), transparent 36%),
     linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.035));
-  border-radius: 48% 48% 40% 40% / 56% 56% 34% 34%;
+  /* Smoother desktop dome: big rounded base, no sharp lower corners. */
+  border-radius: 999px 999px 128px 128px / 999px 999px 92px 92px;
   box-shadow:
     0 0 0 1px rgba(255,255,255,.035) inset,
     0 0 28px color-mix(in srgb, var(--podium-color) 40%, transparent),
@@ -1516,20 +1517,22 @@ section[data-section="clasament"] .admin-visible-note {
 .podium-first {
   --podium-color: #fdb022;
   --podium-color-soft: rgba(253,176,34,.18);
-  max-width: 360px;
-  min-height: 285px;
+  max-width: 375px;
+  min-height: 295px;
   padding-top: 28px;
-  border-radius: 48% 48% 39% 39% / 57% 57% 33% 33%;
+  border-radius: 999px 999px 142px 142px / 999px 999px 104px 104px;
 }
 .podium-second {
   --podium-color: #7db5ff;
-  max-width: 315px;
-  min-height: 245px;
+  max-width: 330px;
+  min-height: 250px;
+  border-radius: 999px 999px 124px 124px / 999px 999px 92px 92px;
 }
 .podium-third {
   --podium-color: #ff8b3d;
-  max-width: 295px;
-  min-height: 235px;
+  max-width: 305px;
+  min-height: 240px;
+  border-radius: 999px 999px 116px 116px / 999px 999px 88px 88px;
 }
 
 .podium-medal {
@@ -1694,6 +1697,12 @@ section[data-section="clasament"] .admin-visible-note {
   text-transform: uppercase;
 }
 
+
+/* Mobile classic leaderboard: on phones, use the pre-bubble list design. */
+.leaderboard-mobile-classic {
+  display: none;
+}
+
 @media (max-width: 980px) {
   .leaderboard-podium {
     grid-template-columns: 1fr;
@@ -1712,6 +1721,18 @@ section[data-section="clasament"] .admin-visible-note {
 }
 
 @media (max-width: 640px) {
+
+  .desktop-leaderboard-layout {
+    display: none;
+  }
+  .leaderboard-mobile-classic {
+    display: grid;
+    gap: 12px;
+  }
+  .leaderboard-mobile-classic .leaderboard-card {
+    display: grid;
+  }
+
   section[data-section="clasament"] .section-head {
     margin-bottom: 20px;
   }
@@ -1742,3 +1763,5 @@ section[data-section="clasament"] .admin-visible-note {
     font-size: 1.1rem;
   }
 }
+
+/* MOBILE_CLASSIC_LEADERBOARD_REFERENCE */
