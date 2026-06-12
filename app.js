@@ -1491,20 +1491,75 @@ async function saveLuckyStrike() {
   }
 }
 
+function leaderboardStatLine(row) {
+  const exactLabel = row.exact === 1 ? 'scor exact' : 'scoruri exacte';
+  const winnerLabel = row.winner === 1 ? 'pronostic corect' : 'pronosticuri corecte';
+  return `<span class="leader-stat exact"><span class="stat-icon" aria-hidden="true"></span>${row.exact} ${exactLabel}</span><span class="leader-stat winner"><span class="stat-icon" aria-hidden="true"></span>${row.winner} ${winnerLabel}</span>`;
+}
+
+function luckyStrikerMedal(extraClass = '') {
+  return `<span class="lucky-striker-medal ${extraClass}" title="Lucky Striker" aria-label="Lucky Striker">
+    <span class="lucky-striker-coin"><span>ϟ</span></span>
+    <span class="lucky-striker-ribbons" aria-hidden="true"></span>
+    <span class="lucky-striker-label">Lucky<br>Striker</span>
+  </span>`;
+}
+
+function renderTopLeaderboard(topRows) {
+  const wrap = $('leaderboardTop');
+  if (!wrap) return;
+  wrap.dataset.count = String(topRows.length);
+  if (!topRows.length) {
+    wrap.innerHTML = '';
+    return;
+  }
+
+  const ordered = [topRows[1], topRows[0], topRows[2]].filter(Boolean);
+  wrap.innerHTML = ordered.map(({ row, displayRank }) => {
+    const placeClass = `place-${displayRank}`;
+    const placeIcon = displayRank === 1 ? '👑' : displayRank === 2 ? '🥈' : '🥉';
+    const lucky = row.luckyHit ? luckyStrikerMedal('top-lucky-striker') : '';
+    return `<article class="top-leader-card ${placeClass} ${row.luckyHit ? 'has-lucky-striker' : ''}">
+      <div class="top-place-icon" aria-hidden="true">${placeIcon}</div>
+      ${lucky}
+      <div class="top-place">#${displayRank}</div>
+      <strong class="top-name">${escapeHtml(row.name)}</strong>
+      <div class="top-points">${row.total}p</div>
+      <div class="top-divider" aria-hidden="true"></div>
+      <div class="top-stats">${leaderboardStatLine(row)}</div>
+    </article>`;
+  }).join('');
+}
+
 function renderLeaderboard() {
   const rows = computeLeaderboardRows();
   const admin = isAdminUser();
+  const topWrap = $('leaderboardTop');
   const list = $('leaderboardCards');
-  if (!rows.length) return list.innerHTML = `<div class="empty">Nu există useri încă.</div>`;
-  list.innerHTML = rows.map((r) => {
-    const medal = r.rank === 1 ? '🥇' : r.rank === 2 ? '🥈' : r.rank === 3 ? '🥉' : `#${r.rank}`;
-    const luckyMedal = r.luckyHit ? '<span class="lucky-rank-medal" title="Lucky Strike câștigător">🍀</span>' : '';
+  if (!rows.length) {
+    if (topWrap) topWrap.innerHTML = '';
+    return list.innerHTML = `<div class="empty">Nu există useri încă.</div>`;
+  }
+
+  const rowsWithDisplayRank = rows.map((row, index) => ({ row, displayRank: index + 1 }));
+  const topRows = rowsWithDisplayRank.slice(0, 3);
+  const restRows = rowsWithDisplayRank.slice(3);
+  renderTopLeaderboard(topRows);
+
+  if (!restRows.length) {
+    list.innerHTML = '';
+    return;
+  }
+
+  list.innerHTML = restRows.map(({ row: r, displayRank }) => {
     const luckyLine = r.luckyHit ? `<span class="leaderboard-lucky">Lucky Strike: ${escapeHtml(r.luckyTeam)} · +25p</span>` : '';
+    const luckyMedal = r.luckyHit ? `<div class="leaderboard-lucky-medal-wrap">${luckyStrikerMedal('row-lucky-striker')}</div>` : '';
     const removeButton = admin ? `<button class="delete-user" data-delete-email="${r.email}" title="Șterge userul ${r.name}" aria-label="Șterge userul ${r.name}">×</button>` : '';
     const adminEmail = admin ? `<span class="leaderboard-email">${r.email}</span>` : '';
-    return `<article class="leaderboard-card ${r.rank <= 3 ? 'podium' : ''} ${r.luckyHit ? 'lucky-hit' : ''}">
-      <div class="rank-badge"><span>${medal}</span>${luckyMedal}</div>
-      <div class="leaderboard-user"><strong>${r.name}</strong>${adminEmail}<span>${r.exact} scoruri exacte · ${r.winner} pronosticuri corecte</span>${luckyLine}</div>
+    return `<article class="leaderboard-card ${r.luckyHit ? 'lucky-hit has-lucky-medal' : ''}">
+      <div class="rank-badge"><span>#${displayRank}</span></div>
+      ${luckyMedal}
+      <div class="leaderboard-user"><div class="leaderboard-name-line"><strong>${escapeHtml(r.name)}</strong>${adminEmail}</div><span class="leaderboard-stats">${leaderboardStatLine(r)}</span>${luckyLine}</div>
       <div class="leaderboard-points"><strong>${r.total}p</strong><span>Total</span></div>${removeButton}
     </article>`;
   }).join('');
