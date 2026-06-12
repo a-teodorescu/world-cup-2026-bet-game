@@ -9,7 +9,7 @@
   schedule = "15 0 * * *"
 
 # Runs every 30 minutes, but the function calls football-data.org only when a match is due:
-# first sync at match start + 2h30; retry at match start + 3h30 if no result was saved.
+# first sync at match start + 2h; retry at match start + 3h if no result was saved.
 [functions."sync-football-data-results"]
   schedule = "*/30 * * * *"
 

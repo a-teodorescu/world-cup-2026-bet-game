@@ -49,8 +49,8 @@ function roDateFromUtc(utcDate) {
   return getRomaniaIsoDate(new Date(utcDate));
 }
 
-const AUTO_SYNC_FIRST_DELAY_MINUTES = 150;
-const AUTO_SYNC_RETRY_DELAY_MINUTES = 210;
+const AUTO_SYNC_FIRST_DELAY_MINUTES = 120;
+const AUTO_SYNC_RETRY_DELAY_MINUTES = 180;
 const AUTO_SYNC_SLOT_MINUTES = 30;
 
 function getAutoSyncCandidates(matches, existingResults, now = new Date()) {
@@ -433,7 +433,7 @@ exports.handler = async (event) => {
           ok: true,
           skipped: true,
           reason: 'Nu există meciuri ajunse la fereastra de sync automat.',
-          strategy: 'sync la start + 2h30; retry la start + 3h30 dacă scorul nu este deja salvat',
+          strategy: 'sync la start + 2h; retry la start + 3h dacă scorul nu este deja salvat',
           todayRo
         });
       }
@@ -441,7 +441,7 @@ exports.handler = async (event) => {
       mode = 'scheduled-match-auto';
       allowedMatchIds = dueMatches.map(match => match.match_id);
       autoSyncContext = {
-        strategy: 'start + 2h30; retry +1h dacă scorul nu este salvat',
+        strategy: 'start + 2h; retry +1h dacă scorul nu este salvat',
         now: now.toISOString(),
         dueMatches
       };
