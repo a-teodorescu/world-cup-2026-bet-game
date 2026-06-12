@@ -477,6 +477,30 @@ function predictionSideScoreBlock(team, matchId, side, value, locked) {
   </div>`;
 }
 
+function fitPredictionTeamNames() {
+  requestAnimationFrame(() => {
+    document.querySelectorAll('#matchList .prediction-team-name').forEach(el => {
+      el.style.removeProperty('font-size');
+      el.style.removeProperty('letter-spacing');
+
+      const available = el.clientWidth;
+      const needed = el.scrollWidth;
+      if (!available || !needed || needed <= available) return;
+
+      const baseSize = parseFloat(getComputedStyle(el).fontSize) || 16;
+      const nextSize = Math.max(10.5, Math.floor((baseSize * available / needed) * 10) / 10);
+      el.style.fontSize = `${nextSize}px`;
+      if (nextSize <= 11.5) el.style.letterSpacing = '-.035em';
+    });
+  });
+}
+
+let predictionTextFitResizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(predictionTextFitResizeTimer);
+  predictionTextFitResizeTimer = setTimeout(fitPredictionTeamNames, 120);
+});
+
 function renderPredictions() {
   const list = $('matchList');
   const preds = userPredictions();
@@ -499,6 +523,7 @@ function renderPredictions() {
     </article>`;
   }).join('');
   list.querySelectorAll('input').forEach(input => input.addEventListener('input', updateLivePredPill));
+  fitPredictionTeamNames();
 }
 function updateLivePredPill(e) {
   const id = e.target.dataset.id;

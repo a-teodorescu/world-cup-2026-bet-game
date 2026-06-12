@@ -794,13 +794,15 @@ code { background: rgba(255,255,255,.1); padding: 2px 7px; border-radius: 8px; c
   width: 48px;
   height: 48px;
 }
+/* Pronosticuri text constraint: team names must stay inside the match card */
 .prediction-team-name {
   display: block;
-  width: 100%;
-  max-width: 145px;
+  width: min(100%, 145px);
+  max-width: 100%;
   min-height: 2.25em;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
   text-align: center;
   font-weight: 900;
   color: var(--text);
@@ -832,7 +834,7 @@ code { background: rgba(255,255,255,.1); padding: 2px 7px; border-radius: 8px; c
 @media (max-width: 640px) {
   .prediction-duel { gap: 10px; margin-top: 12px; }
   .prediction-flag { width: 44px; height: 44px; }
-  .prediction-team-name { font-size: .94rem; max-width: 124px; }
+  .prediction-team-name { font-size: .94rem; width: min(100%, 124px); max-width: 100%; }
   .prediction-score-input { width: min(100%, 112px); }
   .prediction-vs { transform: translateY(-14px); }
 }
