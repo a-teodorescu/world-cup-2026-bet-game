@@ -49,6 +49,53 @@ function roDateFromUtc(utcDate) {
   return getRomaniaIsoDate(new Date(utcDate));
 }
 
+const AUTO_SYNC_FIRST_DELAY_MINUTES = 150;
+const AUTO_SYNC_RETRY_DELAY_MINUTES = 210;
+const AUTO_SYNC_SLOT_MINUTES = 30;
+
+function getAutoSyncCandidates(matches, existingResults, now = new Date()) {
+  const nowMs = now.getTime();
+  const slotMs = AUTO_SYNC_SLOT_MINUTES * 60 * 1000;
+  const savedResultIds = new Set((existingResults || []).map(row => String(row.match_id || '')));
+  const candidates = [];
+
+  for (const match of matches || []) {
+    if (!match?.id || !match?.startTimeRo || savedResultIds.has(String(match.id))) continue;
+
+    const startMs = new Date(match.startTimeRo).getTime();
+    if (!Number.isFinite(startMs)) continue;
+
+    const firstSyncAt = startMs + AUTO_SYNC_FIRST_DELAY_MINUTES * 60 * 1000;
+    const retrySyncAt = startMs + AUTO_SYNC_RETRY_DELAY_MINUTES * 60 * 1000;
+
+    if (nowMs >= firstSyncAt && nowMs < firstSyncAt + slotMs) {
+      candidates.push({
+        match_id: match.id,
+        matchNo: match.matchNo,
+        home: match.home,
+        away: match.away,
+        startTimeRo: match.startTimeRo,
+        attempt: 'first',
+        scheduledSyncAt: new Date(firstSyncAt).toISOString(),
+        delayMinutes: AUTO_SYNC_FIRST_DELAY_MINUTES
+      });
+    } else if (nowMs >= retrySyncAt && nowMs < retrySyncAt + slotMs) {
+      candidates.push({
+        match_id: match.id,
+        matchNo: match.matchNo,
+        home: match.home,
+        away: match.away,
+        startTimeRo: match.startTimeRo,
+        attempt: 'retry',
+        scheduledSyncAt: new Date(retrySyncAt).toISOString(),
+        delayMinutes: AUTO_SYNC_RETRY_DELAY_MINUTES
+      });
+    }
+  }
+
+  return candidates;
+}
+
 const TEAM_ALIASES = {
   'united states': 'usa',
   'united states of america': 'usa',
@@ -205,7 +252,7 @@ async function callFootballData(token) {
   return Array.isArray(data.matches) ? data.matches : [];
 }
 
-async function runSync({ mode, adminEmail, adminPin, simulate = false, simulateCount = 104 }) {
+async function runSync({ mode, adminEmail, adminPin, simulate = false, simulateCount = 104, allowedMatchIds = null, autoSyncContext = null }) {
   const FOOTBALL_DATA_API_TOKEN = process.env.FOOTBALL_DATA_API_TOKEN;
   const SUPABASE_URL = cleanUrl(process.env.SUPABASE_URL);
   const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
@@ -253,6 +300,10 @@ async function runSync({ mode, adminEmail, adminPin, simulate = false, simulateC
     simulatedMatch = finished[0];
   }
 
+  const allowedMatchIdSet = Array.isArray(allowedMatchIds) && allowedMatchIds.length
+    ? new Set(allowedMatchIds.map(id => String(id)))
+    : null;
+
   const matchedUpdates = [];
   const unmatched = [];
 
@@ -263,6 +314,7 @@ async function runSync({ mode, adminEmail, adminPin, simulate = false, simulateC
       unmatched.push(api);
       continue;
     }
+    if (allowedMatchIdSet && !allowedMatchIdSet.has(String(internal.id))) continue;
     matchedUpdates.push({
       match_id: internal.id,
       home: Number(api.homeScore),
@@ -316,6 +368,7 @@ async function runSync({ mode, adminEmail, adminPin, simulate = false, simulateC
   const summary = {
     mode,
     simulate,
+    autoSync: autoSyncContext || undefined,
     apiMatches: apiMatches.length,
     finished: finished.length,
     matched: matchedUpdates.length,
@@ -348,7 +401,11 @@ exports.handler = async (event) => {
 
     let simulate = false;
     let simulateCount = 104;
-    if (event.httpMethod === 'POST') {
+    let allowedMatchIds = null;
+    let autoSyncContext = null;
+
+    const isManualRequest = event.httpMethod === 'POST' && String(event.body || '').trim();
+    if (isManualRequest) {
       mode = 'manual';
       const body = JSON.parse(event.body || '{}');
       adminEmail = body.adminEmail || adminEmail;
@@ -358,13 +415,39 @@ exports.handler = async (event) => {
       simulateCount = body.simulateCount || 104;
     } else {
       // Real cron gate: do not consume API outside the useful tournament window.
-      const todayRo = getRomaniaIsoDate(new Date());
-      if (todayRo < '2026-06-12' || todayRo > '2026-07-20') {
+      const now = new Date();
+      const todayRo = getRomaniaIsoDate(now);
+      if (todayRo < '2026-06-11' || todayRo > '2026-07-20') {
         return json(200, { ok: true, skipped: true, reason: 'În afara ferestrei turneului pentru sincronizarea automată.', todayRo });
       }
+
+      const SUPABASE_URL = cleanUrl(process.env.SUPABASE_URL);
+      const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+      if (!SUPABASE_URL || !SUPABASE_ANON_KEY) throw new Error('Lipsesc variabilele Netlify SUPABASE_URL / SUPABASE_ANON_KEY.');
+
+      const existingRows = await supabaseGet(SUPABASE_URL, SUPABASE_ANON_KEY, 'wc2026_results', '?select=match_id');
+      const dueMatches = getAutoSyncCandidates(parseMatches(), existingRows, now);
+
+      if (!dueMatches.length) {
+        return json(200, {
+          ok: true,
+          skipped: true,
+          reason: 'Nu există meciuri ajunse la fereastra de sync automat.',
+          strategy: 'sync la start + 2h30; retry la start + 3h30 dacă scorul nu este deja salvat',
+          todayRo
+        });
+      }
+
+      mode = 'scheduled-match-auto';
+      allowedMatchIds = dueMatches.map(match => match.match_id);
+      autoSyncContext = {
+        strategy: 'start + 2h30; retry +1h dacă scorul nu este salvat',
+        now: now.toISOString(),
+        dueMatches
+      };
     }
 
-    const summary = await runSync({ mode, adminEmail, adminPin, simulate, simulateCount });
+    const summary = await runSync({ mode, adminEmail, adminPin, simulate, simulateCount, allowedMatchIds, autoSyncContext });
     return json(200, { ok: true, ...summary });
   } catch (err) {
     console.error(err);

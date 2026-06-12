@@ -8,10 +8,10 @@
 [functions."sync-knockout-fixtures"]
   schedule = "15 0 * * *"
 
-# 00:30 UTC = 03:30 Romania time in June/July 2026.
-# Sync final scores before daily email report.
+# Runs every 30 minutes, but the function calls football-data.org only when a match is due:
+# first sync at match start + 2h30; retry at match start + 3h30 if no result was saved.
 [functions."sync-football-data-results"]
-  schedule = "30 0 * * *"
+  schedule = "*/30 * * * *"
 
 # Netlify Scheduled Functions use UTC cron.
 # 01:00 UTC = 04:00 Romania time in June/July 2026.
