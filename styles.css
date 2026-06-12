@@ -74,7 +74,7 @@ small { color: var(--muted); display: block; margin-top: 12px; }
 .filter.active { color: #07111f; background: var(--accent); }
 .match-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 18px; }
 .match-card { padding: 18px; position: relative; overflow: hidden; }
-.match-card.locked::after { content: "Blocat"; position: absolute; top: 12px; right: 12px; padding: 7px 10px; border-radius: 999px; background: rgba(255,107,107,.18); border: 1px solid rgba(255,107,107,.35); color: #ffd1d1; font-size: .76rem; font-weight: 800; }
+/* Locked matches keep disabled inputs, but no visible "Blocat" badge in the card. */
 .match-meta { display: flex; justify-content: space-between; gap: 10px; color: var(--muted); font-size: .82rem; margin-bottom: 16px; padding-right: 70px; }
 .teams { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; margin-bottom: 16px; }
 .teams span { color: var(--muted); }
@@ -1414,8 +1414,9 @@ code { background: rgba(255,255,255,.1); padding: 2px 7px; border-radius: 8px; c
     radial-gradient(circle at 50% 5%, rgba(255,255,255,.12), transparent 38%),
     linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.025));
   border: 1.45px solid var(--podium-line, rgba(125,176,255,.72));
-  /* Rounded dome shape like the approved reference: soft bottom corners, not sharp card corners. */
-  border-radius: 999px 999px 72px 72px;
+  /* APPROVED_DOME_BUBBLES: exact rounded podium shape from the user reference.
+     Top is a soft dome, bottom corners are intentionally rounded, not square. */
+  border-radius: 50% 50% 24% 24% / 44% 44% 13% 13% !important;
   color: var(--text);
   box-shadow:
     0 0 0 1px rgba(255,255,255,.028) inset,
