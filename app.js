@@ -477,28 +477,38 @@ function predictionSideScoreBlock(team, matchId, side, value, locked) {
   </div>`;
 }
 
-function fitPredictionTeamNames() {
-  requestAnimationFrame(() => {
-    document.querySelectorAll('#matchList .prediction-team-name').forEach(el => {
-      el.style.removeProperty('font-size');
-      el.style.removeProperty('letter-spacing');
 
-      const available = el.clientWidth;
-      const needed = el.scrollWidth;
-      if (!available || !needed || needed <= available) return;
+function fitMatchMetaInfo() {
+  document.querySelectorAll('#matchList .match-meta').forEach(meta => {
+    const spans = Array.from(meta.querySelectorAll('span'));
+    if (!spans.length) return;
 
-      const baseSize = parseFloat(getComputedStyle(el).fontSize) || 16;
-      const nextSize = Math.max(10.5, Math.floor((baseSize * available / needed) * 10) / 10);
-      el.style.fontSize = `${nextSize}px`;
-      if (nextSize <= 11.5) el.style.letterSpacing = '-.035em';
+    meta.style.setProperty('--match-meta-size', '0.82rem');
+    spans.forEach(span => {
+      span.style.letterSpacing = '';
     });
+
+    const basePx = parseFloat(getComputedStyle(meta).fontSize) || 13;
+    let size = basePx;
+    const minSize = 10.2;
+
+    for (let i = 0; i < 18; i += 1) {
+      const metaOverflow = meta.scrollWidth > meta.clientWidth + 1;
+      const spanOverflow = spans.some(span => span.scrollWidth > span.clientWidth + 1);
+      if (!metaOverflow && !spanOverflow) break;
+
+      size = Math.max(minSize, size - 0.35);
+      meta.style.setProperty('--match-meta-size', `${size}px`);
+      if (size <= 11.2) spans.forEach(span => { span.style.letterSpacing = '-.025em'; });
+      if (size <= minSize) break;
+    }
   });
 }
 
-let predictionTextFitResizeTimer = null;
+let matchMetaInfoFitResizeTimer = null;
 window.addEventListener('resize', () => {
-  clearTimeout(predictionTextFitResizeTimer);
-  predictionTextFitResizeTimer = setTimeout(fitPredictionTeamNames, 120);
+  clearTimeout(matchMetaInfoFitResizeTimer);
+  matchMetaInfoFitResizeTimer = setTimeout(fitMatchMetaInfo, 120);
 });
 
 function renderPredictions() {
@@ -523,7 +533,7 @@ function renderPredictions() {
     </article>`;
   }).join('');
   list.querySelectorAll('input').forEach(input => input.addEventListener('input', updateLivePredPill));
-  fitPredictionTeamNames();
+  fitMatchMetaInfo();
 }
 function updateLivePredPill(e) {
   const id = e.target.dataset.id;

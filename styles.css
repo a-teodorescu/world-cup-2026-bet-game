@@ -794,15 +794,13 @@ code { background: rgba(255,255,255,.1); padding: 2px 7px; border-radius: 8px; c
   width: 48px;
   height: 48px;
 }
-/* Pronosticuri text constraint: team names must stay inside the match card */
 .prediction-team-name {
   display: block;
-  width: min(100%, 145px);
-  max-width: 100%;
+  width: 100%;
+  max-width: 145px;
   min-height: 2.25em;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
   text-align: center;
   font-weight: 900;
   color: var(--text);
@@ -834,7 +832,7 @@ code { background: rgba(255,255,255,.1); padding: 2px 7px; border-radius: 8px; c
 @media (max-width: 640px) {
   .prediction-duel { gap: 10px; margin-top: 12px; }
   .prediction-flag { width: 44px; height: 44px; }
-  .prediction-team-name { font-size: .94rem; width: min(100%, 124px); max-width: 100%; }
+  .prediction-team-name { font-size: .94rem; max-width: 124px; }
   .prediction-score-input { width: min(100%, 112px); }
   .prediction-vs { transform: translateY(-14px); }
 }
@@ -1374,4 +1372,48 @@ code { background: rgba(255,255,255,.1); padding: 2px 7px; border-radius: 8px; c
   color: #d8ecff;
   font-size: .82rem;
   line-height: 1.45;
+}
+
+
+/* MATCH_META_INFO_CONSTRAINT_ONLY
+   Constrains only the top meta line in Pronosticuri cards:
+   "#2 • Grupa A" + "vin., 12 iun., 05:00 RO".
+   It does not affect team names, inputs, results, leaderboard or app logic. */
+#matchList .match-card {
+  min-width: 0;
+}
+
+#matchList .match-meta {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+  gap: clamp(6px, 2vw, 14px);
+  padding-right: 0 !important;
+  font-size: var(--match-meta-size, .82rem);
+  line-height: 1.25;
+}
+
+#matchList .match-meta span {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+#matchList .match-meta span:first-child {
+  flex: 0 1 auto;
+}
+
+#matchList .match-meta span:last-child {
+  flex: 1 1 auto;
+  text-align: right;
 }
