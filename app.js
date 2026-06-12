@@ -402,6 +402,59 @@ $('loginForm').addEventListener('submit', async (e) => {
   }
 });
 
+const forgotUsernameToggle = $('forgotUsernameToggle');
+const forgotUsernamePanel = $('forgotUsernamePanel');
+const recoverUsernameBtn = $('recoverUsernameBtn');
+
+if (forgotUsernameToggle && forgotUsernamePanel) {
+  forgotUsernameToggle.addEventListener('click', () => {
+    forgotUsernamePanel.classList.toggle('hidden');
+    const recoverInput = $('recoverUsernameEmail');
+    if (!forgotUsernamePanel.classList.contains('hidden')) {
+      const loginEmail = $('playerEmail')?.value?.trim() || '';
+      if (recoverInput && loginEmail && !recoverInput.value) recoverInput.value = loginEmail;
+      setTimeout(() => recoverInput?.focus(), 0);
+    }
+  });
+}
+
+if (recoverUsernameBtn) {
+  recoverUsernameBtn.addEventListener('click', async () => {
+    const message = $('recoverUsernameMessage');
+    const input = $('recoverUsernameEmail');
+    const email = String(input?.value || '').trim().toLowerCase();
+    if (!message || !input) return;
+
+    message.style.color = '';
+    if (!isAllowedEmail(email)) {
+      message.textContent = 'Te rog introdu un email valid.';
+      message.style.color = 'var(--red)';
+      return;
+    }
+
+    try {
+      recoverUsernameBtn.disabled = true;
+      recoverUsernameBtn.textContent = 'Se trimite...';
+      const response = await fetch('/.netlify/functions/recover-username', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data?.error) throw new Error(data?.error || 'Nu am putut trimite emailul de recuperare.');
+      message.textContent = 'Dacă emailul există în joc, vei primi username-ul pe email.';
+      message.style.color = 'var(--green)';
+    } catch (err) {
+      console.error(err);
+      message.textContent = err.message || 'Nu am putut trimite emailul de recuperare.';
+      message.style.color = 'var(--red)';
+    } finally {
+      recoverUsernameBtn.disabled = false;
+      recoverUsernameBtn.textContent = 'Trimite';
+    }
+  });
+}
+
 $('logoutBtn').addEventListener('click', () => {
   localStorage.removeItem(STORAGE.current);
   sessionStorage.removeItem('wc2026_admin_pin');

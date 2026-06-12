@@ -64,6 +64,19 @@
             <button type="submit">Continuă</button>
           </div>
           <small id="loginMessage">Numele este blocat pe email după prima autentificare. Acceptăm emailuri valide de la provideri cunoscuți: Gmail, Yahoo, Outlook, Hotmail, iCloud, Proton, Zoho, GMX etc.</small>
+
+          <div class="forgot-username">
+            <button id="forgotUsernameToggle" class="forgot-username-btn" type="button">Forgot Username?</button>
+            <div id="forgotUsernamePanel" class="forgot-username-panel hidden" aria-live="polite">
+              <label for="recoverUsernameEmail">Introdu emailul folosit la înregistrare</label>
+              <div class="name-row stacked-mobile">
+                <input id="recoverUsernameEmail" type="email" placeholder="exemplu@email.com" />
+                <button id="recoverUsernameBtn" class="ghost" type="button">Trimite</button>
+              </div>
+              <small id="recoverUsernameMessage">Dacă emailul există în joc, vei primi username-ul pe email.</small>
+            </div>
+          </div>
+
           <small id="storageModeMessage" class="storage-mode-message">Mod local: datele se salvează doar în browser până configurezi Supabase.</small>
         </form>
       </div>
