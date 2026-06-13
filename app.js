@@ -1594,8 +1594,10 @@ function leaderboardTopCardMarkup(r, admin) {
 
   return `<article class="leaderboard-top-card ${leaderboardTopClass(r.rank)} ${avatarClass}" aria-label="Locul ${r.rank}: ${escapeHtml(r.name)}">
     <div class="leaderboard-top-main">
-      <div class="leaderboard-top-rank">#${r.rank}</div>
-      ${avatarMarkup}
+      <div class="leaderboard-top-badges">
+        <div class="leaderboard-top-rank">#${r.rank}</div>
+        ${avatarMarkup}
+      </div>
       <div class="leaderboard-top-user"><strong>${escapeHtml(r.name)}</strong>${adminEmail}<span>${r.total} puncte</span></div>
     </div>
     ${leaderboardStatMarkup(r)}

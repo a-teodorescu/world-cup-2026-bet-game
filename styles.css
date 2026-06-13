@@ -2581,3 +2581,69 @@ section[data-section="clasament"] .admin-visible-note {
     margin-inline: 0;
   }
 }
+
+
+/* TOP3_TEXT_CENTERED_WITH_GROUPED_BADGES
+   Keep badges grouped with the title area, but center only the user name + points block
+   relative to the card. */
+#clasament .leaderboard-top-card .leaderboard-top-main,
+#clasament .leaderboard-top-card.no-avatar .leaderboard-top-main,
+#clasament .leaderboard-top-card.has-avatar .leaderboard-top-main {
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  justify-content: normal;
+  column-gap: 12px;
+}
+
+#clasament .leaderboard-top-card .leaderboard-top-badges {
+  grid-column: 1;
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#clasament .leaderboard-top-card.no-avatar .leaderboard-top-badges {
+  gap: 0;
+}
+
+#clasament .leaderboard-top-card .leaderboard-top-user {
+  grid-column: 2;
+  justify-self: center;
+  min-width: 0;
+  text-align: center;
+}
+
+#clasament .leaderboard-top-card .leaderboard-top-user strong,
+#clasament .leaderboard-top-card .leaderboard-top-user > span:not(.leaderboard-email),
+#clasament .leaderboard-top-card .leaderboard-top-user .leaderboard-email {
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  #clasament .leaderboard-top-card .leaderboard-top-main,
+  #clasament .leaderboard-top-card.no-avatar .leaderboard-top-main,
+  #clasament .leaderboard-top-card.has-avatar .leaderboard-top-main {
+    grid-template-columns: auto 1fr;
+    width: 100%;
+  }
+
+  #clasament .leaderboard-top-card .leaderboard-top-badges {
+    justify-self: start;
+  }
+
+  #clasament .leaderboard-top-card .leaderboard-top-user {
+    justify-self: start;
+    text-align: left;
+  }
+
+  #clasament .leaderboard-top-card .leaderboard-top-user strong,
+  #clasament .leaderboard-top-card .leaderboard-top-user > span:not(.leaderboard-email),
+  #clasament .leaderboard-top-card .leaderboard-top-user .leaderboard-email {
+    text-align: left;
+  }
+}
