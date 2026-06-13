@@ -2923,3 +2923,76 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     font-weight: 900;
   }
 }
+
+
+/* REST_LEADERBOARD_STATS_LABELS_AND_POINTS_CENTER
+   Restul clasamentului: show labels under each statistic like Top 3,
+   and center the total points number above the "puncte" label. */
+#clasament .leaderboard-row-card .leaderboard-stats.compact {
+  align-items: stretch;
+}
+
+#clasament .leaderboard-row-card .leaderboard-stats.compact .leaderboard-stat {
+  grid-template-areas:
+    "icon value"
+    "label label";
+  grid-template-columns: auto auto;
+  justify-content: center;
+  justify-items: center;
+  align-content: center;
+  text-align: center;
+  min-height: 42px;
+  padding-inline: 8px;
+}
+
+#clasament .leaderboard-row-card .leaderboard-stats.compact .leaderboard-stat i {
+  justify-self: end;
+}
+
+#clasament .leaderboard-row-card .leaderboard-stats.compact .leaderboard-stat strong {
+  justify-self: start;
+}
+
+#clasament .leaderboard-row-card .leaderboard-stats.compact .leaderboard-stat small {
+  display: block;
+  grid-area: label;
+  justify-self: center;
+  width: 100%;
+  margin-top: 3px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+#clasament .leaderboard-row-card .leaderboard-points {
+  min-width: 92px;
+  text-align: center;
+  justify-self: center;
+}
+
+#clasament .leaderboard-row-card .leaderboard-points strong,
+#clasament .leaderboard-row-card .leaderboard-points span {
+  text-align: center;
+}
+
+@media (max-width: 980px) {
+  #clasament .leaderboard-row-card .leaderboard-stats.compact {
+    justify-content: stretch;
+  }
+}
+
+@media (max-width: 640px) {
+  #clasament .leaderboard-row-card .leaderboard-stats.compact .leaderboard-stat small {
+    white-space: normal;
+    font-size: .56rem;
+  }
+
+  #clasament .leaderboard-row-card .leaderboard-points {
+    justify-self: start;
+    text-align: left;
+  }
+
+  #clasament .leaderboard-row-card .leaderboard-points strong,
+  #clasament .leaderboard-row-card .leaderboard-points span {
+    text-align: left;
+  }
+}
