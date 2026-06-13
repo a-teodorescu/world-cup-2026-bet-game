@@ -2839,3 +2839,76 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     text-align: left;
   }
 }
+
+
+/* TOP3_MOBILE_SYNC
+   Bring the mobile Top 3 cards in line with the approved desktop arrangement:
+   centered user block, centered breakdown text, centered stats, and support for tie expansion. */
+@media (max-width: 640px) {
+  #clasament .leaderboard-top-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  #clasament .leaderboard-top-card,
+  #clasament .leaderboard-top-card.first,
+  #clasament .leaderboard-top-card.second,
+  #clasament .leaderboard-top-card.third {
+    min-height: auto;
+    padding: 16px;
+  }
+
+  #clasament .leaderboard-top-card .leaderboard-top-entry .leaderboard-top-main,
+  #clasament .leaderboard-top-card .leaderboard-top-entry.no-avatar .leaderboard-top-main,
+  #clasament .leaderboard-top-card .leaderboard-top-entry.has-avatar .leaderboard-top-main {
+    grid-template-columns: 1fr auto 1fr;
+    width: 100%;
+    column-gap: 10px;
+  }
+
+  #clasament .leaderboard-top-card .leaderboard-top-entry .leaderboard-top-badges {
+    justify-self: end;
+  }
+
+  #clasament .leaderboard-top-card .leaderboard-top-entry .leaderboard-top-user {
+    grid-column: 2;
+    justify-self: center;
+    text-align: center;
+  }
+
+  #clasament .leaderboard-top-card .leaderboard-top-entry .leaderboard-top-user strong,
+  #clasament .leaderboard-top-card .leaderboard-top-entry .leaderboard-top-user > span:not(.leaderboard-email),
+  #clasament .leaderboard-top-card .leaderboard-top-entry .leaderboard-top-user .leaderboard-email,
+  #clasament .leaderboard-top-card .leaderboard-top-entry .leaderboard-top-breakdown {
+    text-align: center;
+  }
+
+  #clasament .leaderboard-top-card .leaderboard-top-entry .leaderboard-top-breakdown {
+    justify-self: center;
+    margin-top: 12px;
+    margin-bottom: 4px;
+    padding-inline: 8px;
+  }
+
+  #clasament .leaderboard-top-card .leaderboard-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 14px;
+    padding-top: 12px;
+  }
+
+  #clasament .leaderboard-top-card .leaderboard-stat {
+    justify-content: center;
+    justify-items: center;
+    align-content: center;
+    text-align: center;
+  }
+
+  #clasament .leaderboard-top-card .leaderboard-stat small {
+    text-align: center;
+    white-space: normal;
+  }
+
+  #clasament .leaderboard-top-card .leaderboard-top-separator {
+    margin: 14px 0;
+  }
+}
