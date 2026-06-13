@@ -1522,6 +1522,24 @@ section[data-section="clasament"] .admin-visible-note {
   max-width: 720px;
 }
 
+/* LEADERBOARD_INTRO_NOTE */
+section[data-section="clasament"] .leaderboard-intro-note {
+  margin: 0 auto;
+  max-width: 720px;
+  display: block;
+  color: rgba(247,251,255,.92);
+  font-size: .98rem;
+  line-height: 1.45;
+}
+
+section[data-section="clasament"] .leaderboard-intro-icon {
+  display: inline-block;
+  margin-right: 8px;
+  color: rgba(247,251,255,.86);
+  transform: translateY(-1px);
+}
+
+
 .leaderboard-cards {
   display: block;
   max-width: 1180px;
@@ -2644,6 +2662,42 @@ section[data-section="clasament"] .admin-visible-note {
   #clasament .leaderboard-top-card .leaderboard-top-user strong,
   #clasament .leaderboard-top-card .leaderboard-top-user > span:not(.leaderboard-email),
   #clasament .leaderboard-top-card .leaderboard-top-user .leaderboard-email {
+    text-align: left;
+  }
+}
+
+
+/* TOP3_BREAKDOWN_UNDER_POINTS */
+#clasament .leaderboard-top-card .leaderboard-top-user .leaderboard-top-points {
+  display: block;
+  margin-top: 4px;
+  font-weight: 800;
+  font-size: .86rem;
+  text-align: center;
+  color: var(--accent);
+}
+
+#clasament .leaderboard-top-card.first .leaderboard-top-user .leaderboard-top-points {
+  color: #ffe27a;
+}
+
+#clasament .leaderboard-top-card.third .leaderboard-top-user .leaderboard-top-points {
+  color: #ffb083;
+}
+
+#clasament .leaderboard-top-card .leaderboard-top-user .leaderboard-top-breakdown {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: .74rem;
+  line-height: 1.35;
+  text-align: center;
+  white-space: normal;
+}
+
+@media (max-width: 640px) {
+  #clasament .leaderboard-top-card .leaderboard-top-user .leaderboard-top-points,
+  #clasament .leaderboard-top-card .leaderboard-top-user .leaderboard-top-breakdown {
     text-align: left;
   }
 }

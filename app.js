@@ -1591,6 +1591,7 @@ function leaderboardTopCardMarkup(r, admin) {
   const hasAvatar = r.rank === 1;
   const avatarMarkup = hasAvatar ? `<div class="leaderboard-top-avatar" aria-hidden="true">${leaderboardTopIcon(r.rank)}</div>` : '';
   const avatarClass = hasAvatar ? 'has-avatar' : 'no-avatar';
+  const podiumBreakdown = `<span class="leaderboard-top-breakdown">${r.exact} scoruri exacte • ${r.winner} (doar) pronosticuri corecte</span>`;
 
   return `<article class="leaderboard-top-card ${leaderboardTopClass(r.rank)} ${avatarClass}" aria-label="Locul ${r.rank}: ${escapeHtml(r.name)}">
     <div class="leaderboard-top-main">
@@ -1598,7 +1599,7 @@ function leaderboardTopCardMarkup(r, admin) {
         <div class="leaderboard-top-rank">#${r.rank}</div>
         ${avatarMarkup}
       </div>
-      <div class="leaderboard-top-user"><strong>${escapeHtml(r.name)}</strong>${adminEmail}<span>${r.total} puncte</span></div>
+      <div class="leaderboard-top-user"><strong>${escapeHtml(r.name)}</strong>${adminEmail}<span class="leaderboard-top-points">${r.total} puncte</span>${podiumBreakdown}</div>
     </div>
     ${leaderboardStatMarkup(r)}
   </article>`;
