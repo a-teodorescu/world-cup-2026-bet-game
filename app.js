@@ -1640,8 +1640,8 @@ function renderLeaderboard() {
     const adminEmail = admin ? `<span class="leaderboard-email">${escapeHtml(r.email)}</span>` : '';
     return `<article class="leaderboard-card leaderboard-row-card" aria-label="Locul ${r.rank}: ${escapeHtml(r.name)}">
       <div class="rank-badge"><span>#${r.rank}</span></div>
-      <div class="leaderboard-user"><strong>${escapeHtml(r.name)}</strong>${adminEmail}<span class="leaderboard-row-mobile-points" aria-hidden="true">${r.total} puncte</span></div>
-      <span class="leaderboard-row-breakdown">${r.exact} scoruri exacte • ${r.winner} (doar) pronosticuri corecte</span>
+      <div class="leaderboard-user"><strong>${escapeHtml(r.name)}</strong>${adminEmail}<span class="leaderboard-row-mobile-points" aria-hidden="true">${r.total} puncte</span><span class="leaderboard-row-desktop-breakdown">${r.exact} scoruri exacte • ${r.winner} (doar) pronosticuri corecte</span></div>
+      <span class="leaderboard-row-mobile-breakdown">${r.exact} scoruri exacte • ${r.winner} (doar) pronosticuri corecte</span>
       ${leaderboardStatMarkup(r, true)}
       <div class="leaderboard-points"><strong>${r.total}</strong><span>puncte</span></div>
     </article>`;
