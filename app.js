@@ -1591,6 +1591,7 @@ function leaderboardTopCardMarkup(r, admin) {
   const hasAvatar = r.rank === 1;
   const avatarMarkup = hasAvatar ? `<div class="leaderboard-top-avatar" aria-hidden="true">${leaderboardTopIcon(r.rank)}</div>` : '';
   const avatarClass = hasAvatar ? 'has-avatar' : 'no-avatar';
+
   return `<article class="leaderboard-top-card ${leaderboardTopClass(r.rank)} ${avatarClass}" aria-label="Locul ${r.rank}: ${escapeHtml(r.name)}">
     <div class="leaderboard-top-main">
       <div class="leaderboard-top-rank">#${r.rank}</div>

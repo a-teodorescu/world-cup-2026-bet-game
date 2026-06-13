@@ -2058,19 +2058,6 @@ section[data-section="clasament"] .admin-visible-note {
   }
 }
 
-
-#clasament .leaderboard-intro-note {
-  margin: 0 auto;
-  max-width: 760px;
-  color: var(--text);
-  opacity: .92;
-}
-
-#clasament .leaderboard-intro-icon {
-  display: inline-block;
-  margin-right: 6px;
-  color: rgba(247,251,255,.92);
-}
 /* CLASAMENT_TOP3_STATS_STRICT_UPDATE
    Only touches the Clasament content below the existing archive header.
    Does not modify .topbar, .brand, .brand-mark, .nav, .desktop-nav or page background. */
@@ -2095,7 +2082,7 @@ section[data-section="clasament"] .admin-visible-note {
 
 #clasament .leaderboard-top-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.03fr) minmax(0, 1.18fr) minmax(0, .92fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) minmax(0, 1fr);
   align-items: stretch;
   gap: 14px;
 }
@@ -2106,7 +2093,7 @@ section[data-section="clasament"] .admin-visible-note {
   overflow: hidden;
   display: grid;
   align-content: space-between;
-  min-height: 154px;
+  min-height: 148px;
   padding: 16px;
   border: 1px solid color-mix(in srgb, var(--rank-color) 58%, rgba(255,255,255,.16));
   border-radius: 18px;
@@ -2118,13 +2105,13 @@ section[data-section="clasament"] .admin-visible-note {
 
 #clasament .leaderboard-top-card.first {
   --rank-color: var(--yellow);
-  min-height: 170px;
+  min-height: 162px;
   border-width: 1.5px;
   box-shadow: 0 20px 56px rgba(0,0,0,.30), 0 0 30px rgba(253,176,34,.23);
 }
 
-#clasament .leaderboard-top-card.second { --rank-color: #7bb7ff; min-height: 156px; }
-#clasament .leaderboard-top-card.third { --rank-color: #ff8b3d; min-height: 146px; }
+#clasament .leaderboard-top-card.second { --rank-color: #7bb7ff; }
+#clasament .leaderboard-top-card.third { --rank-color: #ff8b3d; }
 
 #clasament .leaderboard-top-main {
   position: relative;
@@ -2134,11 +2121,6 @@ section[data-section="clasament"] .admin-visible-note {
   gap: 12px;
   z-index: 1;
 }
-
-#clasament .leaderboard-top-card.no-avatar .leaderboard-top-main {
-  grid-template-columns: auto minmax(0, 1fr);
-}
-
 
 #clasament .leaderboard-top-rank {
   display: grid;
@@ -2387,7 +2369,7 @@ section[data-section="clasament"] .admin-visible-note {
     gap: 16px !important;
   }
   #clasament .leaderboard-top-card {
-    min-height: auto !important;
+    min-height: auto;
     padding: 14px;
   }
   #clasament .leaderboard-top-main {
@@ -2450,4 +2432,58 @@ section[data-section="clasament"] .admin-visible-note {
 #clasament .leaderboard-row-card .leaderboard-user .leaderboard-email {
   display: block;
   margin-top: 3px;
+}
+
+
+/* TOP3_REFERENCE_PROPORTIONS_TWEAK
+   Reproduce requested Top 3 proportions:
+   #1 remains the largest and keeps the crown circle.
+   #2 and #3 remove their planet/football circles.
+   Text/stat blocks keep the same visual scale. */
+#clasament .leaderboard-top-grid {
+  grid-template-columns: minmax(0, 1.02fr) minmax(0, 1.22fr) minmax(0, .94fr);
+  align-items: center;
+}
+
+#clasament .leaderboard-top-card {
+  min-height: 148px;
+}
+
+#clasament .leaderboard-top-card.first {
+  min-height: 166px;
+  padding: 18px 18px 17px;
+}
+
+#clasament .leaderboard-top-card.second {
+  min-height: 154px;
+}
+
+#clasament .leaderboard-top-card.third {
+  min-height: 146px;
+}
+
+#clasament .leaderboard-top-card.no-avatar .leaderboard-top-main {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+#clasament .leaderboard-top-card.has-avatar .leaderboard-top-main {
+  grid-template-columns: auto auto minmax(0, 1fr);
+}
+
+#clasament .leaderboard-top-card.no-avatar .leaderboard-top-user strong,
+#clasament .leaderboard-top-card.no-avatar .leaderboard-top-user > span:not(.leaderboard-email) {
+  text-align: left;
+}
+
+@media (max-width: 980px) {
+  #clasament .leaderboard-top-grid {
+    grid-template-columns: 1fr;
+  }
+
+  #clasament .leaderboard-top-card,
+  #clasament .leaderboard-top-card.first,
+  #clasament .leaderboard-top-card.second,
+  #clasament .leaderboard-top-card.third {
+    min-height: auto;
+  }
 }
