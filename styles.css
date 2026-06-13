@@ -2701,3 +2701,24 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     text-align: left;
   }
 }
+
+
+/* TOP3_BREAKDOWN_CENTERED_BELOW_GROUP
+   Place "X scoruri exacte • Y (doar) pronosticuri corecte" centered under the whole top group
+   and color it like the #2 accent. */
+#clasament .leaderboard-top-card .leaderboard-top-breakdown {
+  display: block;
+  margin-top: 8px;
+  margin-bottom: 2px;
+  text-align: center;
+  color: #7bb7ff;
+  font-size: .74rem;
+  line-height: 1.35;
+  white-space: normal;
+}
+
+@media (max-width: 640px) {
+  #clasament .leaderboard-top-card .leaderboard-top-breakdown {
+    text-align: center;
+  }
+}

@@ -1599,8 +1599,9 @@ function leaderboardTopCardMarkup(r, admin) {
         <div class="leaderboard-top-rank">#${r.rank}</div>
         ${avatarMarkup}
       </div>
-      <div class="leaderboard-top-user"><strong>${escapeHtml(r.name)}</strong>${adminEmail}<span class="leaderboard-top-points">${r.total} puncte</span>${podiumBreakdown}</div>
+      <div class="leaderboard-top-user"><strong>${escapeHtml(r.name)}</strong>${adminEmail}<span class="leaderboard-top-points">${r.total} puncte</span></div>
     </div>
+    ${podiumBreakdown}
     ${leaderboardStatMarkup(r)}
   </article>`;
 }
