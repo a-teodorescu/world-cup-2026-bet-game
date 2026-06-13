@@ -2722,3 +2722,13 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     text-align: center;
   }
 }
+
+
+/* TOP3_BREAKDOWN_MATCH_REST_TEXT
+   Match the Top 3 breakdown text to the same color as the rest-of-leaderboard breakdown,
+   keep the current size, and make it bold. */
+#clasament .leaderboard-top-card .leaderboard-top-breakdown {
+  color: var(--muted);
+  font-size: .74rem;
+  font-weight: 800;
+}
