@@ -2912,3 +2912,14 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     margin: 14px 0;
   }
 }
+
+
+/* TOP3_MOBILE_STREAK_COLOR_FIX
+   Keep Serie maximă icon color on mobile the same as desktop by forcing text-style rendering/color. */
+@media (max-width: 640px) {
+  #clasament .leaderboard-top-card .leaderboard-stat.streak i {
+    color: #ff8b3d;
+    font-family: inherit;
+    font-weight: 900;
+  }
+}

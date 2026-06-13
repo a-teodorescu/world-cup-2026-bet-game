@@ -1567,7 +1567,7 @@ function leaderboardStatMarkup(r, compact = false) {
   return `<div class="leaderboard-stats ${compact ? 'compact' : ''}">
     <div class="leaderboard-stat accuracy"><i>✓</i><strong>${accuracy}%</strong><small>Acuratețe</small></div>
     <div class="leaderboard-stat correct"><i>◎</i><strong>${correct}</strong><small>Predicții corecte</small></div>
-    <div class="leaderboard-stat streak"><i>♨</i><strong>${streak}</strong><small>Serie maximă</small></div>
+    <div class="leaderboard-stat streak"><i>♨︎</i><strong>${streak}</strong><small>Serie maximă</small></div>
   </div>`;
 }
 
@@ -1593,8 +1593,7 @@ function leaderboardTopEntryMarkup(r, admin, podiumRank) {
   return `<div class="leaderboard-top-entry ${avatarClass}">
     <div class="leaderboard-top-main">
       <div class="leaderboard-top-badges">
-        <div class="leaderboard-top-rank">#${podiumRank}</div>
-        ${avatarMarkup}
+        ${hasAvatar ? `${avatarMarkup}<div class="leaderboard-top-rank">#${podiumRank}</div>` : `<div class="leaderboard-top-rank">#${podiumRank}</div>`}
       </div>
       <div class="leaderboard-top-user"><strong>${escapeHtml(r.name)}</strong>${adminEmail}<span class="leaderboard-top-points">${r.total} puncte</span></div>
     </div>
