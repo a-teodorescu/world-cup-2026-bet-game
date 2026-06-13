@@ -3336,3 +3336,26 @@ section[data-section="clasament"] .leaderboard-intro-icon {
 #clasament .leaderboard-rest-columns span:nth-child(4) {
   text-align: center;
 }
+
+
+/* REST_POINTS_HEADER_COLUMN_ALIGN
+   Desktop only: make the "Puncte totale" header column the same width/alignment as the points values. */
+@media (min-width: 981px) {
+  #clasament .leaderboard-rest-columns,
+  #clasament .leaderboard-card.leaderboard-row-card {
+    grid-template-columns: 54px minmax(130px, 1fr) minmax(310px, 1fr) 96px;
+  }
+
+  #clasament .leaderboard-rest-columns span:nth-child(4),
+  #clasament .leaderboard-row-card .leaderboard-points {
+    width: 96px;
+    min-width: 96px;
+    justify-self: center;
+    text-align: center;
+  }
+
+  #clasament .leaderboard-row-card .leaderboard-points strong,
+  #clasament .leaderboard-row-card .leaderboard-points span {
+    text-align: center;
+  }
+}
