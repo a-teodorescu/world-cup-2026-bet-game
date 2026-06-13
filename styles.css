@@ -2520,3 +2520,35 @@ section[data-section="clasament"] .admin-visible-note {
     min-height: auto;
   }
 }
+
+
+/* TOP3_STATS_CENTER_ALIGNMENT
+   Center the three metric sections inside the Top 3 cards and center icon+value groups. */
+#clasament .leaderboard-top-card .leaderboard-stats {
+  align-items: stretch;
+}
+
+#clasament .leaderboard-top-card .leaderboard-stat {
+  grid-template-areas:
+    "icon value"
+    "label label";
+  justify-content: center;
+  justify-items: center;
+  align-content: center;
+  text-align: center;
+  min-height: 44px;
+}
+
+#clasament .leaderboard-top-card .leaderboard-stat i {
+  justify-self: end;
+}
+
+#clasament .leaderboard-top-card .leaderboard-stat strong {
+  justify-self: start;
+}
+
+#clasament .leaderboard-top-card .leaderboard-stat small {
+  justify-self: center;
+  text-align: center;
+  width: 100%;
+}
