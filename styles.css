@@ -2552,3 +2552,32 @@ section[data-section="clasament"] .admin-visible-note {
   text-align: center;
   width: 100%;
 }
+
+
+/* TOP3_HEADER_GROUP_CENTERED
+   Centers the top group (#rank + optional crown circle + username + points)
+   within each of the three Top 3 cards, while preserving the existing visual scale. */
+#clasament .leaderboard-top-card .leaderboard-top-main {
+  width: max-content;
+  max-width: 100%;
+  margin-inline: auto;
+  justify-content: center;
+}
+
+#clasament .leaderboard-top-card .leaderboard-top-user {
+  min-width: 0;
+  text-align: left;
+}
+
+#clasament .leaderboard-top-card .leaderboard-top-user strong,
+#clasament .leaderboard-top-card .leaderboard-top-user > span:not(.leaderboard-email),
+#clasament .leaderboard-top-card .leaderboard-top-user .leaderboard-email {
+  text-align: left;
+}
+
+@media (max-width: 640px) {
+  #clasament .leaderboard-top-card .leaderboard-top-main {
+    width: 100%;
+    margin-inline: 0;
+  }
+}
