@@ -2487,3 +2487,36 @@ section[data-section="clasament"] .admin-visible-note {
     min-height: auto;
   }
 }
+
+
+/* TOP3_SIZE_DIFFERENCE_PLUS_20
+   Makes the visual size difference between #1, #2 and #3 about 20% more pronounced.
+   It does not scale all cards equally; it only increases the gap between their proportions. */
+#clasament .leaderboard-top-grid {
+  grid-template-columns: minmax(0, 1.02fr) minmax(0, 1.26fr) minmax(0, .92fr);
+}
+
+#clasament .leaderboard-top-card.first {
+  min-height: 170px;
+}
+
+#clasament .leaderboard-top-card.second {
+  min-height: 154px;
+}
+
+#clasament .leaderboard-top-card.third {
+  min-height: 144px;
+}
+
+@media (max-width: 980px) {
+  #clasament .leaderboard-top-grid {
+    grid-template-columns: 1fr;
+  }
+
+  #clasament .leaderboard-top-card,
+  #clasament .leaderboard-top-card.first,
+  #clasament .leaderboard-top-card.second,
+  #clasament .leaderboard-top-card.third {
+    min-height: auto;
+  }
+}
