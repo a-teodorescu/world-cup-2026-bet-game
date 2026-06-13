@@ -2732,3 +2732,11 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   font-size: .74rem;
   font-weight: 800;
 }
+
+
+/* TOP3_BREAKDOWN_SPACING_NO_BOLD
+   Keeps the approved color/size, removes bold, and adds a small gap above the text. */
+#clasament .leaderboard-top-card .leaderboard-top-breakdown {
+  margin-top: 12px;
+  font-weight: 400;
+}
