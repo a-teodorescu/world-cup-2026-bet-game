@@ -3325,3 +3325,14 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   box-shadow: 0 0 0 1px rgba(255,107,107,.38), 0 10px 28px rgba(255,107,107,.22);
   color: #fff0f0;
 }
+
+
+/* REST_HEADER_COLUMNS_CENTER_FIX
+   Center only the header labels for # and Puncte totale in Restul clasamentului. */
+#clasament .leaderboard-rest-columns span:nth-child(1) {
+  text-align: center;
+}
+
+#clasament .leaderboard-rest-columns span:nth-child(4) {
+  text-align: center;
+}
