@@ -2996,3 +2996,97 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     text-align: left;
   }
 }
+
+
+/* REST_MOBILE_TOP3_STYLE
+   Mobile layout for "Restul clasamentului", arranged more like Top 3 cards:
+   rank + user block on top, points integrated in the user block, then clean centered stats. */
+#clasament .leaderboard-row-card .leaderboard-row-mobile-points {
+  display: none;
+}
+
+#clasament .leaderboard-row-card .leaderboard-row-breakdown {
+  display: block;
+}
+
+@media (max-width: 640px) {
+  #clasament .leaderboard-card.leaderboard-row-card {
+    grid-template-columns: 68px minmax(0, 1fr);
+    grid-template-areas:
+      "rank user"
+      "stats stats";
+    align-items: start;
+    gap: 14px 14px;
+    padding: 16px 16px 14px;
+    border-radius: 22px;
+    min-height: auto;
+  }
+
+  #clasament .leaderboard-row-card .rank-badge {
+    grid-area: rank;
+    width: 56px;
+    height: 56px;
+    border-radius: 18px;
+    align-self: start;
+    justify-self: start;
+  }
+
+  #clasament .leaderboard-row-card .leaderboard-user {
+    grid-area: user;
+    min-width: 0;
+    align-self: center;
+  }
+
+  #clasament .leaderboard-row-card .leaderboard-user strong {
+    display: block;
+    font-size: 1.05rem;
+    line-height: 1.15;
+  }
+
+  #clasament .leaderboard-row-card .leaderboard-user .leaderboard-email {
+    display: block;
+    margin-top: 4px;
+  }
+
+  #clasament .leaderboard-row-card .leaderboard-row-mobile-points {
+    display: block;
+    margin-top: 6px;
+    color: var(--accent);
+    font-size: 1rem;
+    font-weight: 900;
+    line-height: 1.15;
+  }
+
+  #clasament .leaderboard-row-card .leaderboard-row-breakdown {
+    display: block;
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: .82rem;
+    line-height: 1.35;
+    white-space: normal;
+  }
+
+  #clasament .leaderboard-row-card .leaderboard-stats.compact {
+    grid-area: stats;
+    grid-column: 1 / -1;
+    justify-content: stretch;
+    margin-top: 2px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255,255,255,.12);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  #clasament .leaderboard-row-card .leaderboard-stats.compact .leaderboard-stat {
+    min-height: 54px;
+    padding-inline: 6px;
+  }
+
+  #clasament .leaderboard-row-card .leaderboard-stats.compact .leaderboard-stat small {
+    white-space: normal;
+    line-height: 1.15;
+  }
+
+  #clasament .leaderboard-row-card .leaderboard-points {
+    display: none;
+  }
+}
