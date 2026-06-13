@@ -3188,3 +3188,82 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     display: none;
   }
 }
+
+
+/* REST_MOBILE_CENTERED_HEADER_V3
+   Mobile: username + points are centered relative to the card border.
+   The breakdown line sits under the whole top group: rank + username + points. */
+@media (max-width: 640px) {
+  #clasament .leaderboard-card.leaderboard-row-card {
+    position: relative;
+    display: block;
+    padding: 18px 16px 14px;
+    border-radius: 22px;
+    min-height: auto;
+  }
+
+  #clasament .leaderboard-row-card .rank-badge {
+    position: absolute;
+    left: 16px;
+    top: 18px;
+    width: 52px;
+    height: 52px;
+    border-radius: 18px;
+  }
+
+  #clasament .leaderboard-row-card .leaderboard-user {
+    display: block;
+    width: 100%;
+    max-width: calc(100% - 112px);
+    margin: 0 auto;
+    text-align: center;
+    min-height: 52px;
+  }
+
+  #clasament .leaderboard-row-card .leaderboard-user strong {
+    display: block;
+    max-width: 100%;
+    text-align: center;
+    font-size: 1.05rem;
+    line-height: 1.15;
+  }
+
+  #clasament .leaderboard-row-card .leaderboard-user .leaderboard-email {
+    display: block;
+    margin-top: 4px;
+    text-align: center;
+  }
+
+  #clasament .leaderboard-row-card .leaderboard-row-mobile-points {
+    display: block !important;
+    margin-top: 6px;
+    color: var(--accent);
+    font-size: 1rem;
+    font-weight: 900;
+    line-height: 1.15;
+    text-align: center;
+  }
+
+  #clasament .leaderboard-row-card .leaderboard-row-breakdown {
+    display: block;
+    width: 100%;
+    margin: 14px auto 0;
+    color: var(--muted);
+    font-size: .82rem;
+    line-height: 1.35;
+    text-align: center;
+    white-space: normal;
+  }
+
+  #clasament .leaderboard-row-card .leaderboard-stats.compact {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255,255,255,.12);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    justify-content: stretch;
+  }
+
+  #clasament .leaderboard-row-card .leaderboard-points {
+    display: none;
+  }
+}
