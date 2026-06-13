@@ -2740,3 +2740,102 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   margin-top: 12px;
   font-weight: 400;
 }
+
+
+/* TOP3_TIE_EXPANSION
+   Allow each podium card to expand vertically when multiple users share the same rank.
+   Each tied user appears in its own repeated block separated by a thin divider. */
+#clasament .leaderboard-top-card {
+  align-content: start;
+}
+
+#clasament .leaderboard-top-card .leaderboard-top-entry + .leaderboard-top-entry {
+  margin-top: 0;
+}
+
+#clasament .leaderboard-top-card .leaderboard-top-separator {
+  height: 1px;
+  width: 100%;
+  margin: 16px 0 16px;
+  background: linear-gradient(90deg, rgba(255,255,255,.06), rgba(255,255,255,.18), rgba(255,255,255,.06));
+}
+
+#clasament .leaderboard-top-card .leaderboard-top-entry {
+  display: block;
+}
+
+#clasament .leaderboard-top-card .leaderboard-top-entry .leaderboard-top-main,
+#clasament .leaderboard-top-card .leaderboard-top-entry.no-avatar .leaderboard-top-main,
+#clasament .leaderboard-top-card .leaderboard-top-entry.has-avatar .leaderboard-top-main {
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  justify-content: normal;
+  column-gap: 12px;
+}
+
+#clasament .leaderboard-top-card .leaderboard-top-entry .leaderboard-top-badges {
+  grid-column: 1;
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#clasament .leaderboard-top-card .leaderboard-top-entry.no-avatar .leaderboard-top-badges {
+  gap: 0;
+}
+
+#clasament .leaderboard-top-card .leaderboard-top-entry .leaderboard-top-user {
+  grid-column: 2;
+  justify-self: center;
+  min-width: 0;
+  text-align: center;
+}
+
+#clasament .leaderboard-top-card .leaderboard-top-entry .leaderboard-top-user strong,
+#clasament .leaderboard-top-card .leaderboard-top-entry .leaderboard-top-user > span:not(.leaderboard-email),
+#clasament .leaderboard-top-card .leaderboard-top-entry .leaderboard-top-user .leaderboard-email {
+  text-align: center;
+}
+
+#clasament .leaderboard-top-card .leaderboard-top-entry .leaderboard-top-breakdown {
+  display: block;
+  margin-top: 12px;
+  margin-bottom: 2px;
+  text-align: center;
+  color: var(--muted);
+  font-size: .74rem;
+  font-weight: 400;
+  line-height: 1.35;
+  white-space: normal;
+}
+
+@media (max-width: 640px) {
+  #clasament .leaderboard-top-card .leaderboard-top-entry .leaderboard-top-main,
+  #clasament .leaderboard-top-card .leaderboard-top-entry.no-avatar .leaderboard-top-main,
+  #clasament .leaderboard-top-card .leaderboard-top-entry.has-avatar .leaderboard-top-main {
+    grid-template-columns: auto 1fr;
+    width: 100%;
+  }
+
+  #clasament .leaderboard-top-card .leaderboard-top-entry .leaderboard-top-badges {
+    justify-self: start;
+  }
+
+  #clasament .leaderboard-top-card .leaderboard-top-entry .leaderboard-top-user,
+  #clasament .leaderboard-top-card .leaderboard-top-entry .leaderboard-top-breakdown {
+    justify-self: start;
+    text-align: left;
+  }
+
+  #clasament .leaderboard-top-card .leaderboard-top-entry .leaderboard-top-user strong,
+  #clasament .leaderboard-top-card .leaderboard-top-entry .leaderboard-top-user > span:not(.leaderboard-email),
+  #clasament .leaderboard-top-card .leaderboard-top-entry .leaderboard-top-user .leaderboard-email,
+  #clasament .leaderboard-top-card .leaderboard-top-entry .leaderboard-top-breakdown {
+    text-align: left;
+  }
+}

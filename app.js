@@ -1585,24 +1585,34 @@ function leaderboardTopClass(rank) {
   return '';
 }
 
-function leaderboardTopCardMarkup(r, admin) {
-  if (!r) return '';
+function leaderboardTopEntryMarkup(r, admin, podiumRank) {
   const adminEmail = admin ? `<span class="leaderboard-email">${escapeHtml(r.email)}</span>` : '';
-  const hasAvatar = r.rank === 1;
-  const avatarMarkup = hasAvatar ? `<div class="leaderboard-top-avatar" aria-hidden="true">${leaderboardTopIcon(r.rank)}</div>` : '';
+  const hasAvatar = podiumRank === 1;
+  const avatarMarkup = hasAvatar ? `<div class="leaderboard-top-avatar" aria-hidden="true">${leaderboardTopIcon(podiumRank)}</div>` : '';
   const avatarClass = hasAvatar ? 'has-avatar' : 'no-avatar';
-  const podiumBreakdown = `<span class="leaderboard-top-breakdown">${r.exact} scoruri exacte • ${r.winner} (doar) pronosticuri corecte</span>`;
-
-  return `<article class="leaderboard-top-card ${leaderboardTopClass(r.rank)} ${avatarClass}" aria-label="Locul ${r.rank}: ${escapeHtml(r.name)}">
+  return `<div class="leaderboard-top-entry ${avatarClass}">
     <div class="leaderboard-top-main">
       <div class="leaderboard-top-badges">
-        <div class="leaderboard-top-rank">#${r.rank}</div>
+        <div class="leaderboard-top-rank">#${podiumRank}</div>
         ${avatarMarkup}
       </div>
       <div class="leaderboard-top-user"><strong>${escapeHtml(r.name)}</strong>${adminEmail}<span class="leaderboard-top-points">${r.total} puncte</span></div>
     </div>
-    ${podiumBreakdown}
+    <span class="leaderboard-top-breakdown">${r.exact} scoruri exacte • ${r.winner} (doar) pronosticuri corecte</span>
     ${leaderboardStatMarkup(r)}
+  </div>`;
+}
+
+function leaderboardTopCardMarkup(rowsForRank, podiumRank, admin) {
+  if (!rowsForRank || !rowsForRank.length) return '';
+  const avatarClass = podiumRank === 1 ? 'has-avatar' : 'no-avatar';
+  const inner = rowsForRank.map((r, idx) => {
+    const separator = idx > 0 ? `<div class="leaderboard-top-separator" aria-hidden="true"></div>` : '';
+    return `${separator}${leaderboardTopEntryMarkup(r, admin, podiumRank)}`;
+  }).join('');
+
+  return `<article class="leaderboard-top-card ${leaderboardTopClass(podiumRank)} ${avatarClass}" aria-label="Locul ${podiumRank}">
+    ${inner}
   </article>`;
 }
 
@@ -1616,15 +1626,15 @@ function renderLeaderboard() {
     return;
   }
 
-  const first = rows.find(r => r.rank === 1);
-  const second = rows.find(r => r.rank === 2);
-  const third = rows.find(r => r.rank === 3);
+  const firstGroup = rows.filter(r => r.rank === 1);
+  const secondGroup = rows.filter(r => r.rank === 2);
+  const thirdGroup = rows.filter(r => r.rank === 3);
   const rest = rows.filter(r => r.rank > 3);
 
   const topCards = [
-    leaderboardTopCardMarkup(second, admin),
-    leaderboardTopCardMarkup(first, admin),
-    leaderboardTopCardMarkup(third, admin)
+    leaderboardTopCardMarkup(secondGroup, 2, admin),
+    leaderboardTopCardMarkup(firstGroup, 1, admin),
+    leaderboardTopCardMarkup(thirdGroup, 3, admin)
   ].filter(Boolean).join('');
 
   const restHtml = rest.length ? rest.map((r) => {
