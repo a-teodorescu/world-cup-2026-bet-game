@@ -3366,3 +3366,30 @@ section[data-section="clasament"] .leaderboard-intro-icon {
 #clasament [data-current-leaderboard="true"] {
   scroll-margin-top: 110px;
 }
+
+
+/* CURRENT_USER_LEADERBOARD_HIGHLIGHT
+   Highlight the current user's card without changing its background color. */
+#clasament [data-current-leaderboard="true"] {
+  scroll-margin-top: 110px;
+  outline: 2px solid rgba(110, 231, 249, .88);
+  outline-offset: 4px;
+  border-radius: 22px;
+  box-shadow: 0 0 0 1px rgba(110, 231, 249, .34), 0 0 26px rgba(110, 231, 249, .28);
+  animation: currentLeaderboardGlow 1.65s ease-in-out 3;
+}
+
+#clasament .leaderboard-card[data-current-leaderboard="true"] {
+  border-color: rgba(110, 231, 249, .72);
+}
+
+@keyframes currentLeaderboardGlow {
+  0%, 100% {
+    outline-color: rgba(110, 231, 249, .68);
+    box-shadow: 0 0 0 1px rgba(110, 231, 249, .24), 0 0 18px rgba(110, 231, 249, .18);
+  }
+  50% {
+    outline-color: rgba(217, 249, 157, .95);
+    box-shadow: 0 0 0 1px rgba(217, 249, 157, .36), 0 0 34px rgba(217, 249, 157, .28);
+  }
+}
