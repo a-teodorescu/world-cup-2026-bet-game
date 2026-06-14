@@ -3573,3 +3573,23 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     grid-column: 2;
   }
 }
+
+
+/* GROUP_QUALIFIED_HIGHLIGHT
+   Highlight teams qualified from groups: top 2 in complete A-L groups and top 8 third-place teams after all groups are complete. */
+#grupe .group-table tr.group-qualified-row {
+  background: rgba(50, 213, 131, .13);
+  box-shadow: inset 4px 0 0 rgba(50, 213, 131, .9);
+}
+
+#grupe .group-table tr.group-qualified-row td {
+  border-bottom-color: rgba(50, 213, 131, .26);
+}
+
+#grupe .group-table tr.group-qualified-row td:first-child {
+  font-weight: 900;
+}
+
+#grupe .group-table tr.group-qualified-row td:first-child .team-name {
+  color: #eafff3;
+}

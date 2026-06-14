@@ -438,7 +438,8 @@ window.addEventListener('hashchange', async () => {
   await refreshData();
   renderAll();
   if (id === 'clasament') scrollToCurrentLeaderboardUser();
-  if (id === 'predictii') scrollToCurrentPredictionMatch();
+  else if (id === 'predictii') scrollToCurrentPredictionMatch();
+  else window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
 });
 
 document.querySelectorAll('.filter').forEach(btn => btn.addEventListener('click', () => {
@@ -667,8 +668,19 @@ function sortGroupRows(rows) {
   return rows.slice().sort((a,b) => b.Pts-a.Pts || b.GD-a.GD || b.GF-a.GF || a.team.localeCompare(b.team));
 }
 
-function groupTableRowsMarkup(rows, includeGroup = false) {
-  return rows.map(r => `<tr><td>${teamInline(r.team)}</td>${includeGroup ? `<td>${r.group}</td>` : ''}<td>${r.MP}</td><td>${r.W}</td><td>${r.D}</td><td>${r.L}</td><td>${r.GD}</td><td><strong>${r.Pts}</strong></td></tr>`).join('');
+function groupPlayedMatchesCount(groupLetter) {
+  return allMatches().filter(m => m.group === groupLetter && hasResult(m)).length;
+}
+
+function areAllGroupsComplete() {
+  return 'ABCDEFGHIJKL'.split('').every(g => groupPlayedMatchesCount(g) === 6);
+}
+
+function groupTableRowsMarkup(rows, includeGroup = false, qualifiedCount = 0) {
+  return rows.map((r, idx) => {
+    const qualifiedClass = idx < qualifiedCount ? ' class="group-qualified-row"' : '';
+    return `<tr${qualifiedClass}><td>${teamInline(r.team)}</td>${includeGroup ? `<td>${r.group}</td>` : ''}<td>${r.MP}</td><td>${r.W}</td><td>${r.D}</td><td>${r.L}</td><td>${r.GD}</td><td><strong>${r.Pts}</strong></td></tr>`;
+  }).join('');
 }
 
 function bestThirdPlaceRows(groups) {
@@ -684,19 +696,23 @@ function bestThirdPlaceRows(groups) {
 function renderGroups() {
   const groups = groupStats();
   const order = 'ABCDEFGHIJKL'.split('');
+  const allGroupsComplete = areAllGroupsComplete();
 
   const groupCards = order.map(g => {
     const rows = sortGroupRows(Object.values(groups[g] || {}));
-    return `<div class="group-card"><div class="group-title"><strong>Grupa ${g}</strong><span>${rows.reduce((s,r)=>s+r.MP,0)/2} meciuri jucate</span></div>
+    const playedMatches = groupPlayedMatchesCount(g);
+    const qualifiedCount = playedMatches === 6 ? 2 : 0;
+    return `<div class="group-card"><div class="group-title"><strong>Grupa ${g}</strong><span>${playedMatches} meciuri jucate</span></div>
       <table class="group-table"><thead><tr><th>Țară</th><th>M</th><th>V</th><th>E</th><th>Î</th><th>GD</th><th>Pt</th></tr></thead><tbody>
-      ${groupTableRowsMarkup(rows)}
+      ${groupTableRowsMarkup(rows, false, qualifiedCount)}
       </tbody></table></div>`;
   }).join('');
 
   const thirdRows = bestThirdPlaceRows(groups);
+  const thirdQualifiedCount = allGroupsComplete ? 8 : 0;
   const thirdPlaceCard = `<div class="group-card best-third-card"><div class="group-title"><strong>Calificată direct - cea mai bună echipă de pe locul 3</strong><span>${thirdRows.length} echipe</span></div>
       <table class="group-table best-third-table"><thead><tr><th>Țară</th><th>Gr.</th><th>M</th><th>V</th><th>E</th><th>Î</th><th>GD</th><th>Pt</th></tr></thead><tbody>
-      ${groupTableRowsMarkup(thirdRows, true)}
+      ${groupTableRowsMarkup(thirdRows, true, thirdQualifiedCount)}
       </tbody></table></div>`;
 
   $('groupStandings').innerHTML = groupCards + thirdPlaceCard;
