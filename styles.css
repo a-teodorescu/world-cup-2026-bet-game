@@ -3393,3 +3393,53 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     box-shadow: 0 0 0 1px rgba(217, 249, 157, .36), 0 0 34px rgba(217, 249, 157, .28);
   }
 }
+
+
+/* LEADERBOARD_STATS_LEGEND
+   Small explanation block under the leaderboard tie note. */
+#clasament .leaderboard-stats-legend {
+  display: grid;
+  gap: 8px;
+  max-width: 940px;
+  margin-top: 12px;
+  color: var(--muted);
+}
+
+#clasament .leaderboard-legend-item {
+  display: grid;
+  grid-template-columns: minmax(150px, auto) minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 9px 12px;
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 14px;
+  background: rgba(255,255,255,.045);
+  line-height: 1.45;
+}
+
+#clasament .leaderboard-legend-item strong {
+  color: var(--text);
+  font-size: .88rem;
+  white-space: nowrap;
+}
+
+#clasament .leaderboard-legend-item span {
+  font-size: .84rem;
+}
+
+@media (max-width: 640px) {
+  #clasament .leaderboard-stats-legend {
+    margin-top: 10px;
+    gap: 7px;
+  }
+
+  #clasament .leaderboard-legend-item {
+    grid-template-columns: 1fr;
+    gap: 4px;
+    padding: 9px 10px;
+  }
+
+  #clasament .leaderboard-legend-item strong {
+    white-space: normal;
+  }
+}
