@@ -663,16 +663,43 @@ function groupStats() {
   });
   return groups;
 }
+function sortGroupRows(rows) {
+  return rows.slice().sort((a,b) => b.Pts-a.Pts || b.GD-a.GD || b.GF-a.GF || a.team.localeCompare(b.team));
+}
+
+function groupTableRowsMarkup(rows, includeGroup = false) {
+  return rows.map(r => `<tr><td>${teamInline(r.team)}</td>${includeGroup ? `<td>${r.group}</td>` : ''}<td>${r.MP}</td><td>${r.W}</td><td>${r.D}</td><td>${r.L}</td><td>${r.GD}</td><td><strong>${r.Pts}</strong></td></tr>`).join('');
+}
+
+function bestThirdPlaceRows(groups) {
+  const order = 'ABCDEFGHIJKL'.split('');
+  return sortGroupRows(order
+    .map(g => {
+      const third = sortGroupRows(Object.values(groups[g] || {}))[2];
+      return third ? { ...third, group: g } : null;
+    })
+    .filter(Boolean));
+}
+
 function renderGroups() {
   const groups = groupStats();
   const order = 'ABCDEFGHIJKL'.split('');
-  $('groupStandings').innerHTML = order.map(g => {
-    const rows = Object.values(groups[g] || {}).sort((a,b) => b.Pts-a.Pts || b.GD-a.GD || b.GF-a.GF || a.team.localeCompare(b.team));
+
+  const groupCards = order.map(g => {
+    const rows = sortGroupRows(Object.values(groups[g] || {}));
     return `<div class="group-card"><div class="group-title"><strong>Grupa ${g}</strong><span>${rows.reduce((s,r)=>s+r.MP,0)/2} meciuri jucate</span></div>
       <table class="group-table"><thead><tr><th>Țară</th><th>M</th><th>V</th><th>E</th><th>Î</th><th>GD</th><th>Pt</th></tr></thead><tbody>
-      ${rows.map(r => `<tr><td>${teamInline(r.team)}</td><td>${r.MP}</td><td>${r.W}</td><td>${r.D}</td><td>${r.L}</td><td>${r.GD}</td><td><strong>${r.Pts}</strong></td></tr>`).join('')}
+      ${groupTableRowsMarkup(rows)}
       </tbody></table></div>`;
   }).join('');
+
+  const thirdRows = bestThirdPlaceRows(groups);
+  const thirdPlaceCard = `<div class="group-card best-third-card"><div class="group-title"><strong>Calificată direct - cea mai bună echipă de pe locul 3</strong><span>${thirdRows.length} echipe</span></div>
+      <table class="group-table best-third-table"><thead><tr><th>Țară</th><th>Gr.</th><th>M</th><th>V</th><th>E</th><th>Î</th><th>GD</th><th>Pt</th></tr></thead><tbody>
+      ${groupTableRowsMarkup(thirdRows, true)}
+      </tbody></table></div>`;
+
+  $('groupStandings').innerHTML = thirdPlaceCard + groupCards;
 }
 
 async function deleteUser(email) {

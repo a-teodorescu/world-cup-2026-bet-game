@@ -3538,3 +3538,24 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     box-shadow: 0 0 0 1px rgba(217, 249, 157, .36), 0 0 34px rgba(217, 249, 157, .28);
   }
 }
+
+
+/* BEST_THIRD_PLACE_GROUP
+   Extra standings table for the best third-place teams. */
+#grupe .best-third-card {
+  grid-column: 1 / -1;
+}
+
+#grupe .best-third-card .group-title strong {
+  max-width: 760px;
+}
+
+#grupe .best-third-table th:not(:first-child),
+#grupe .best-third-table td:not(:first-child) {
+  text-align: center;
+}
+
+#grupe .best-third-table td:nth-child(2) {
+  color: var(--muted);
+  font-weight: 800;
+}
