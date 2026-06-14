@@ -337,7 +337,8 @@ async function showApp() {
   $('currentPlayerLabel').textContent = isAdminUser() ? `${currentUser.name} · Admin` : currentUser.name;
   updateNavigationState();
   renderAll();
-  window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  if (hash === 'clasament') scrollToCurrentLeaderboardUser();
+  else window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
 }
 function showLanding() {
   $('topbar').classList.add('hidden');
@@ -435,6 +436,7 @@ window.addEventListener('hashchange', async () => {
   updateNavigationState();
   await refreshData();
   renderAll();
+  if (id === 'clasament') scrollToCurrentLeaderboardUser();
 });
 
 document.querySelectorAll('.filter').forEach(btn => btn.addEventListener('click', () => {
@@ -1571,6 +1573,30 @@ function leaderboardStatMarkup(r, compact = false) {
   </div>`;
 }
 
+function isCurrentLeaderboardUser(row) {
+  if (!row || !currentUser) return false;
+  const rowEmail = normalize(row.email || '');
+  const userEmail = normalize(currentUser.email || '');
+  if (rowEmail && userEmail && rowEmail === userEmail) return true;
+  return normalize(row.name || row.username || '') === normalize(currentUser.name || currentUser.username || '');
+}
+
+function currentLeaderboardAttr(row) {
+  return isCurrentLeaderboardUser(row) ? ' data-current-leaderboard="true"' : '';
+}
+
+function scrollToCurrentLeaderboardUser() {
+  const clasament = $('clasament');
+  if (!clasament || !clasament.classList.contains('active')) return;
+
+  const target = clasament.querySelector('[data-current-leaderboard="true"]');
+  if (!target) return;
+
+  window.requestAnimationFrame(() => {
+    target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+  });
+}
+
 function leaderboardTopIcon(rank) {
   if (rank === 1) return '👑';
   if (rank === 2) return '🪐';
@@ -1590,7 +1616,7 @@ function leaderboardTopEntryMarkup(r, admin, podiumRank) {
   const hasAvatar = podiumRank === 1;
   const avatarMarkup = hasAvatar ? `<div class="leaderboard-top-avatar" aria-hidden="true">${leaderboardTopIcon(podiumRank)}</div>` : '';
   const avatarClass = hasAvatar ? 'has-avatar' : 'no-avatar';
-  return `<div class="leaderboard-top-entry ${avatarClass}">
+  return `<div class="leaderboard-top-entry ${avatarClass}"${currentLeaderboardAttr(r)}>
     <div class="leaderboard-top-main">
       <div class="leaderboard-top-badges">
         ${hasAvatar ? `${avatarMarkup}<div class="leaderboard-top-rank">#${podiumRank}</div>` : `<div class="leaderboard-top-rank">#${podiumRank}</div>`}
@@ -1638,7 +1664,7 @@ function renderLeaderboard() {
 
   const restHtml = rest.length ? rest.map((r) => {
     const adminEmail = admin ? `<span class="leaderboard-email">${escapeHtml(r.email)}</span>` : '';
-    return `<article class="leaderboard-card leaderboard-row-card" aria-label="Locul ${r.rank}: ${escapeHtml(r.name)}">
+    return `<article class="leaderboard-card leaderboard-row-card" aria-label="Locul ${r.rank}: ${escapeHtml(r.name)}"${currentLeaderboardAttr(r)}>
       <div class="rank-badge"><span>#${r.rank}</span></div>
       <div class="leaderboard-user"><strong>${escapeHtml(r.name)}</strong>${adminEmail}<span class="leaderboard-row-mobile-points" aria-hidden="true">${r.total} puncte</span><span class="leaderboard-row-desktop-breakdown">${r.exact} scoruri exacte • ${r.winner} (doar) pronosticuri corecte</span></div>
       <span class="leaderboard-row-mobile-breakdown">${r.exact} scoruri exacte • ${r.winner} (doar) pronosticuri corecte</span>

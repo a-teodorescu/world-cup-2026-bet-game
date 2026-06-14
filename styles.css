@@ -3359,3 +3359,10 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     text-align: center;
   }
 }
+
+
+/* SCROLL_TO_CURRENT_LEADERBOARD_USER
+   Helps the automatic scroll land with comfortable spacing under the topbar. */
+#clasament [data-current-leaderboard="true"] {
+  scroll-margin-top: 110px;
+}
