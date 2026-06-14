@@ -433,13 +433,17 @@ window.addEventListener('hashchange', async () => {
     location.hash = 'predictii';
     return;
   }
+
+  // Resetăm scroll-ul înainte să afișăm secțiunea nouă, ca pagina să nu apară întâi jos.
+  window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+
   document.querySelectorAll('.app-section').forEach(s => s.classList.toggle('active', s.id === id));
   updateNavigationState();
   await refreshData();
   renderAll();
+
   if (id === 'clasament') scrollToCurrentLeaderboardUser();
   else if (id === 'predictii') scrollToCurrentPredictionMatch();
-  else window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
 });
 
 document.querySelectorAll('.filter').forEach(btn => btn.addEventListener('click', () => {
