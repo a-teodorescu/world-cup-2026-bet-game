@@ -3559,3 +3559,17 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   color: var(--muted);
   font-weight: 800;
 }
+
+
+/* BEST_THIRD_PLACE_GROUP_BOTTOM_ALIGNED
+   Keep the best third-place table the same size as normal group cards.
+   On desktop it sits centered under Grupa K; on smaller screens it follows the natural flow. */
+#grupe .best-third-card {
+  grid-column: auto;
+}
+
+@media (min-width: 1100px) {
+  #grupe .best-third-card {
+    grid-column: 2;
+  }
+}

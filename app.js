@@ -699,7 +699,7 @@ function renderGroups() {
       ${groupTableRowsMarkup(thirdRows, true)}
       </tbody></table></div>`;
 
-  $('groupStandings').innerHTML = thirdPlaceCard + groupCards;
+  $('groupStandings').innerHTML = groupCards + thirdPlaceCard;
 }
 
 async function deleteUser(email) {
