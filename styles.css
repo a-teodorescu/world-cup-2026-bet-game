@@ -3443,3 +3443,59 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     white-space: normal;
   }
 }
+
+
+/* LEADERBOARD_STATS_LEGEND_COMPACT_CENTERED
+   Compact centered legend without boxes/backgrounds; colored icons match the statistics icons. */
+#clasament .leaderboard-stats-legend {
+  display: block;
+  max-width: 980px;
+  margin: 6px auto 0;
+  color: var(--muted);
+  text-align: center;
+  font-size: .78rem;
+  line-height: 1.45;
+}
+
+#clasament .leaderboard-stats-legend .leaderboard-legend-item {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  line-height: inherit;
+}
+
+#clasament .leaderboard-stats-legend .leaderboard-legend-item strong {
+  font-size: inherit;
+  white-space: nowrap;
+}
+
+#clasament .leaderboard-stats-legend .leaderboard-legend-item.accuracy strong {
+  color: #20f6aa;
+}
+
+#clasament .leaderboard-stats-legend .leaderboard-legend-item.correct strong {
+  color: #ff7488;
+}
+
+#clasament .leaderboard-stats-legend .leaderboard-legend-item.streak strong {
+  color: #ff8b3d;
+}
+
+#clasament .leaderboard-stats-legend .leaderboard-legend-separator {
+  display: inline;
+  margin: 0 7px;
+  color: rgba(214,226,244,.42);
+}
+
+@media (max-width: 640px) {
+  #clasament .leaderboard-stats-legend {
+    margin-top: 5px;
+    font-size: .72rem;
+    line-height: 1.4;
+  }
+
+  #clasament .leaderboard-stats-legend .leaderboard-legend-separator {
+    margin: 0 5px;
+  }
+}

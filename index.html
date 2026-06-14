@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260614-leaderboard-stats-legend" />
+  <link rel="stylesheet" href="styles.css?v=20260614-leaderboard-legend-compact" />
 </head>
 <body>
   <div class="bg-orb orb-one"></div>
@@ -251,11 +251,13 @@
         <div>
           <h2>Clasamentul tuturor userilor</h2>
           <p class="leaderboard-intro-note"><span class="leaderboard-intro-icon" aria-hidden="true">ⓘ</span> La egalitate de puncte, utilizatorii împart aceeași poziție</p>
-          <div class="leaderboard-stats-legend" aria-label="Legendă statistici clasament">
-            <div class="leaderboard-legend-item"><strong>✓ Acuratețe</strong><span>Procentul pronosticurilor care au adus puncte: (scoruri exacte + pronosticuri corecte) / pronosticuri făcute la meciuri cu rezultat × 100.</span></div>
-            <div class="leaderboard-legend-item"><strong>◎ Predicții corecte</strong><span>Totalul pronosticurilor punctate: scoruri exacte + pronosticuri corecte.</span></div>
-            <div class="leaderboard-legend-item"><strong>♨︎ Serie maximă</strong><span>Cea mai lungă serie de meciuri consecutive în care userul a obținut puncte.</span></div>
-          </div>
+          <p class="leaderboard-stats-legend" aria-label="Legendă statistici clasament">
+            <span class="leaderboard-legend-item accuracy"><strong>✓ Acuratețe</strong> = (exacte + corecte) / pronosticuri la meciuri cu rezultat × 100</span>
+            <span class="leaderboard-legend-separator">•</span>
+            <span class="leaderboard-legend-item correct"><strong>◎ Predicții corecte</strong> = exacte + corecte</span>
+            <span class="leaderboard-legend-separator">•</span>
+            <span class="leaderboard-legend-item streak"><strong>♨︎ Serie maximă</strong> = cea mai lungă serie cu puncte</span>
+          </p>
         </div>
       </div>
       <div id="leaderboardCards" class="leaderboard-cards"></div>
@@ -284,7 +286,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js?v=20260612-popup-final-fix"></script>
   <script src="matches.js?v=20260612-popup-final-fix"></script>
-  <script src="app.js?v=20260614-leaderboard-stats-legend"></script>
+  <script src="app.js?v=20260614-leaderboard-legend-compact"></script>
   <script src="forgot-username.js?v=20260612-transition-fix"></script>
 </body>
 </html>
