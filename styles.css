@@ -3499,3 +3499,15 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     margin: 0 5px;
   }
 }
+
+
+/* LEADERBOARD_STATS_LEGEND_STACKED
+   Keep the compact centered legend, but place the three explanations one under another. */
+#clasament .leaderboard-stats-legend .leaderboard-legend-item {
+  display: block;
+  margin: 2px 0;
+}
+
+#clasament .leaderboard-stats-legend .leaderboard-legend-separator {
+  display: none;
+}
