@@ -338,6 +338,7 @@ async function showApp() {
   updateNavigationState();
   renderAll();
   if (hash === 'clasament') scrollToCurrentLeaderboardUser();
+  else if (hash === 'predictii') scrollToCurrentPredictionMatch();
   else window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
 }
 function showLanding() {
@@ -437,6 +438,7 @@ window.addEventListener('hashchange', async () => {
   await refreshData();
   renderAll();
   if (id === 'clasament') scrollToCurrentLeaderboardUser();
+  if (id === 'predictii') scrollToCurrentPredictionMatch();
 });
 
 document.querySelectorAll('.filter').forEach(btn => btn.addEventListener('click', () => {
@@ -523,17 +525,45 @@ window.addEventListener('resize', () => {
   matchMetaInfoFitResizeTimer = setTimeout(fitMatchMetaInfo, 120);
 });
 
+function nextUnplayedMatchId(matches) {
+  const now = Date.now();
+  const sorted = [...matches].sort((a, b) => new Date(a.startTimeRo).getTime() - new Date(b.startTimeRo).getTime());
+
+  const futureWithoutResult = sorted.find(m => !hasResult(m) && new Date(m.startTimeRo).getTime() > now);
+  if (futureWithoutResult) return futureWithoutResult.id;
+
+  const withoutResult = sorted.find(m => !hasResult(m));
+  return withoutResult ? withoutResult.id : null;
+}
+
+function currentPredictionMatchAttr(matchId, targetId) {
+  return matchId && targetId && String(matchId) === String(targetId) ? ' data-current-prediction-match="true"' : '';
+}
+
+function scrollToCurrentPredictionMatch() {
+  const predictii = $('predictii');
+  if (!predictii || !predictii.classList.contains('active')) return;
+
+  const target = predictii.querySelector('[data-current-prediction-match="true"]');
+  if (!target) return;
+
+  window.requestAnimationFrame(() => {
+    target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+  });
+}
+
 function renderPredictions() {
   const list = $('matchList');
   const preds = userPredictions();
   const filtered = allMatches().filter(m => currentFilter === 'all' || (currentFilter === 'group' && isGroup(m)) || (currentFilter === 'knockout' && m.matchNo >= 73 && m.matchNo <= 104));
+  const nextMatchId = nextUnplayedMatchId(filtered);
   list.innerHTML = filtered.map(m => {
     const p = preds[m.id] || {};
     const locked = isLocked(m);
     const pred = predictionFromScore(p.home ?? '', p.away ?? '');
     const stageLabels = { 'Round of 32': 'Eliminatorii · Șaisprezecimi', 'Round of 16': 'Eliminatorii · Optimi', 'Quarterfinals': 'Eliminatorii · Sferturi', 'Semifinals': 'Eliminatorii · Semifinale', 'Third place play-off': 'Eliminatorii · Finala mică', 'Final': 'Eliminatorii · Finala' };
     const groupLabel = isGroup(m) ? `Grupa ${m.group}` : (stageLabels[m.stage] || `Eliminatorii · ${m.stage}`);
-    return `<article class="match-card ${locked ? 'locked' : ''}">
+    return `<article class="match-card ${locked ? 'locked' : ''}"${currentPredictionMatchAttr(m.id, nextMatchId)}>
       <div class="match-meta"><span>#${m.matchNo} • ${groupLabel}</span><span>${formatRoDate(m)} RO</span></div>
       <div class="prediction-duel">
         ${predictionSideScoreBlock(m.home, m.id, 'home', p.home, locked)}
