@@ -3593,3 +3593,163 @@ section[data-section="clasament"] .leaderboard-intro-icon {
 #grupe .group-table tr.group-qualified-row td:first-child .team-name {
   color: #eafff3;
 }
+
+
+/* ADMIN_TEST_RUNNER */
+.admin-test-panel {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.admin-test-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.admin-test-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: .9rem;
+}
+
+.admin-test-pill {
+  display: inline-grid;
+  place-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  color: var(--text);
+  font-weight: 800;
+  font-size: .78rem;
+}
+
+.admin-test-pill.pass { color: #eafff3; border-color: rgba(50,213,131,.42); }
+.admin-test-pill.fail { color: #fff0f0; border-color: rgba(255,107,107,.42); }
+.admin-test-pill.skip { color: #fff8e6; border-color: rgba(253,176,34,.42); }
+
+.admin-test-table-wrap {
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+}
+
+.admin-test-table {
+  min-width: 860px;
+  font-size: .88rem;
+}
+
+.admin-test-table th,
+.admin-test-table td {
+  padding: 12px;
+  vertical-align: top;
+}
+
+.admin-test-row.pass {
+  background: rgba(50,213,131,.08);
+}
+
+.admin-test-row.fail {
+  background: rgba(255,107,107,.08);
+}
+
+.admin-test-row.skip {
+  background: rgba(253,176,34,.07);
+}
+
+.admin-test-status {
+  display: inline-grid;
+  place-items: center;
+  min-width: 72px;
+  padding: 6px 8px;
+  border-radius: 999px;
+  font-size: .72rem;
+  font-weight: 900;
+}
+
+.admin-test-status.pass {
+  color: #07111f;
+  background: #32d583;
+}
+
+.admin-test-status.fail {
+  color: #07111f;
+  background: #ff6b6b;
+}
+
+.admin-test-status.skip {
+  color: #07111f;
+  background: #fdb022;
+}
+
+.admin-test-log {
+  min-height: 120px;
+  max-height: 320px;
+  overflow: auto;
+  margin: 0;
+  padding: 14px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 18px;
+  background: rgba(0,0,0,.22);
+  color: rgba(226,232,240,.86);
+  white-space: pre-wrap;
+  font-size: .82rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 640px) {
+  .admin-test-panel {
+    padding: 14px;
+  }
+
+  .admin-test-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .admin-test-actions button {
+    width: 100%;
+  }
+}
+
+
+/* PREDICTION_SCORE_DROPDOWNS
+   Score controls in Pronosticuri are dropdowns from 0 to 15. */
+.prediction-score-select {
+  width: 100%;
+  text-align: center;
+  text-align-last: center;
+  font-weight: 900;
+  font-size: 1.2rem;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,.08);
+  color: var(--text);
+  border-radius: 16px;
+  padding: 14px 34px 14px 14px;
+  outline: none;
+  cursor: pointer;
+}
+
+.prediction-score-select:focus {
+  border-color: var(--accent);
+}
+
+.prediction-score-select:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+.prediction-score-select option {
+  color: #07111f;
+  background: #fff;
+  font-weight: 800;
+}

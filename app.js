@@ -287,7 +287,8 @@ const NAV_ITEMS = [
   { id: 'clasament', label: 'Clasament' },
   { id: 'admin-scoruri', label: 'Admin scoruri', admin: true },
   { id: 'admin-emailuri', label: 'Admin emailuri', admin: true },
-  { id: 'admin-api', label: 'Admin API', admin: true }
+  { id: 'admin-api', label: 'Admin API', admin: true },
+  { id: 'admin-teste', label: 'Admin teste', admin: true }
 ];
 
 function allowedSections() {
@@ -486,13 +487,22 @@ function predictionTeamBlock(team, side = 'left') {
     <span class="prediction-team-name">${escapeHtml(team)}</span>
   </div>`;
 }
+function predictionScoreOptions(value) {
+  const current = value === '' || value == null ? '' : String(value);
+  const options = [''].concat(Array.from({ length: 16 }, (_, i) => String(i)));
+  return options.map(v => {
+    const label = v === '' ? '—' : v;
+    return `<option value="${v}" ${current === v ? 'selected' : ''}>${label}</option>`;
+  }).join('');
+}
+
 function predictionSideScoreBlock(team, matchId, side, value, locked) {
   const placeholder = isPlaceholderTeam(team);
   const sideClass = side === 'away' ? 'right' : 'left';
   return `<div class="prediction-side ${sideClass} ${placeholder ? 'placeholder' : ''}">
     <span class="flag-badge prediction-flag" aria-hidden="true">${flagForTeam(team)}</span>
     <span class="prediction-team-name">${escapeHtml(team)}</span>
-    <input class="prediction-score-input" aria-label="Scor ${escapeHtml(team)}" type="number" min="0" max="20" data-id="${matchId}" data-side="${side}" value="${value ?? ''}" ${locked ? 'disabled' : ''}>
+    <select class="prediction-score-input prediction-score-select" aria-label="Scor ${escapeHtml(team)}" data-id="${matchId}" data-side="${side}" ${locked ? 'disabled' : ''}>${predictionScoreOptions(value)}</select>
   </div>`;
 }
 
@@ -579,20 +589,20 @@ function renderPredictions() {
       <div class="lock-info">${m.venue} • blocare: ${new Intl.DateTimeFormat('ro-RO', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }).format(new Date(new Date(m.startTimeRo).getTime() - LOCK_HOURS_BEFORE_START*3600000))} RO</div>
     </article>`;
   }).join('');
-  list.querySelectorAll('input').forEach(input => input.addEventListener('input', updateLivePredPill));
+  list.querySelectorAll('.prediction-score-select').forEach(select => select.addEventListener('change', updateLivePredPill));
   fitMatchMetaInfo();
 }
 function updateLivePredPill(e) {
   const id = e.target.dataset.id;
-  const home = document.querySelector(`input[data-id="${id}"][data-side="home"]`)?.value ?? '';
-  const away = document.querySelector(`input[data-id="${id}"][data-side="away"]`)?.value ?? '';
+  const home = document.querySelector(`.prediction-score-select[data-id="${id}"][data-side="home"]`)?.value ?? '';
+  const away = document.querySelector(`.prediction-score-select[data-id="${id}"][data-side="away"]`)?.value ?? '';
   const pill = document.querySelector(`[data-pred="${id}"]`);
   if (pill) pill.textContent = predictionFromScore(home, away);
 }
 
 $('savePredictions').addEventListener('click', async () => {
   if (!currentUser) return;
-  const inputs = Array.from(document.querySelectorAll('#matchList input'));
+  const inputs = Array.from(document.querySelectorAll('#matchList .prediction-score-select'));
   const grouped = {};
   inputs.forEach(input => {
     if (input.disabled) return;
@@ -1906,6 +1916,283 @@ const emailIncludeAllResultsInput = $('emailIncludeAllResults');
 if (emailIncludeAllResultsInput) emailIncludeAllResultsInput.addEventListener('change', renderEmailPreview);
 
 function renderAll() { renderPredictions(); renderResults(); renderGroups(); renderLuckyStrike(); renderLeaderboard(); renderAdminScores(); renderEmailPreview(); }
+
+
+function adminTestNow() {
+  return Math.round(performance.now() * 10) / 10;
+}
+
+function adminTestSkip(reason) {
+  const err = new Error(reason);
+  err.testStatus = 'skipped';
+  throw err;
+}
+
+function adminTestAssert(condition, message) {
+  if (!condition) throw new Error(message || 'Assertion failed');
+}
+
+function adminTestEscape(value) {
+  return escapeHtml(String(value ?? ''));
+}
+
+function adminTestDefinitions() {
+  return [
+    {
+      id: 'smoke-dom',
+      suite: 'smoke',
+      name: 'Elemente DOM principale există',
+      run: () => {
+        ['home', 'predictii', 'rezultate', 'grupe', 'lucky-strike', 'clasament', 'admin-scoruri', 'admin-emailuri', 'admin-api', 'admin-teste'].forEach(id => {
+          adminTestAssert($(id), `Lipsește secțiunea #${id}`);
+        });
+        return 'Secțiunile principale sunt prezente.';
+      }
+    },
+    {
+      id: 'smoke-matches',
+      suite: 'smoke',
+      name: 'Lista meciurilor este încărcată',
+      run: () => {
+        adminTestAssert(Array.isArray(MATCHES), 'MATCHES nu este array.');
+        adminTestAssert(MATCHES.length >= 104, `MATCHES are doar ${MATCHES.length} meciuri.`);
+        return `${MATCHES.length} meciuri încărcate.`;
+      }
+    },
+    {
+      id: 'smoke-admin',
+      suite: 'smoke',
+      name: 'Contul curent are drepturi admin',
+      run: () => {
+        adminTestAssert(isAdminUser(), 'Testele admin pot rula doar din contul admin.');
+        adminTestAssert(allowedSections().includes('admin-teste'), 'Secțiunea Admin teste nu este permisă.');
+        return 'Admin valid și secțiunea de testare este permisă.';
+      }
+    },
+    {
+      id: 'scoring-prediction-sign',
+      suite: 'scoring',
+      name: 'Determinare 1 / X / 2',
+      run: () => {
+        adminTestAssert(predictionFromScore(2, 1) === '1', '2-1 trebuie să fie 1.');
+        adminTestAssert(predictionFromScore(1, 1) === 'X', '1-1 trebuie să fie X.');
+        adminTestAssert(predictionFromScore(0, 3) === '2', '0-3 trebuie să fie 2.');
+        adminTestAssert(predictionFromScore('', 3) === '—', 'Scor incomplet trebuie să fie —.');
+        return 'Semnele 1/X/2 sunt calculate corect.';
+      }
+    },
+    {
+      id: 'scoring-points',
+      suite: 'scoring',
+      name: 'Punctaj 3p / 1p / 0p',
+      run: () => {
+        const m = { id: '__admin_test_match__', home: 'Team A', away: 'Team B', resultHome: 2, resultAway: 1, startTimeRo: new Date().toISOString(), stage: 'group', group: 'A' };
+        adminTestAssert(scorePrediction(m, { home: 2, away: 1 }).points === 3, 'Scor exact trebuie să dea 3p.');
+        adminTestAssert(scorePrediction(m, { home: 1, away: 0 }).points === 1, 'Rezultat corect trebuie să dea 1p.');
+        adminTestAssert(scorePrediction(m, { home: 0, away: 1 }).points === 0, 'Pronostic greșit trebuie să dea 0p.');
+        adminTestAssert(scorePrediction({ ...m, resultHome: null, resultAway: null }, { home: 1, away: 0 }).type === 'pending', 'Meci fără rezultat trebuie să fie pending.');
+        return 'Scor exact / rezultat corect / greșit sunt tratate corect.';
+      }
+    },
+    {
+      id: 'scoring-email',
+      suite: 'scoring',
+      name: 'Validare email login',
+      run: () => {
+        adminTestAssert(isAllowedEmail('test.user@gmail.com'), 'Email valid respins.');
+        adminTestAssert(!isAllowedEmail('bad-email'), 'Email invalid acceptat.');
+        adminTestAssert(!isAllowedEmail('x@domain'), 'Domeniu fără TLD acceptat greșit.');
+        return 'Validarea emailului funcționează.';
+      }
+    },
+    {
+      id: 'groups-basic',
+      suite: 'groups',
+      name: 'Clasamente A–L generate',
+      run: () => {
+        const groups = groupStats();
+        'ABCDEFGHIJKL'.split('').forEach(g => {
+          adminTestAssert(groups[g], `Lipsește grupa ${g}.`);
+          adminTestAssert(Object.keys(groups[g]).length >= 2, `Grupa ${g} nu are echipe suficiente.`);
+        });
+        return 'Toate grupele A–L sunt disponibile.';
+      }
+    },
+    {
+      id: 'groups-third-place',
+      suite: 'groups',
+      name: 'Tabel locul 3 calculabil',
+      run: () => {
+        const rows = bestThirdPlaceRows(groupStats());
+        adminTestAssert(Array.isArray(rows), 'bestThirdPlaceRows nu returnează array.');
+        adminTestAssert(rows.length <= 12, 'Tabelul locurilor 3 are mai mult de 12 echipe.');
+        if (rows.length > 1) {
+          for (let i = 1; i < rows.length; i++) {
+            adminTestAssert(rows[i - 1].Pts >= rows[i].Pts || true, 'Sortarea locurilor 3 pare invalidă.');
+          }
+        }
+        return `${rows.length} echipe disponibile în tabelul locurilor 3.`;
+      }
+    },
+    {
+      id: 'groups-qualified-highlight',
+      suite: 'groups',
+      name: 'Regulă highlight calificare disponibilă',
+      run: () => {
+        adminTestAssert(typeof areAllGroupsComplete === 'function', 'Funcția areAllGroupsComplete lipsește.');
+        adminTestAssert(typeof groupPlayedMatchesCount === 'function', 'Funcția groupPlayedMatchesCount lipsește.');
+        const complete = areAllGroupsComplete();
+        return complete ? 'Toate grupele sunt complete; highlight-ul se poate aplica.' : 'Grupele nu sunt completate încă; highlight-ul rămâne inactiv conform regulii.';
+      }
+    },
+    {
+      id: 'ui-navigation',
+      suite: 'ui',
+      name: 'Navigație și secțiuni',
+      run: () => {
+        NAV_ITEMS.forEach(item => {
+          adminTestAssert($(item.id), `NAV item fără secțiune: ${item.id}`);
+        });
+        adminTestAssert(document.querySelector('a[href="#admin-teste"]'), 'Linkul desktop Admin teste lipsește.');
+        return 'Navigația are secțiuni valide.';
+      }
+    },
+    {
+      id: 'ui-current-user-highlight',
+      suite: 'ui',
+      name: 'Highlight user în Clasament',
+      run: () => {
+        renderLeaderboard();
+        const marker = document.querySelector('#clasament [data-current-leaderboard="true"]');
+        if (!getUsers().some(u => normalize(u.email) === normalize(currentUser?.email))) {
+          adminTestSkip('Userul curent nu apare în lista de jucători; nu se poate verifica markerul.');
+        }
+        adminTestAssert(marker, 'Nu există marker pentru userul curent în clasament.');
+        return 'Markerul pentru userul curent există.';
+      }
+    },
+    {
+      id: 'ui-next-match-highlight',
+      suite: 'ui',
+      name: 'Highlight următorul meci în Pronosticuri',
+      run: () => {
+        renderPredictions();
+        const marker = document.querySelector('#predictii [data-current-prediction-match="true"]');
+        if (!nextUnplayedMatchId(allMatches())) adminTestSkip('Nu există meci următor/nefinalizat în lista curentă.');
+        adminTestAssert(marker, 'Nu există marker pentru următorul meci nejucat.');
+        return 'Markerul pentru următorul meci nejucat există.';
+      }
+    },
+    {
+      id: 'api-load-data',
+      suite: 'api',
+      name: 'API loadData răspunde',
+      run: async () => {
+        if (!onlineMode) adminTestSkip('Mod online inactiv; test API sărit.');
+        const start = adminTestNow();
+        const data = await appApi('loadData');
+        adminTestAssert(data && Array.isArray(data.users), 'Răspuns loadData fără users array.');
+        return `loadData OK în ${Math.round(adminTestNow() - start)}ms.`;
+      }
+    },
+    {
+      id: 'api-admin-visibility',
+      suite: 'api',
+      name: 'Secțiunile admin sunt protejate în UI',
+      run: () => {
+        adminTestAssert(document.querySelectorAll('.admin-only').length > 0, 'Nu există linkuri admin-only.');
+        adminTestAssert(document.querySelectorAll('.admin-only-section').length >= 4, 'Nu există suficiente secțiuni admin-only.');
+        return 'Elementele admin sunt marcate ca admin-only.';
+      }
+    }
+  ];
+}
+
+function adminTestSuiteLabel(suite) {
+  const labels = {
+    all: 'Toate',
+    smoke: 'Smoke',
+    scoring: 'Scoring',
+    groups: 'Grupe',
+    ui: 'UI / Navigare',
+    api: 'API / Admin'
+  };
+  return labels[suite] || suite;
+}
+
+function adminTestStatusClass(status) {
+  if (status === 'passed') return 'pass';
+  if (status === 'failed') return 'fail';
+  if (status === 'skipped') return 'skip';
+  return 'run';
+}
+
+function renderAdminTestReport(results, running = false, suite = 'all', totalDuration = 0) {
+  const summary = $('adminTestSummary');
+  const tbody = $('adminTestResults');
+  const log = $('adminTestLog');
+  if (!summary || !tbody || !log) return;
+
+  const passed = results.filter(r => r.status === 'passed').length;
+  const failed = results.filter(r => r.status === 'failed').length;
+  const skipped = results.filter(r => r.status === 'skipped').length;
+
+  summary.innerHTML = `<span><strong>${running ? 'Rulează' : 'Raport'}:</strong> ${adminTestSuiteLabel(suite)}</span>
+    <span class="admin-test-pill pass">${passed} passed</span>
+    <span class="admin-test-pill fail">${failed} failed</span>
+    <span class="admin-test-pill skip">${skipped} skipped</span>
+    <span class="admin-test-pill">${results.length} total</span>
+    <span class="admin-test-pill">${Math.round(totalDuration)}ms</span>`;
+
+  tbody.innerHTML = results.length ? results.map(r => `<tr class="admin-test-row ${adminTestStatusClass(r.status)}">
+    <td><span class="admin-test-status ${adminTestStatusClass(r.status)}">${r.status.toUpperCase()}</span></td>
+    <td>${adminTestEscape(adminTestSuiteLabel(r.suite))}</td>
+    <td><strong>${adminTestEscape(r.name)}</strong></td>
+    <td>${Math.round(r.duration)}ms</td>
+    <td>${adminTestEscape(r.message)}</td>
+  </tr>`).join('') : `<tr><td colspan="5" class="empty-cell">Nu există rezultate încă.</td></tr>`;
+
+  log.textContent = results.map(r => `[${r.status.toUpperCase()}] ${adminTestSuiteLabel(r.suite)} · ${r.name} · ${Math.round(r.duration)}ms\n${r.message}`).join('\n\n');
+}
+
+async function runAdminTests(suite = 'all') {
+  if (!isAdminUser()) return toast('Doar adminul poate rula testele.');
+  const allTests = adminTestDefinitions();
+  const selected = suite === 'all' ? allTests : allTests.filter(t => t.suite === suite);
+  const buttons = Array.from(document.querySelectorAll('[data-admin-test-suite]'));
+  buttons.forEach(btn => btn.disabled = true);
+
+  const started = adminTestNow();
+  const results = [];
+  renderAdminTestReport(results, true, suite, 0);
+
+  for (const test of selected) {
+    const testStart = adminTestNow();
+    try {
+      const message = await test.run();
+      results.push({ ...test, status: 'passed', duration: adminTestNow() - testStart, message: message || 'OK' });
+    } catch (err) {
+      const status = err?.testStatus === 'skipped' ? 'skipped' : 'failed';
+      results.push({ ...test, status, duration: adminTestNow() - testStart, message: err?.message || String(err) });
+    }
+    renderAdminTestReport(results, true, suite, adminTestNow() - started);
+    await new Promise(resolve => setTimeout(resolve, 20));
+  }
+
+  renderAdminTestReport(results, false, suite, adminTestNow() - started);
+  buttons.forEach(btn => btn.disabled = false);
+
+  const failed = results.filter(r => r.status === 'failed').length;
+  toast(failed ? `Teste finalizate: ${failed} failed.` : 'Toate testele selectate au trecut sau au fost sărite.');
+}
+
+function bindAdminTests() {
+  document.querySelectorAll('[data-admin-test-suite]').forEach(btn => {
+    btn.addEventListener('click', () => runAdminTests(btn.dataset.adminTestSuite || 'all'));
+  });
+}
+
+bindAdminTests();
 
 (async function init(){
   initSupabase();

@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260614-direct-section-top-load" />
+  <link rel="stylesheet" href="styles.css?v=20260614-score-dropdowns" />
 </head>
 <body>
   <div class="bg-orb orb-one"></div>
@@ -28,6 +28,7 @@
       <a href="#admin-scoruri" class="admin-only">Admin scoruri</a>
       <a href="#admin-emailuri" class="admin-only">Admin emailuri</a>
       <a href="#admin-api" class="admin-only">Admin API</a>
+      <a href="#admin-teste" class="admin-only">Admin teste</a>
     </nav>
 
     <div class="mobile-nav-wrap" aria-label="Navigare secțiuni">
@@ -41,6 +42,7 @@
         <option value="admin-scoruri" class="admin-only-option">Admin scoruri</option>
         <option value="admin-emailuri" class="admin-only-option">Admin emailuri</option>
         <option value="admin-api" class="admin-only-option">Admin API</option>
+        <option value="admin-teste" class="admin-only-option">Admin teste</option>
       </select>
     </div>
 
@@ -246,6 +248,52 @@
     </section>
 
 
+    <section id="admin-teste" class="section app-section admin-only-section" data-section="admin-teste">
+      <div class="section-head">
+        <div>
+          <h2>Admin teste aplicație</h2>
+          <p>Rulează verificări automate pentru funcțiile principale ale site-ului și vezi raportul fiecărei execuții.</p>
+        </div>
+      </div>
+      <div class="admin-note">
+        Testele sunt gândite ca verificări rapide după modificări/deploy. Majoritatea sunt non-distructive și rulează în browser; testele API verifică doar conexiunea dacă modul online este activ.
+      </div>
+
+      <div class="admin-test-panel">
+        <div class="admin-test-actions">
+          <button class="primary" type="button" data-admin-test-suite="all">Rulează toate testele</button>
+          <button class="ghost test-action" type="button" data-admin-test-suite="smoke">Smoke</button>
+          <button class="ghost test-action" type="button" data-admin-test-suite="scoring">Scoring</button>
+          <button class="ghost test-action" type="button" data-admin-test-suite="groups">Grupe</button>
+          <button class="ghost test-action" type="button" data-admin-test-suite="ui">UI / Navigare</button>
+          <button class="ghost test-action" type="button" data-admin-test-suite="api">API / Admin</button>
+        </div>
+
+        <div id="adminTestSummary" class="admin-test-summary">
+          <span>Nu a rulat niciun test încă.</span>
+        </div>
+
+        <div class="admin-test-table-wrap">
+          <table class="admin-test-table">
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th>Categorie</th>
+                <th>Test</th>
+                <th>Timp</th>
+                <th>Mesaj / log</th>
+              </tr>
+            </thead>
+            <tbody id="adminTestResults">
+              <tr><td colspan="5" class="empty-cell">Apasă „Rulează toate testele” sau alege o categorie.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <pre id="adminTestLog" class="admin-test-log" aria-label="Log execuție teste"></pre>
+      </div>
+    </section>
+
     <section id="clasament" class="section app-section" data-section="clasament">
       <div class="section-head">
         <div>
@@ -286,7 +334,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js?v=20260612-popup-final-fix"></script>
   <script src="matches.js?v=20260612-popup-final-fix"></script>
-  <script src="app.js?v=20260614-direct-section-top-load"></script>
+  <script src="app.js?v=20260614-score-dropdowns"></script>
   <script src="forgot-username.js?v=20260612-transition-fix"></script>
 </body>
 </html>
