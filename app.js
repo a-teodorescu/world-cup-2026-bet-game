@@ -2346,7 +2346,8 @@ function parcursChartSvg(labels, players) {
     const x = (i) => ml + (plotW * i / safeCount);
     const y = (rank) => mt + (plotH * (Number(rank) - 1) / Math.max(1, maxRank - 1));
 
-    let grid = `<text x="${ml}" y="18" class="pc-axis-title">Poziție în clasament</text>`;
+    const yTitleCenter = mt + plotH / 2;
+    let grid = `<text x="16" y="${yTitleCenter.toFixed(1)}" class="pc-axis-title pc-y-title-desktop" text-anchor="middle" dominant-baseline="middle" transform="rotate(-90 16 ${yTitleCenter.toFixed(1)})">Poziție în clasament</text>`;
     for (let r = 1; r <= maxRank; r += 1) {
       const yy = y(r);
       grid += `<line x1="${ml}" y1="${yy.toFixed(1)}" x2="${width - mr}" y2="${yy.toFixed(1)}" class="pc-grid"/>`;
@@ -2378,7 +2379,6 @@ function parcursChartSvg(labels, players) {
         <svg viewBox="0 0 ${width} ${height}" class="parcurs-chart-svg parcurs-chart-svg-desktop" role="img" aria-label="Grafic evoluție clasament">
           ${grid}
           ${series}
-          <text x="${width / 2}" y="${height - 2}" class="pc-axis-title">Etape / meciuri jucate</text>
         </svg>
       </div>
     </div>`;
