@@ -4237,3 +4237,131 @@ section[data-section="clasament"] .leaderboard-intro-icon {
 #parcurs-preview .parcurs-chart-card {
   overflow: hidden;
 }
+
+
+/* PRONOSTICURI_SCORE_DROPDOWN_EVOLUTIE_STYLE
+   Custom score dropdowns styled like the Evoluție filters, while keeping the hidden select for save logic. */
+#predictii .match-card.score-menu-open {
+  overflow: visible;
+  z-index: 80;
+}
+
+#predictii .prediction-score-picker {
+  position: relative;
+  width: min(100%, 132px);
+  z-index: 3;
+}
+
+#predictii .prediction-score-picker.disabled {
+  opacity: .5;
+  pointer-events: none;
+}
+
+#predictii .prediction-score-picker .prediction-score-select {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  min-width: 1px;
+  padding: 0;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+  border: 0;
+}
+
+#predictii .prediction-score-button {
+  width: 100%;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,.08);
+  color: var(--text);
+  border-radius: 16px;
+  padding: 13px 34px 13px 14px;
+  font-weight: 900;
+  font-size: 1.2rem;
+  line-height: 1;
+  text-align: center;
+  cursor: pointer;
+  outline: none;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+  position: relative;
+}
+
+#predictii .prediction-score-button::after {
+  content: "▾";
+  position: absolute;
+  right: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: .86rem;
+}
+
+#predictii .prediction-score-button:hover,
+#predictii .prediction-score-button:focus-visible,
+#predictii .prediction-score-button[aria-expanded="true"] {
+  border-color: rgba(110, 231, 249, .72);
+  background: rgba(255,255,255,.12);
+  box-shadow: 0 0 0 3px rgba(110, 231, 249, .12);
+}
+
+#predictii .prediction-score-button:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+#predictii .prediction-score-menu {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 8px);
+  transform: translateX(-50%);
+  z-index: 120;
+  width: 106px;
+  max-height: 238px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: grid;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #0f172a;
+  box-shadow: 0 18px 44px rgba(0,0,0,.38);
+  box-sizing: border-box;
+}
+
+#predictii .prediction-score-menu.hidden {
+  display: none !important;
+}
+
+#predictii .prediction-score-option {
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 8px 10px;
+  font-weight: 900;
+  text-align: center;
+  cursor: pointer;
+}
+
+#predictii .prediction-score-option:hover {
+  border-color: rgba(110, 231, 249, .58);
+  background: rgba(255,255,255,.12);
+}
+
+#predictii .prediction-score-option.active {
+  color: #07111f;
+  background: var(--accent);
+  border-color: transparent;
+}
+
+@media (max-width: 640px) {
+  #predictii .prediction-score-picker {
+    width: min(100%, 112px);
+  }
+
+  #predictii .prediction-score-button {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+}

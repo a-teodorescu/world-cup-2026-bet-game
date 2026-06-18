@@ -497,15 +497,108 @@ function predictionScoreOptions(value) {
   }).join('');
 }
 
+function predictionScoreLabel(value) {
+  return value === '' || value == null ? '—' : String(value);
+}
+
+function predictionScoreMenuOptions(value) {
+  const current = value === '' || value == null ? '' : String(value);
+  const options = [''].concat(Array.from({ length: 16 }, (_, i) => String(i)));
+  return options.map(v => {
+    const label = v === '' ? '—' : v;
+    return `<button type="button" class="prediction-score-option ${current === v ? 'active' : ''}" data-score-value="${v}">${label}</button>`;
+  }).join('');
+}
+
 function predictionSideScoreBlock(team, matchId, side, value, locked) {
   const placeholder = isPlaceholderTeam(team);
   const sideClass = side === 'away' ? 'right' : 'left';
+  const scoreLabel = predictionScoreLabel(value);
+  const safeTeam = escapeHtml(team);
   return `<div class="prediction-side ${sideClass} ${placeholder ? 'placeholder' : ''}">
     <span class="flag-badge prediction-flag" aria-hidden="true">${flagForTeam(team)}</span>
-    <span class="prediction-team-name">${escapeHtml(team)}</span>
-    <select class="prediction-score-input prediction-score-select" aria-label="Scor ${escapeHtml(team)}" data-id="${matchId}" data-side="${side}" ${locked ? 'disabled' : ''}>${predictionScoreOptions(value)}</select>
+    <span class="prediction-team-name">${safeTeam}</span>
+    <div class="prediction-score-picker ${locked ? 'disabled' : ''}" data-id="${matchId}" data-side="${side}">
+      <select class="prediction-score-input prediction-score-select" aria-label="Scor ${safeTeam}" data-id="${matchId}" data-side="${side}" tabindex="-1" aria-hidden="true" ${locked ? 'disabled' : ''}>${predictionScoreOptions(value)}</select>
+      <button type="button" class="prediction-score-button" aria-label="Scor ${safeTeam}" aria-expanded="false" ${locked ? 'disabled' : ''}>
+        <span class="prediction-score-button-value">${scoreLabel}</span>
+      </button>
+      <div class="prediction-score-menu hidden" role="listbox">${predictionScoreMenuOptions(value)}</div>
+    </div>
   </div>`;
 }
+
+
+let predictionScoreGlobalCloseBound = false;
+
+function closePredictionScoreMenus(exceptMenu = null) {
+  document.querySelectorAll('.prediction-score-menu').forEach(menu => {
+    if (menu === exceptMenu) return;
+    menu.classList.add('hidden');
+    const picker = menu.closest('.prediction-score-picker');
+    picker?.querySelector('.prediction-score-button')?.setAttribute('aria-expanded', 'false');
+    picker?.closest('.match-card')?.classList.remove('score-menu-open');
+  });
+}
+
+function syncPredictionScorePicker(select) {
+  const picker = select.closest('.prediction-score-picker');
+  if (!picker) return;
+  const value = select.value ?? '';
+  const label = predictionScoreLabel(value);
+  const buttonValue = picker.querySelector('.prediction-score-button-value');
+  if (buttonValue) buttonValue.textContent = label;
+  picker.querySelectorAll('.prediction-score-option').forEach(option => {
+    option.classList.toggle('active', (option.dataset.scoreValue ?? '') === value);
+  });
+}
+
+function bindPredictionScorePickers(root = document) {
+  root.querySelectorAll('.prediction-score-picker').forEach(picker => {
+    const select = picker.querySelector('.prediction-score-select');
+    const button = picker.querySelector('.prediction-score-button');
+    const menu = picker.querySelector('.prediction-score-menu');
+    if (!select || !button || !menu || button.disabled) return;
+
+    button.addEventListener('click', event => {
+      event.stopPropagation();
+      const shouldOpen = menu.classList.contains('hidden');
+      closePredictionScoreMenus(menu);
+      if (shouldOpen) {
+        picker.closest('.match-card')?.classList.add('score-menu-open');
+        menu.classList.remove('hidden');
+        button.setAttribute('aria-expanded', 'true');
+      } else {
+        menu.classList.add('hidden');
+        button.setAttribute('aria-expanded', 'false');
+        picker.closest('.match-card')?.classList.remove('score-menu-open');
+      }
+    });
+
+    menu.querySelectorAll('.prediction-score-option').forEach(option => {
+      option.addEventListener('click', event => {
+        event.stopPropagation();
+        select.value = option.dataset.scoreValue ?? '';
+        syncPredictionScorePicker(select);
+        menu.classList.add('hidden');
+        button.setAttribute('aria-expanded', 'false');
+        picker.closest('.match-card')?.classList.remove('score-menu-open');
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+    });
+
+    select.addEventListener('change', () => syncPredictionScorePicker(select));
+  });
+
+  if (!predictionScoreGlobalCloseBound) {
+    document.addEventListener('click', () => closePredictionScoreMenus());
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') closePredictionScoreMenus();
+    });
+    predictionScoreGlobalCloseBound = true;
+  }
+}
+
 
 
 function fitMatchMetaInfo() {
@@ -591,6 +684,7 @@ function renderPredictions() {
     </article>`;
   }).join('');
   list.querySelectorAll('.prediction-score-select').forEach(select => select.addEventListener('change', updateLivePredPill));
+  bindPredictionScorePickers(list);
   fitMatchMetaInfo();
 }
 function updateLivePredPill(e) {
