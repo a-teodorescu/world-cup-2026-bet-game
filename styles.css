@@ -5264,3 +5264,70 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     margin-top: 4px;
   }
 }
+
+
+/* CLASAMENT_DELETE_BUTTON_INLINE_CONFIRM
+   Move admin delete button next to each user name and keep it small/discreet. */
+#clasament .leaderboard-name-with-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 0;
+  max-width: 100%;
+  vertical-align: middle;
+}
+
+#clasament .leaderboard-name-with-delete strong {
+  min-width: 0;
+}
+
+#clasament .leaderboard-delete-user,
+#clasament .leaderboard-top-user .leaderboard-delete-user,
+#clasament .leaderboard-row-card .leaderboard-delete-user {
+  width: 1.15em;
+  height: 1.15em;
+  min-width: 1.15em;
+  padding: 0;
+  margin: 0;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  font-size: .9em;
+  line-height: 1;
+  font-weight: 900;
+  grid-column: auto;
+  justify-self: auto;
+  background: rgba(255,107,107,.16);
+  border: 1px solid rgba(255,107,107,.48);
+  color: #ffd1d1;
+  cursor: pointer;
+  transform: translateY(-.02em);
+}
+
+#clasament .leaderboard-delete-user:hover {
+  background: rgba(255,107,107,.30);
+  border-color: rgba(255,107,107,.72);
+}
+
+#clasament .leaderboard-top-user .leaderboard-name-with-delete {
+  margin-inline: auto;
+}
+
+#clasament .leaderboard-user .leaderboard-name-with-delete {
+  justify-content: flex-start;
+}
+
+@media (max-width: 640px) {
+  #clasament .leaderboard-name-with-delete {
+    gap: 6px;
+  }
+
+  #clasament .leaderboard-delete-user,
+  #clasament .leaderboard-top-user .leaderboard-delete-user,
+  #clasament .leaderboard-row-card .leaderboard-delete-user {
+    width: 1.2em;
+    height: 1.2em;
+    min-width: 1.2em;
+  }
+}

@@ -843,7 +843,7 @@ async function deleteUser(email) {
   const target = getUsers().find(u => normalize(u.email) === normalize(email));
   if (!target) return;
   if (isAdminUser(target)) return toast('Adminul nu poate fi șters din clasament.');
-  const ok = confirm(`Ștergi definitiv userul „${target.name}” și toate pronosticurile lui?`);
+  const ok = confirm(`Confirmare ștergere user\n\nEști sigur că vrei să ștergi definitiv userul „${target.name}”?\n\nAceastă acțiune va șterge și toate pronosticurile lui și nu poate fi anulată.`);
   if (!ok) return;
   try {
     if (onlineMode) {
@@ -1783,6 +1783,10 @@ function leaderboardDeleteButton(row, compact = false) {
   return `<button type="button" class="delete-user leaderboard-delete-user ${compact ? 'compact' : ''}" data-delete-user="${escapeHtml(row.email)}" aria-label="Șterge userul ${escapeHtml(row.name)}" title="Șterge user">×</button>`;
 }
 
+function leaderboardNameWithDelete(row, compact = false) {
+  return `<span class="leaderboard-name-with-delete"><strong>${escapeHtml(row.name)}</strong>${leaderboardDeleteButton(row, compact)}</span>`;
+}
+
 function scrollToCurrentLeaderboardUser() {
   const clasament = $('clasament');
   if (!clasament || !clasament.classList.contains('active')) return;
@@ -1819,7 +1823,7 @@ function leaderboardTopEntryMarkup(r, admin, podiumRank) {
       <div class="leaderboard-top-badges">
         ${hasAvatar ? `${avatarMarkup}<div class="leaderboard-top-rank">#${podiumRank}</div>` : `<div class="leaderboard-top-rank">#${podiumRank}</div>`}
       </div>
-      <div class="leaderboard-top-user"><strong>${escapeHtml(r.name)}</strong>${adminEmail}<span class="leaderboard-top-points">${r.total} puncte</span>${admin ? leaderboardDeleteButton(r, true) : ''}</div>
+      <div class="leaderboard-top-user">${leaderboardNameWithDelete(r, true)}${adminEmail}<span class="leaderboard-top-points">${r.total} puncte</span></div>
     </div>
     <span class="leaderboard-top-breakdown">${r.exact} scoruri exacte • ${r.winner} (doar) pronosticuri corecte</span>
     ${leaderboardStatMarkup(r)}
@@ -1864,11 +1868,10 @@ function renderLeaderboard() {
     const adminEmail = admin ? `<span class="leaderboard-email">${escapeHtml(r.email)}</span>` : '';
     return `<article class="leaderboard-card leaderboard-row-card" aria-label="Locul ${r.rank}: ${escapeHtml(r.name)}"${currentLeaderboardAttr(r)}>
       <div class="rank-badge"><span>#${r.rank}</span></div>
-      <div class="leaderboard-user"><strong>${escapeHtml(r.name)}</strong>${adminEmail}<span class="leaderboard-row-mobile-points" aria-hidden="true">${r.total} puncte</span><span class="leaderboard-row-desktop-breakdown">${r.exact} scoruri exacte • ${r.winner} (doar) pronosticuri corecte</span></div>
+      <div class="leaderboard-user">${leaderboardNameWithDelete(r)}${adminEmail}<span class="leaderboard-row-mobile-points" aria-hidden="true">${r.total} puncte</span><span class="leaderboard-row-desktop-breakdown">${r.exact} scoruri exacte • ${r.winner} (doar) pronosticuri corecte</span></div>
       <span class="leaderboard-row-mobile-breakdown">${r.exact} scoruri exacte • ${r.winner} (doar) pronosticuri corecte</span>
       ${leaderboardStatMarkup(r, true)}
       <div class="leaderboard-points"><strong>${r.total}</strong><span>puncte</span></div>
-      ${admin ? leaderboardDeleteButton(r) : ''}
     </article>`;
   }).join('') : `<div class="empty">Nu există useri după poziția #3.</div>`;
 
