@@ -838,12 +838,62 @@ function renderGroups() {
   $('groupStandings').innerHTML = groupCards + thirdPlaceCard;
 }
 
+
+function confirmDeleteUserPopup(target) {
+  return new Promise(resolve => {
+    const existing = document.querySelector('.delete-user-modal-backdrop');
+    if (existing) existing.remove();
+
+    const name = escapeHtml(target?.name || 'acest user');
+    const email = escapeHtml(target?.email || '');
+    const backdrop = document.createElement('div');
+    backdrop.className = 'delete-user-modal-backdrop';
+    backdrop.innerHTML = `
+      <div class="delete-user-modal" role="dialog" aria-modal="true" aria-labelledby="deleteUserModalTitle">
+        <div class="delete-user-modal-icon" aria-hidden="true">×</div>
+        <div class="delete-user-modal-body">
+          <h3 id="deleteUserModalTitle">Confirmare ștergere user</h3>
+          <p>Ești sigur că vrei să ștergi definitiv userul <strong>${name}</strong>?</p>
+          ${email ? `<span class="delete-user-modal-email">${email}</span>` : ''}
+          <div class="delete-user-modal-warning">Această acțiune va șterge și toate pronosticurile lui și nu poate fi anulată.</div>
+        </div>
+        <div class="delete-user-modal-actions">
+          <button type="button" class="secondary delete-user-modal-cancel">Anulează</button>
+          <button type="button" class="delete-user-modal-confirm">Da, șterge userul</button>
+        </div>
+      </div>`;
+
+    const close = (value) => {
+      backdrop.remove();
+      document.removeEventListener('keydown', onKeydown);
+      resolve(value);
+    };
+
+    const onKeydown = (event) => {
+      if (event.key === 'Escape') close(false);
+    };
+
+    backdrop.addEventListener('click', event => {
+      if (event.target === backdrop) close(false);
+    });
+    backdrop.querySelector('.delete-user-modal-cancel')?.addEventListener('click', () => close(false));
+    backdrop.querySelector('.delete-user-modal-confirm')?.addEventListener('click', () => close(true));
+    document.addEventListener('keydown', onKeydown);
+
+    document.body.appendChild(backdrop);
+    window.requestAnimationFrame(() => backdrop.classList.add('visible'));
+    backdrop.querySelector('.delete-user-modal-cancel')?.focus();
+  });
+}
+
+
+
 async function deleteUser(email) {
   if (!isAdminUser()) return;
   const target = getUsers().find(u => normalize(u.email) === normalize(email));
   if (!target) return;
   if (isAdminUser(target)) return toast('Adminul nu poate fi șters din clasament.');
-  const ok = confirm(`Confirmare ștergere user\n\nEști sigur că vrei să ștergi definitiv userul „${target.name}”?\n\nAceastă acțiune va șterge și toate pronosticurile lui și nu poate fi anulată.`);
+  const ok = await confirmDeleteUserPopup(target);
   if (!ok) return;
   try {
     if (onlineMode) {

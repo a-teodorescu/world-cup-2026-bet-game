@@ -5331,3 +5331,211 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     min-width: 1.2em;
   }
 }
+
+
+/* CLASAMENT_DELETE_INLINE_ALIGNMENT_AND_MODAL
+   Keep delete X exactly on the name baseline and replace browser confirm with a styled modal. */
+#clasament .leaderboard-name-with-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 0;
+  max-width: 100%;
+  line-height: 1.1;
+  vertical-align: baseline;
+}
+
+#clasament .leaderboard-name-with-delete strong,
+#clasament .leaderboard-top-user .leaderboard-name-with-delete strong,
+#clasament .leaderboard-user .leaderboard-name-with-delete strong {
+  display: inline-block;
+  flex: 0 1 auto;
+  min-width: 0;
+  line-height: 1.1;
+  vertical-align: middle;
+}
+
+#clasament .leaderboard-delete-user,
+#clasament .leaderboard-top-user .leaderboard-delete-user,
+#clasament .leaderboard-row-card .leaderboard-delete-user {
+  width: 1.02em;
+  height: 1.02em;
+  min-width: 1.02em;
+  padding: 0;
+  margin: 0;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  font-size: .72em;
+  line-height: 1;
+  font-weight: 900;
+  grid-column: auto;
+  justify-self: auto;
+  background: rgba(255,107,107,.17);
+  border: 1px solid rgba(255,107,107,.52);
+  color: #ffd1d1;
+  cursor: pointer;
+  transform: translateY(.01em);
+  vertical-align: middle;
+}
+
+#clasament .leaderboard-delete-user:hover {
+  background: rgba(255,107,107,.32);
+  border-color: rgba(255,107,107,.76);
+}
+
+#clasament .leaderboard-top-user .leaderboard-name-with-delete {
+  margin-inline: auto;
+}
+
+#clasament .leaderboard-user .leaderboard-name-with-delete {
+  justify-content: flex-start;
+}
+
+.delete-user-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(2, 8, 23, .68);
+  backdrop-filter: blur(10px);
+  opacity: 0;
+  transition: opacity .16s ease;
+}
+
+.delete-user-modal-backdrop.visible {
+  opacity: 1;
+}
+
+.delete-user-modal {
+  width: min(440px, 100%);
+  border: 1px solid rgba(255, 107, 107, .34);
+  border-radius: 26px;
+  padding: 22px;
+  background:
+    radial-gradient(circle at 14% 0%, rgba(255,107,107,.18), transparent 32%),
+    linear-gradient(145deg, rgba(15, 23, 42, .98), rgba(7, 17, 31, .98));
+  box-shadow: 0 28px 80px rgba(0,0,0,.48), inset 0 1px 0 rgba(255,255,255,.08);
+  color: var(--text);
+  transform: translateY(8px) scale(.98);
+  transition: transform .16s ease;
+}
+
+.delete-user-modal-backdrop.visible .delete-user-modal {
+  transform: translateY(0) scale(1);
+}
+
+.delete-user-modal-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  margin-bottom: 14px;
+  border-radius: 999px;
+  color: #ffd1d1;
+  background: rgba(255,107,107,.18);
+  border: 1px solid rgba(255,107,107,.45);
+  font-size: 1.55rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.delete-user-modal-body h3 {
+  margin: 0 0 10px;
+  font-size: 1.25rem;
+  line-height: 1.2;
+}
+
+.delete-user-modal-body p {
+  margin: 0;
+  color: rgba(226,232,240,.9);
+  line-height: 1.45;
+}
+
+.delete-user-modal-body p strong {
+  color: #fff;
+}
+
+.delete-user-modal-email {
+  display: inline-flex;
+  max-width: 100%;
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.08);
+  color: rgba(226,232,240,.82);
+  font-size: .84rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.delete-user-modal-warning {
+  margin-top: 14px;
+  padding: 12px 13px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 176, 32, .28);
+  background: rgba(255, 176, 32, .10);
+  color: #ffe3ac;
+  font-size: .9rem;
+  line-height: 1.4;
+}
+
+.delete-user-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.delete-user-modal-actions button {
+  border: 0;
+  border-radius: 14px;
+  padding: 11px 14px;
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.delete-user-modal-cancel {
+  background: rgba(255,255,255,.10);
+  color: var(--text);
+  border: 1px solid rgba(255,255,255,.16) !important;
+}
+
+.delete-user-modal-confirm {
+  background: linear-gradient(135deg, #ff6b6b, #f97373);
+  color: #fff;
+  box-shadow: 0 10px 28px rgba(255,107,107,.26);
+}
+
+@media (max-width: 640px) {
+  #clasament .leaderboard-name-with-delete {
+    gap: 5px;
+  }
+
+  #clasament .leaderboard-delete-user,
+  #clasament .leaderboard-top-user .leaderboard-delete-user,
+  #clasament .leaderboard-row-card .leaderboard-delete-user {
+    width: 1.08em;
+    height: 1.08em;
+    min-width: 1.08em;
+    font-size: .76em;
+  }
+
+  .delete-user-modal {
+    padding: 18px;
+    border-radius: 22px;
+  }
+
+  .delete-user-modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .delete-user-modal-actions button {
+    width: 100%;
+  }
+}
