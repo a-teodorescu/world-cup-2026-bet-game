@@ -4201,15 +4201,6 @@ section[data-section="clasament"] .leaderboard-intro-icon {
 /* EVOLUTIE_PREVENT_CHART_SHIFT
    Prevents horizontal layout shift when selecting/deselecting many users changes page height
    and the browser scrollbar appears/disappears. */
-html {
-  overflow-y: scroll;
-  scrollbar-gutter: stable;
-}
-
-body {
-  scrollbar-gutter: stable;
-}
-
 #parcurs-preview .parcurs-model-card,
 #parcurs-preview .parcurs-chart-card,
 #parcurs-preview .parcurs-chart-svg {
@@ -4224,4 +4215,25 @@ body {
 #parcurs-preview .parcurs-chart-svg {
   width: 100%;
   max-width: 100%;
+}
+
+
+/* EVOLUTIE_RESTORE_STICKY_TOPBAR
+   Keeps the original sticky topbar behavior and prevents chart shift locally on Evoluție only. */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+#parcurs-preview {
+  min-height: calc(100vh + 220px);
+}
+
+#parcurs-preview .parcurs-model-card {
+  contain: layout paint;
+}
+
+#parcurs-preview .parcurs-chart-card {
+  overflow: hidden;
 }
