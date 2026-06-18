@@ -5007,3 +5007,142 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     display: none !important;
   }
 }
+
+
+/* EVOLUTIE_WEB_CARD_SCALE_AND_AXIS_SPACING
+   Desktop-only polish:
+   - balances spacing around the vertical Y-axis title inside the large card
+   - reduces the Evoluție card and its visual contents by ~20%
+   - adds a small gap between the X-axis title and the selected players legend */
+@media (min-width: 761px) {
+  #parcurs-preview .parcurs-preview-layout {
+    max-width: 960px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  #parcurs-preview .parcurs-model-card {
+    padding: 18px 18px 16px;
+    border-radius: 22px;
+  }
+
+  #parcurs-preview .parcurs-model-head {
+    gap: 16px;
+  }
+
+  #parcurs-preview .parcurs-model-head h3 {
+    font-size: 1.12rem;
+    line-height: 1.15;
+  }
+
+  #parcurs-preview .parcurs-model-head p {
+    font-size: .82rem;
+    line-height: 1.35;
+  }
+
+  #parcurs-preview .parcurs-controls {
+    grid-template-columns: minmax(176px, 224px) minmax(192px, 240px);
+    gap: 8px;
+  }
+
+  #parcurs-preview .parcurs-controls label {
+    font-size: .78rem;
+  }
+
+  #parcurs-preview .parcurs-player-button {
+    min-height: 38px;
+    padding: 9px 34px 9px 11px;
+    border-radius: 14px;
+    font-size: .82rem;
+  }
+
+  #parcurs-preview .parcurs-player-menu {
+    width: min(320px, calc(100vw - 40px));
+    max-height: min(380px, 60vh);
+    border-radius: 16px;
+  }
+
+  #parcurs-preview .parcurs-player-actions button,
+  #parcurs-preview .parcurs-player-presets button {
+    padding: 8px 9px;
+    border-radius: 11px;
+    font-size: .76rem;
+  }
+
+  #parcurs-preview .parcurs-player-check {
+    min-height: 34px;
+    padding: 7px 8px;
+    border-radius: 11px;
+    font-size: .8rem;
+  }
+
+  #parcurs-preview .parcurs-chart-with-y-axis {
+    grid-template-columns: 42px minmax(0, 1fr);
+    column-gap: 0;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  #parcurs-preview .parcurs-y-axis-title-desktop {
+    width: 42px !important;
+    min-width: 42px !important;
+    justify-self: center;
+    align-self: stretch;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    font-size: .8rem;
+  }
+
+  #parcurs-preview .parcurs-chart-card {
+    min-height: 320px;
+    padding: 10px;
+    border-radius: 18px;
+  }
+
+  #parcurs-preview .parcurs-chart-svg-desktop {
+    height: auto;
+  }
+
+  #parcurs-preview .pc-axis-title {
+    font-size: 11px;
+  }
+
+  #parcurs-preview .pc-axis-text,
+  #parcurs-preview .pc-x-text {
+    font-size: 11px;
+  }
+
+  #parcurs-preview .pc-line {
+    stroke-width: 2.05;
+  }
+
+  #parcurs-preview .pc-dot {
+    r: 4px;
+  }
+
+  #parcurs-preview .parcurs-x-axis-title-desktop {
+    margin: 8px 0 10px;
+    font-size: .82rem;
+  }
+
+  #parcurs-preview .parcurs-legend {
+    margin-top: 0;
+    gap: 7px;
+  }
+
+  #parcurs-preview .parcurs-legend-item {
+    padding: 6px 8px;
+    border-radius: 999px;
+    font-size: .78rem;
+  }
+
+  #parcurs-preview .parcurs-legend-item i {
+    width: 9px;
+    height: 9px;
+  }
+}
+
+@media (max-width: 760px) {
+  /* Mobile intentionally left untouched. */
+}
