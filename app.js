@@ -2465,11 +2465,10 @@ function parcursChartSvg(labels, players) {
     const height = 360;
 
     if (isPortraitMobile) {
-      const titleW = 24;
-      const rankColW = 30;
-      const sepGap = 6;
-      const chartW = 800;
-      const plotMl = rankColW + sepGap + 4;
+      const titleW = 18;
+      const rankW = 26;
+      const chartW = 780;
+      const plotMl = 28;
       const plotMr = 12;
       const mt = 24, mb = 40;
       const plotH = height - mt - mb;
@@ -2480,12 +2479,12 @@ function parcursChartSvg(labels, players) {
       const plotX = (i) => plotMl + ((chartW - plotMl - plotMr) * i / safeCount);
       const yTitleCenter = mt + plotH / 2;
 
-      let yAxis = `<text x="12" y="${yTitleCenter.toFixed(1)}" class="pc-axis-title pc-y-title-vertical" text-anchor="middle" dominant-baseline="middle" transform="rotate(-90 12 ${yTitleCenter.toFixed(1)})">Poziție în clasament</text>`;
-      let rankOverlay = `<line x1="${(rankColW - 1).toFixed(1)}" y1="${mt.toFixed(1)}" x2="${(rankColW - 1).toFixed(1)}" y2="${(height - mb + 2).toFixed(1)}" class="pc-grid pc-rank-separator"/>`;
+      let yAxis = `<text x="9" y="${yTitleCenter.toFixed(1)}" class="pc-axis-title pc-y-title-vertical" text-anchor="middle" dominant-baseline="middle" transform="rotate(-90 9 ${yTitleCenter.toFixed(1)})">Poziție în clasament</text>`;
+      let rankAxis = '';
       let grid = '';
       for (let r = 1; r <= maxRank; r += 1) {
         const yy = y(r);
-        rankOverlay += `<text x="${(rankColW / 2).toFixed(1)}" y="${yy.toFixed(1)}" class="pc-axis-text pc-y-rank-text" text-anchor="middle" dominant-baseline="middle">${r}</text>`;
+        rankAxis += `<text x="13" y="${yy.toFixed(1)}" class="pc-axis-text pc-y-rank-text" text-anchor="middle" dominant-baseline="middle">${r}</text>`;
         grid += `<line x1="${plotMl}" y1="${yy.toFixed(1)}" x2="${(chartW - plotMr).toFixed(1)}" y2="${yy.toFixed(1)}" class="pc-grid"/>`;
       }
 
@@ -2517,19 +2516,15 @@ function parcursChartSvg(labels, players) {
           <svg viewBox="0 0 ${titleW} ${height}" class="parcurs-y-axis-svg parcurs-y-axis-svg-portrait" role="img" aria-hidden="true" preserveAspectRatio="none">
             ${yAxis}
           </svg>
-          <div class="parcurs-portrait-plot-wrap">
-            <div class="parcurs-portrait-rank-mask" aria-hidden="true">
-              <svg viewBox="0 0 ${rankColW} ${height}" class="parcurs-portrait-rank-svg" preserveAspectRatio="none">
-                ${rankOverlay}
-              </svg>
-            </div>
-            <div class="parcurs-chart-scroll parcurs-chart-scroll-portrait">
-              <svg viewBox="0 0 ${chartW} ${height}" class="parcurs-chart-svg parcurs-chart-svg-mobile parcurs-chart-svg-mobile-portrait" role="img" aria-label="Grafic evoluție clasament" preserveAspectRatio="none">
-                ${grid}
-                ${xLabels}
-                ${series}
-              </svg>
-            </div>
+          <svg viewBox="0 0 ${rankW} ${height}" class="parcurs-y-ranks-svg parcurs-y-ranks-svg-portrait" role="img" aria-hidden="true" preserveAspectRatio="none">
+            ${rankAxis}
+          </svg>
+          <div class="parcurs-chart-scroll parcurs-chart-scroll-portrait">
+            <svg viewBox="0 0 ${chartW} ${height}" class="parcurs-chart-svg parcurs-chart-svg-mobile parcurs-chart-svg-mobile-portrait" role="img" aria-label="Grafic evoluție clasament" preserveAspectRatio="none">
+              ${grid}
+              ${xLabels}
+              ${series}
+            </svg>
           </div>
         </div>
         <div class="parcurs-x-axis-title">Etape / meciuri jucate</div>
