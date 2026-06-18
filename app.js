@@ -2462,7 +2462,7 @@ function parcursChartSvg(labels, players) {
 
   function mobileChart() {
     const isPortraitMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 760px) and (orientation: portrait)').matches;
-    const isLandscapeMobile = typeof window !== 'undefined' && window.matchMedia('(orientation: landscape) and (max-height: 520px)').matches;
+    const isLandscapeMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 932px) and (orientation: landscape)').matches && !window.matchMedia('(max-width: 760px) and (orientation: portrait)').matches;
     const height = 360;
 
     if (isPortraitMobile) {
@@ -2535,11 +2535,11 @@ function parcursChartSvg(labels, players) {
     if (isLandscapeMobile) {
       const titleW = 16;
       const rankW = 24;
-      const chartW = 880;
-      const plotMl = 28;
-      const plotMr = 12;
-      const h = 260;
-      const mt = 20, mb = 38;
+      const chartW = 920;
+      const plotMl = 32;
+      const plotMr = 14;
+      const h = 250;
+      const mt = 18, mb = 36;
       const plotH = h - mt - mb;
       const allRanks = players.flatMap(p => p.ranks).filter(v => v != null);
       const maxRank = Math.max(8, ...allRanks, 1);
@@ -2559,7 +2559,7 @@ function parcursChartSvg(labels, players) {
 
       let xLabels = '';
       labels.forEach((label, i) => {
-        const step = labels.length > 12 ? Math.ceil(labels.length / 10) : 1;
+        const step = labels.length > 14 ? Math.ceil(labels.length / 10) : 1;
         if (i % step === 0 || i === labels.length - 1) {
           xLabels += `<text x="${plotX(i).toFixed(1)}" y="${h - 12}" class="pc-x-text">${escapeHtml(label)}</text>`;
         }

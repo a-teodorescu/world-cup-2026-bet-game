@@ -642,7 +642,7 @@ body.modal-open {
   background: rgba(255,255,255,.16);
 }
 #recoverUsernameMessage {
-  margin-top: 10px;
+  margin-top: 8px;
 }
 @media (max-width: 640px) {
   .forgot-username-dialog {
@@ -5869,7 +5869,7 @@ section[data-section="clasament"] .leaderboard-intro-icon {
 /* MOBILE LANDSCAPE REPAIR
    Uses the stable portrait chart structure scaled for landscape.
    Does not touch portrait or desktop. */
-@media (orientation: landscape) and (max-height: 520px) {
+@media (max-width: 932px) and (orientation: landscape) {
   #parcurs-preview .parcurs-chart-desktop-shell {
     display: none !important;
   }
@@ -5905,9 +5905,9 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     width: 16px;
     min-width: 16px;
     max-width: 16px;
-    height: 260px !important;
-    min-height: 260px;
-    max-height: 260px;
+    height: 250px !important;
+    min-height: 250px;
+    max-height: 250px;
     display: block;
     overflow: visible;
     flex: 0 0 16px;
@@ -5917,9 +5917,9 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     width: 24px;
     min-width: 24px;
     max-width: 24px;
-    height: 260px !important;
-    min-height: 260px;
-    max-height: 260px;
+    height: 250px !important;
+    min-height: 250px;
+    max-height: 250px;
     display: block;
     overflow: hidden;
     flex: 0 0 24px;
@@ -5929,9 +5929,9 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    height: 260px !important;
-    min-height: 260px;
-    max-height: 260px;
+    height: 250px !important;
+    min-height: 250px;
+    max-height: 250px;
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
@@ -5947,12 +5947,12 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   }
 
   #parcurs-preview .parcurs-chart-svg-mobile.parcurs-chart-svg-mobile-landscape {
-    width: 880px;
-    min-width: 880px;
+    width: 920px;
+    min-width: 920px;
     max-width: none;
-    height: 260px !important;
-    min-height: 260px;
-    max-height: 260px;
+    height: 250px !important;
+    min-height: 250px;
+    max-height: 250px;
     display: block;
   }
 
