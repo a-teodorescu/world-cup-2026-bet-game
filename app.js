@@ -2361,11 +2361,11 @@ function parcursChartSvg(labels, players) {
     return `<polyline points="${line}" class="pc-line" style="stroke:${p.color}"/>${dots}`;
   }).join('');
 
-  return `<svg viewBox="0 0 ${width} ${height}" class="parcurs-chart-svg" role="img" aria-label="Grafic evoluție clasament">
+  return `<div class="parcurs-chart-scroll"><svg viewBox="0 0 ${width} ${height}" class="parcurs-chart-svg" role="img" aria-label="Grafic evoluție clasament">
     ${grid}
     ${series}
     <text x="${width / 2}" y="${height - 2}" class="pc-axis-title">Etape / meciuri jucate</text>
-  </svg>`;
+  </svg></div>`;
 }
 
 function hideParcursTooltip() {
