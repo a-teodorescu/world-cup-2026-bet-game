@@ -446,7 +446,8 @@ window.addEventListener('hashchange', async () => {
   }
 
   // Resetăm scroll-ul înainte să afișăm secțiunea nouă, ca pagina să nu apară întâi jos.
-  window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  if (id === 'parcurs-preview') forceSectionTopScroll();
+  else window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
 
   document.querySelectorAll('.app-section').forEach(s => s.classList.toggle('active', s.id === id));
   updateNavigationState();
@@ -2335,8 +2336,8 @@ function parcursRenderPlayerMenu(players) {
 
 function parcursChartSvg(labels, players) {
   const width = 920, height = 390;
-  const yAxisW = 76;
-  const ml = 8, mr = 20, mt = 42, mb = 46;
+  const yAxisW = 60;
+  const mr = 18, mt = 42, mb = 46;
   const plotW = width - yAxisW - mr;
   const plotH = height - mt - mb;
   const allRanks = players.flatMap(p => p.ranks).filter(v => v != null);
@@ -2346,11 +2347,11 @@ function parcursChartSvg(labels, players) {
   const plotX = (i) => plotW * i / safeCount;
   const yTitleCenter = mt + plotH / 2;
 
-  let yAxis = `<text x="17" y="${yTitleCenter.toFixed(1)}" class="pc-axis-title pc-y-title-vertical" text-anchor="middle" dominant-baseline="middle" transform="rotate(-90 17 ${yTitleCenter.toFixed(1)})">Poziție în clasament</text>`;
+  let yAxis = `<text x="10" y="${yTitleCenter.toFixed(1)}" class="pc-axis-title pc-y-title-vertical" text-anchor="middle" dominant-baseline="middle" transform="rotate(-90 10 ${yTitleCenter.toFixed(1)})">Poziție în clasament</text>`;
   let grid = '';
   for (let r = 1; r <= maxRank; r += 1) {
     const yy = y(r);
-    yAxis += `<text x="${yAxisW - 13}" y="${(yy + 4).toFixed(1)}" class="pc-axis-text pc-y-rank-text">${r}</text>`;
+    yAxis += `<text x="${yAxisW - 6}" y="${yy.toFixed(1)}" class="pc-axis-text pc-y-rank-text" text-anchor="end" dominant-baseline="middle">${r}</text>`;
     grid += `<line x1="0" y1="${yy.toFixed(1)}" x2="${plotW}" y2="${yy.toFixed(1)}" class="pc-grid"/>`;
   }
 
