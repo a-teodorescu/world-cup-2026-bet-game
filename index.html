@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260618-evolutia-clasamentului-admin-only" />
+  <link rel="stylesheet" href="styles.css?v=20260618-evolutie-web-dropdowns-top-presets-fix" />
 </head>
 <body>
   <div class="bg-orb orb-one"></div>
@@ -25,7 +25,7 @@
       <a href="#grupe">Grupe</a>
       <a href="#lucky-strike">Lucky Strike</a>
       <a href="#clasament">Clasament</a>
-      <a href="#parcurs-preview" class="admin-only">Evoluția clasamentului</a>
+      <a href="#parcurs-preview" class="admin-only">Evoluție</a>
       <a href="#admin-scoruri" class="admin-only">Admin scoruri</a>
       <a href="#admin-emailuri" class="admin-only">Admin emailuri</a>
       <a href="#admin-api" class="admin-only">Admin API</a>
@@ -40,7 +40,7 @@
         <option value="grupe">Grupe</option>
         <option value="lucky-strike">Lucky Strike</option>
         <option value="clasament">Clasament</option>
-        <option value="parcurs-preview" class="admin-only-option">Evoluția clasamentului</option>
+        <option value="parcurs-preview" class="admin-only-option">Evoluție</option>
         <option value="admin-scoruri" class="admin-only-option">Admin scoruri</option>
         <option value="admin-emailuri" class="admin-only-option">Admin emailuri</option>
         <option value="admin-api" class="admin-only-option">Admin API</option>
@@ -297,31 +297,39 @@
     </section>
 
     <section id="parcurs-preview" class="section app-section admin-only-section" data-section="parcurs-preview">
-      <div class="section-head">
-        <div>
-          <h2>Evoluția clasamentului</h2>
-          <p>Evoluția poziției în clasament pentru fiecare jucător. Preview design pentru varianta aleasă.</p>
-        </div>
-      </div>
       <div class="parcurs-preview-layout">
         <article class="parcurs-model-card">
           <div class="parcurs-model-head">
             <div>
-              
               <h3>Evoluția pozițiilor</h3>
-              <p>Cel mai simplu de citit. Bun pentru o evoluție clară, fără aglomerare vizuală.</p>
+              <p>Urmărește cum s-a schimbat poziția fiecărui jucător în clasament pe măsură ce s-au jucat meciurile.</p>
             </div>
+
             <div class="parcurs-controls">
               <label>Jucător
-                <select><option>Toți jucătorii</option><option>Doar userul meu</option><option>Top 5</option></select>
+                <div id="parcursPlayerPicker" class="parcurs-player-picker">
+                  <button id="parcursPlayerButton" class="parcurs-player-button" type="button">Toți jucătorii</button>
+                  <div id="parcursPlayerMenu" class="parcurs-player-menu hidden"></div>
+                </div>
               </label>
+
               <label>Etapă
-                <select><option>După fiecare zi de meciuri</option><option>După fiecare meci</option></select>
+                <div id="parcursStagePicker" class="parcurs-player-picker parcurs-stage-picker">
+                  <button id="parcursStageButton" class="parcurs-player-button parcurs-stage-button" type="button">După fiecare zi de meciuri</button>
+                  <div id="parcursStageMenu" class="parcurs-player-menu parcurs-stage-menu hidden"></div>
+                </div>
               </label>
             </div>
           </div>
-          <div class="parcurs-chart-card"><svg viewBox="0 0 920 360" class="parcurs-chart-svg" role="img" aria-label="Grafic parcurs line"><text x="62" y="18" class="pc-axis-title">Poziție în clasament</text><line x1="62" y1="30.0" x2="896" y2="30.0" class="pc-grid"/><text x="40" y="34.0" class="pc-axis-text">1</text><line x1="62" y1="70.0" x2="896" y2="70.0" class="pc-grid"/><text x="40" y="74.0" class="pc-axis-text">2</text><line x1="62" y1="110.0" x2="896" y2="110.0" class="pc-grid"/><text x="40" y="114.0" class="pc-axis-text">3</text><line x1="62" y1="150.0" x2="896" y2="150.0" class="pc-grid"/><text x="40" y="154.0" class="pc-axis-text">4</text><line x1="62" y1="190.0" x2="896" y2="190.0" class="pc-grid"/><text x="40" y="194.0" class="pc-axis-text">5</text><line x1="62" y1="230.0" x2="896" y2="230.0" class="pc-grid"/><text x="40" y="234.0" class="pc-axis-text">6</text><line x1="62" y1="270.0" x2="896" y2="270.0" class="pc-grid"/><text x="40" y="274.0" class="pc-axis-text">7</text><line x1="62" y1="310.0" x2="896" y2="310.0" class="pc-grid"/><text x="40" y="314.0" class="pc-axis-text">8</text><text x="62.0" y="342" class="pc-x-text">M1</text><text x="154.7" y="342" class="pc-x-text">M4</text><text x="247.3" y="342" class="pc-x-text">M8</text><text x="340.0" y="342" class="pc-x-text">M12</text><text x="432.7" y="342" class="pc-x-text">M18</text><text x="525.3" y="342" class="pc-x-text">M24</text><text x="618.0" y="342" class="pc-x-text">M32</text><text x="710.7" y="342" class="pc-x-text">M40</text><text x="803.3" y="342" class="pc-x-text">M52</text><text x="896.0" y="342" class="pc-x-text">M64</text><polyline points="62.0,110.0 154.7,70.0 247.3,70.0 340.0,110.0 432.7,70.0 525.3,70.0 618.0,30.0 710.7,30.0 803.3,30.0 896.0,30.0" class="pc-line" style="stroke:#32d583"/><circle cx="62.0" cy="110.0" r="5" class="pc-dot" style="fill:#32d583"/><circle cx="154.7" cy="70.0" r="5" class="pc-dot" style="fill:#32d583"/><circle cx="247.3" cy="70.0" r="5" class="pc-dot" style="fill:#32d583"/><circle cx="340.0" cy="110.0" r="5" class="pc-dot" style="fill:#32d583"/><circle cx="432.7" cy="70.0" r="5" class="pc-dot" style="fill:#32d583"/><circle cx="525.3" cy="70.0" r="5" class="pc-dot" style="fill:#32d583"/><circle cx="618.0" cy="30.0" r="5" class="pc-dot" style="fill:#32d583"/><circle cx="710.7" cy="30.0" r="5" class="pc-dot" style="fill:#32d583"/><circle cx="803.3" cy="30.0" r="5" class="pc-dot" style="fill:#32d583"/><circle cx="896.0" cy="30.0" r="5" class="pc-dot" style="fill:#32d583"/><polyline points="62.0,30.0 154.7,110.0 247.3,150.0 340.0,110.0 432.7,150.0 525.3,150.0 618.0,190.0 710.7,150.0 803.3,150.0 896.0,190.0" class="pc-line" style="stroke:#ff6b6b"/><circle cx="62.0" cy="30.0" r="5" class="pc-dot" style="fill:#ff6b6b"/><circle cx="154.7" cy="110.0" r="5" class="pc-dot" style="fill:#ff6b6b"/><circle cx="247.3" cy="150.0" r="5" class="pc-dot" style="fill:#ff6b6b"/><circle cx="340.0" cy="110.0" r="5" class="pc-dot" style="fill:#ff6b6b"/><circle cx="432.7" cy="150.0" r="5" class="pc-dot" style="fill:#ff6b6b"/><circle cx="525.3" cy="150.0" r="5" class="pc-dot" style="fill:#ff6b6b"/><circle cx="618.0" cy="190.0" r="5" class="pc-dot" style="fill:#ff6b6b"/><circle cx="710.7" cy="150.0" r="5" class="pc-dot" style="fill:#ff6b6b"/><circle cx="803.3" cy="150.0" r="5" class="pc-dot" style="fill:#ff6b6b"/><circle cx="896.0" cy="190.0" r="5" class="pc-dot" style="fill:#ff6b6b"/><polyline points="62.0,150.0 154.7,150.0 247.3,110.0 340.0,150.0 432.7,190.0 525.3,190.0 618.0,150.0 710.7,190.0 803.3,190.0 896.0,150.0" class="pc-line" style="stroke:#9b5cf6"/><circle cx="62.0" cy="150.0" r="5" class="pc-dot" style="fill:#9b5cf6"/><circle cx="154.7" cy="150.0" r="5" class="pc-dot" style="fill:#9b5cf6"/><circle cx="247.3" cy="110.0" r="5" class="pc-dot" style="fill:#9b5cf6"/><circle cx="340.0" cy="150.0" r="5" class="pc-dot" style="fill:#9b5cf6"/><circle cx="432.7" cy="190.0" r="5" class="pc-dot" style="fill:#9b5cf6"/><circle cx="525.3" cy="190.0" r="5" class="pc-dot" style="fill:#9b5cf6"/><circle cx="618.0" cy="150.0" r="5" class="pc-dot" style="fill:#9b5cf6"/><circle cx="710.7" cy="190.0" r="5" class="pc-dot" style="fill:#9b5cf6"/><circle cx="803.3" cy="190.0" r="5" class="pc-dot" style="fill:#9b5cf6"/><circle cx="896.0" cy="150.0" r="5" class="pc-dot" style="fill:#9b5cf6"/><polyline points="62.0,190.0 154.7,190.0 247.3,190.0 340.0,190.0 432.7,150.0 525.3,230.0 618.0,230.0 710.7,230.0 803.3,270.0 896.0,270.0" class="pc-line" style="stroke:#fdb022"/><circle cx="62.0" cy="190.0" r="5" class="pc-dot" style="fill:#fdb022"/><circle cx="154.7" cy="190.0" r="5" class="pc-dot" style="fill:#fdb022"/><circle cx="247.3" cy="190.0" r="5" class="pc-dot" style="fill:#fdb022"/><circle cx="340.0" cy="190.0" r="5" class="pc-dot" style="fill:#fdb022"/><circle cx="432.7" cy="150.0" r="5" class="pc-dot" style="fill:#fdb022"/><circle cx="525.3" cy="230.0" r="5" class="pc-dot" style="fill:#fdb022"/><circle cx="618.0" cy="230.0" r="5" class="pc-dot" style="fill:#fdb022"/><circle cx="710.7" cy="230.0" r="5" class="pc-dot" style="fill:#fdb022"/><circle cx="803.3" cy="270.0" r="5" class="pc-dot" style="fill:#fdb022"/><circle cx="896.0" cy="270.0" r="5" class="pc-dot" style="fill:#fdb022"/><polyline points="62.0,230.0 154.7,230.0 247.3,230.0 340.0,230.0 432.7,230.0 525.3,190.0 618.0,230.0 710.7,270.0 803.3,230.0 896.0,230.0" class="pc-line" style="stroke:#22d3ee"/><circle cx="62.0" cy="230.0" r="5" class="pc-dot" style="fill:#22d3ee"/><circle cx="154.7" cy="230.0" r="5" class="pc-dot" style="fill:#22d3ee"/><circle cx="247.3" cy="230.0" r="5" class="pc-dot" style="fill:#22d3ee"/><circle cx="340.0" cy="230.0" r="5" class="pc-dot" style="fill:#22d3ee"/><circle cx="432.7" cy="230.0" r="5" class="pc-dot" style="fill:#22d3ee"/><circle cx="525.3" cy="190.0" r="5" class="pc-dot" style="fill:#22d3ee"/><circle cx="618.0" cy="230.0" r="5" class="pc-dot" style="fill:#22d3ee"/><circle cx="710.7" cy="270.0" r="5" class="pc-dot" style="fill:#22d3ee"/><circle cx="803.3" cy="230.0" r="5" class="pc-dot" style="fill:#22d3ee"/><circle cx="896.0" cy="230.0" r="5" class="pc-dot" style="fill:#22d3ee"/><polyline points="62.0,270.0 154.7,270.0 247.3,270.0 340.0,270.0 432.7,270.0 525.3,270.0 618.0,270.0 710.7,230.0 803.3,230.0 896.0,230.0" class="pc-line" style="stroke:#ec4899"/><circle cx="62.0" cy="270.0" r="5" class="pc-dot" style="fill:#ec4899"/><circle cx="154.7" cy="270.0" r="5" class="pc-dot" style="fill:#ec4899"/><circle cx="247.3" cy="270.0" r="5" class="pc-dot" style="fill:#ec4899"/><circle cx="340.0" cy="270.0" r="5" class="pc-dot" style="fill:#ec4899"/><circle cx="432.7" cy="270.0" r="5" class="pc-dot" style="fill:#ec4899"/><circle cx="525.3" cy="270.0" r="5" class="pc-dot" style="fill:#ec4899"/><circle cx="618.0" cy="270.0" r="5" class="pc-dot" style="fill:#ec4899"/><circle cx="710.7" cy="230.0" r="5" class="pc-dot" style="fill:#ec4899"/><circle cx="803.3" cy="230.0" r="5" class="pc-dot" style="fill:#ec4899"/><circle cx="896.0" cy="230.0" r="5" class="pc-dot" style="fill:#ec4899"/><polyline points="62.0,310.0 154.7,310.0 247.3,310.0 340.0,310.0 432.7,310.0 525.3,310.0 618.0,310.0 710.7,310.0 803.3,310.0 896.0,310.0" class="pc-line" style="stroke:#a16207"/><circle cx="62.0" cy="310.0" r="5" class="pc-dot" style="fill:#a16207"/><circle cx="154.7" cy="310.0" r="5" class="pc-dot" style="fill:#a16207"/><circle cx="247.3" cy="310.0" r="5" class="pc-dot" style="fill:#a16207"/><circle cx="340.0" cy="310.0" r="5" class="pc-dot" style="fill:#a16207"/><circle cx="432.7" cy="310.0" r="5" class="pc-dot" style="fill:#a16207"/><circle cx="525.3" cy="310.0" r="5" class="pc-dot" style="fill:#a16207"/><circle cx="618.0" cy="310.0" r="5" class="pc-dot" style="fill:#a16207"/><circle cx="710.7" cy="310.0" r="5" class="pc-dot" style="fill:#a16207"/><circle cx="803.3" cy="310.0" r="5" class="pc-dot" style="fill:#a16207"/><circle cx="896.0" cy="310.0" r="5" class="pc-dot" style="fill:#a16207"/><polyline points="62.0,70.0 154.7,30.0 247.3,30.0 340.0,30.0 432.7,30.0 525.3,110.0 618.0,110.0 710.7,110.0 803.3,70.0 896.0,70.0" class="pc-line" style="stroke:#60a5fa"/><circle cx="62.0" cy="70.0" r="5" class="pc-dot" style="fill:#60a5fa"/><circle cx="154.7" cy="30.0" r="5" class="pc-dot" style="fill:#60a5fa"/><circle cx="247.3" cy="30.0" r="5" class="pc-dot" style="fill:#60a5fa"/><circle cx="340.0" cy="30.0" r="5" class="pc-dot" style="fill:#60a5fa"/><circle cx="432.7" cy="30.0" r="5" class="pc-dot" style="fill:#60a5fa"/><circle cx="525.3" cy="110.0" r="5" class="pc-dot" style="fill:#60a5fa"/><circle cx="618.0" cy="110.0" r="5" class="pc-dot" style="fill:#60a5fa"/><circle cx="710.7" cy="110.0" r="5" class="pc-dot" style="fill:#60a5fa"/><circle cx="803.3" cy="70.0" r="5" class="pc-dot" style="fill:#60a5fa"/><circle cx="896.0" cy="70.0" r="5" class="pc-dot" style="fill:#60a5fa"/><text x="460.0" y="358" class="pc-axis-title">Etape / meciuri jucate</text></svg></div>
-          <div class="parcurs-legend"><span class="parcurs-legend-item"><i style="background:#32d583"></i>Alexandru</span><span class="parcurs-legend-item"><i style="background:#ff6b6b"></i>Maria</span><span class="parcurs-legend-item"><i style="background:#9b5cf6"></i>Robert</span><span class="parcurs-legend-item"><i style="background:#fdb022"></i>Andrei</span><span class="parcurs-legend-item"><i style="background:#22d3ee"></i>Cristina</span><span class="parcurs-legend-item"><i style="background:#ec4899"></i>Vlad</span><span class="parcurs-legend-item"><i style="background:#a16207"></i>George</span><span class="parcurs-legend-item"><i style="background:#60a5fa"></i>Demo User</span></div>
+
+          <div id="parcursChartNote" class="parcurs-chart-note"></div>
+          <div class="parcurs-chart-with-y-axis">
+            <div id="parcursDesktopYAxisTitle" class="parcurs-y-axis-title-desktop">Poziție în clasament</div>
+            <div id="parcursChartCard" class="parcurs-chart-card"></div>
+          </div>
+          <div id="parcursDesktopXAxisTitle" class="parcurs-x-axis-title-desktop">Etape / meciuri jucate</div>
+          <div id="parcursTooltip" class="parcurs-tooltip hidden"></div>
+          <div id="parcursLegend" class="parcurs-legend"></div>
         </article>
       </div>
     </section>
@@ -366,7 +374,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js?v=20260612-popup-final-fix"></script>
   <script src="matches.js?v=20260612-popup-final-fix"></script>
-  <script src="app.js?v=20260618-evolutia-clasamentului-admin-only"></script>
+  <script src="app.js?v=20260618-evolutie-web-dropdowns-top-presets-fix"></script>
   <script src="forgot-username.js?v=20260612-transition-fix"></script>
 </body>
 </html>
