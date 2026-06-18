@@ -42,6 +42,7 @@ const TEAM_DISPLAY_ALIASES = {
 };
 
 let currentUser = null;
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 let currentFilter = 'all';
 let usersCache = [];
 let predictionsCache = {};
@@ -311,11 +312,9 @@ function rebuildMobileSectionSelect(activeId) {
 
 
 function forceSectionTopScroll() {
-  const jump = () => window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-  jump();
-  requestAnimationFrame(jump);
-  setTimeout(jump, 80);
-  setTimeout(jump, 240);
+  window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
 }
 
 function updateNavigationState() {
@@ -2336,8 +2335,8 @@ function parcursRenderPlayerMenu(players) {
 
 function parcursChartSvg(labels, players) {
   const width = 920, height = 390;
-  const yAxisW = 118;
-  const ml = 8, mr = 24, mt = 62, mb = 54;
+  const yAxisW = 76;
+  const ml = 8, mr = 20, mt = 42, mb = 46;
   const plotW = width - yAxisW - mr;
   const plotH = height - mt - mb;
   const allRanks = players.flatMap(p => p.ranks).filter(v => v != null);
@@ -2345,12 +2344,13 @@ function parcursChartSvg(labels, players) {
   const safeCount = Math.max(1, labels.length - 1);
   const y = (rank) => mt + (plotH * (Number(rank) - 1) / Math.max(1, maxRank - 1));
   const plotX = (i) => plotW * i / safeCount;
+  const yTitleCenter = mt + plotH / 2;
 
-  let yAxis = `<text x="${ml}" y="22" class="pc-axis-title">Poziție în clasament</text>`;
+  let yAxis = `<text x="17" y="${yTitleCenter.toFixed(1)}" class="pc-axis-title pc-y-title-vertical" text-anchor="middle" dominant-baseline="middle" transform="rotate(-90 17 ${yTitleCenter.toFixed(1)})">Poziție în clasament</text>`;
   let grid = '';
   for (let r = 1; r <= maxRank; r += 1) {
     const yy = y(r);
-    yAxis += `<text x="${yAxisW - 24}" y="${(yy + 4).toFixed(1)}" class="pc-axis-text">${r}</text>`;
+    yAxis += `<text x="${yAxisW - 13}" y="${(yy + 4).toFixed(1)}" class="pc-axis-text pc-y-rank-text">${r}</text>`;
     grid += `<line x1="0" y1="${yy.toFixed(1)}" x2="${plotW}" y2="${yy.toFixed(1)}" class="pc-grid"/>`;
   }
 
@@ -2358,7 +2358,7 @@ function parcursChartSvg(labels, players) {
   labels.forEach((label, i) => {
     const step = labels.length > 12 ? Math.ceil(labels.length / 10) : 1;
     if (i % step === 0 || i === labels.length - 1) {
-      xLabels += `<text x="${plotX(i).toFixed(1)}" y="${height - 22}" class="pc-x-text">${escapeHtml(label)}</text>`;
+      xLabels += `<text x="${plotX(i).toFixed(1)}" y="${height - 18}" class="pc-x-text">${escapeHtml(label)}</text>`;
     }
   });
 
@@ -2377,18 +2377,20 @@ function parcursChartSvg(labels, players) {
     return `<polyline points="${line}" class="pc-line" style="stroke:${p.color}"/>${dots}`;
   }).join('');
 
-  return `<div class="parcurs-chart-split">
-    <svg viewBox="0 0 ${yAxisW} ${height}" class="parcurs-y-axis-svg" role="img" aria-hidden="true">
-      ${yAxis}
-    </svg>
-    <div class="parcurs-chart-scroll">
-      <svg viewBox="0 0 ${plotW} ${height}" class="parcurs-chart-svg" role="img" aria-label="Grafic evoluție clasament">
-        ${grid}
-        ${xLabels}
-        ${series}
-        <text x="${plotW / 2}" y="${height - 4}" class="pc-axis-title">Etape / meciuri jucate</text>
+  return `<div class="parcurs-chart-mobile-shell">
+    <div class="parcurs-chart-split">
+      <svg viewBox="0 0 ${yAxisW} ${height}" class="parcurs-y-axis-svg" role="img" aria-hidden="true">
+        ${yAxis}
       </svg>
+      <div class="parcurs-chart-scroll">
+        <svg viewBox="0 0 ${plotW} ${height}" class="parcurs-chart-svg" role="img" aria-label="Grafic evoluție clasament">
+          ${grid}
+          ${xLabels}
+          ${series}
+        </svg>
+      </div>
     </div>
+    <div class="parcurs-x-axis-title">Etape / meciuri jucate</div>
   </div>`;
 }
 

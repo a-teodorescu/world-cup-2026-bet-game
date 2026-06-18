@@ -4668,3 +4668,82 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     padding-left: 2px;
   }
 }
+
+
+/* MOBILE_EVOLUTIE_AXIS_TITLES_RELAYOUT
+   Y title is vertical/static, X title is moved under the chart, and plot starts closer to the left. */
+@media (max-width: 760px) {
+  #parcurs-preview .parcurs-chart-card {
+    padding: 8px 6px 6px;
+  }
+
+  #parcurs-preview .parcurs-chart-mobile-shell {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+
+  #parcurs-preview .parcurs-chart-split {
+    grid-template-columns: 68px minmax(0, 1fr);
+    gap: 0;
+    align-items: start;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  #parcurs-preview .parcurs-y-axis-svg {
+    width: 68px;
+    min-width: 68px;
+    max-width: 68px;
+    height: auto;
+    overflow: visible;
+  }
+
+  #parcurs-preview .pc-y-title-vertical {
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: .01em;
+  }
+
+  #parcurs-preview .pc-y-rank-text {
+    text-anchor: middle;
+  }
+
+  #parcurs-preview .parcurs-chart-scroll {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    box-sizing: border-box;
+  }
+
+  #parcurs-preview .parcurs-chart-scroll::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+  }
+
+  #parcurs-preview .parcurs-chart-svg {
+    width: max(640px, 152vw);
+    min-width: 640px;
+    max-width: none;
+    display: block;
+  }
+
+  #parcurs-preview .parcurs-x-axis-title {
+    margin-top: 4px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 900;
+    line-height: 1.1;
+  }
+
+  #parcurs-preview .parcurs-legend {
+    margin-top: 9px;
+  }
+}

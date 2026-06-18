@@ -1,0 +1,36 @@
+GitHub upload recomandat:
+1. Dezarhivează cm2026_github_safe_upload.zip local.
+2. În GitHub, intră în repo > Add file > Upload files.
+3. Trage fișierele/folderele din interiorul folderului dezarhivat, nu zip-ul.
+4. Commit changes.
+
+Fișiere incluse:
+README.md
+app.js
+config.js
+forgot-username.js
+index.html
+matches.js
+netlify.toml
+netlify/functions/app-api.js
+netlify/functions/recover-username.js
+netlify/functions/schedule-email-test.js
+netlify/functions/scheduled-daily-emails.js
+netlify/functions/scheduled-email-test-runner.js
+netlify/functions/send-daily-emails.js
+netlify/functions/simulate-knockout-population.js
+netlify/functions/sync-football-data-results.js
+netlify/functions/sync-knockout-fixtures.js
+netlify/functions/test-api-score-flow.js
+netlify/functions/test-football-api.js
+netlify/functions/test-football-data-api.js
+netlify/functions/test-sportmonks-api.js
+parcurs_preview_3_modele.html
+styles.css
+supabase-api-sync-schema.sql
+supabase-email-one-time-test-schema.sql
+supabase-email-scheduled-schema.sql
+supabase-email-schema.sql
+supabase-lucky-strike-schema.sql
+supabase-match-overrides-schema.sql
+supabase-schema.sql
