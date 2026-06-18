@@ -4146,3 +4146,28 @@ section[data-section="clasament"] .leaderboard-intro-icon {
 #parcurs-preview .parcurs-chart-note:empty {
   display: none;
 }
+
+
+/* EVOLUTIE_TOP_SPACING_AND_UNIQUE_COLORS
+   Adds breathing room below the navigation bar and supports clearer multi-user color separation. */
+#parcurs-preview {
+  padding-top: 34px !important;
+}
+
+#parcurs-preview .parcurs-preview-layout {
+  margin-top: 0;
+}
+
+#parcurs-preview .pc-line {
+  stroke-width: 2.35;
+}
+
+#parcurs-preview .pc-dot {
+  stroke-width: 1.6;
+}
+
+@media (max-width: 760px) {
+  #parcurs-preview {
+    padding-top: 22px !important;
+  }
+}

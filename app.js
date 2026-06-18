@@ -1917,7 +1917,16 @@ const emailIncludeAllResultsInput = $('emailIncludeAllResults');
 if (emailIncludeAllResultsInput) emailIncludeAllResultsInput.addEventListener('change', renderEmailPreview);
 
 
-const PARCURS_COLORS = ['#32d583', '#ff6b6b', '#9b5cf6', '#fdb022', '#22d3ee', '#ec4899', '#a16207', '#60a5fa', '#34d399', '#f472b6', '#818cf8', '#fb7185'];
+const PARCURS_COLORS = [
+  '#32d583', '#ff6b6b', '#9b5cf6', '#fdb022', '#22d3ee',
+  '#ec4899', '#a16207', '#60a5fa', '#34d399', '#f472b6',
+  '#818cf8', '#fb7185', '#14b8a6', '#f97316', '#84cc16',
+  '#e879f9', '#38bdf8', '#f43f5e', '#a3e635', '#c084fc',
+  '#2dd4bf', '#fb923c', '#4ade80', '#facc15', '#22c55e',
+  '#06b6d4', '#8b5cf6', '#d946ef', '#eab308', '#ef4444',
+  '#10b981', '#3b82f6', '#f59e0b', '#dc2626', '#7c3aed',
+  '#0891b2', '#65a30d', '#be185d', '#0ea5e9', '#ea580c'
+];
 let parcursSelectedPlayerKeys = new Set();
 let parcursSelectionInitialized = false;
 let parcursControlsBound = false;
