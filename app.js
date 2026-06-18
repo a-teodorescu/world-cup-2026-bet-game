@@ -1919,6 +1919,7 @@ if (emailIncludeAllResultsInput) emailIncludeAllResultsInput.addEventListener('c
 
 const PARCURS_COLORS = ['#32d583', '#ff6b6b', '#9b5cf6', '#fdb022', '#22d3ee', '#ec4899', '#a16207', '#60a5fa', '#34d399', '#f472b6', '#818cf8', '#fb7185'];
 let parcursSelectedPlayerKeys = new Set();
+let parcursSelectionInitialized = false;
 let parcursControlsBound = false;
 
 const PARCURS_DEMO_PLAYERS = [
@@ -1980,16 +1981,40 @@ function parcursBuildSnapshots(mode) {
   }
 
   if (mode === 'group-round') {
-    const groupMatches = filtered;
-    const rounds = [
-      groupMatches.slice(0, 24),
-      groupMatches.slice(0, 48),
-      groupMatches.slice(0, 72)
-    ].filter(scope => scope.length);
-    return rounds.map((scope, index) => ({
-      label: `Runda ${index + 1}`,
-      match: scope[scope.length - 1],
-      matches: scope
+    const groupMatches = completed.filter(isGroup);
+    const groupOrder = 'ABCDEFGHIJKL'.split('');
+    const sortByKickoff = (a, b) => new Date(a.startTimeRo).getTime() - new Date(b.startTimeRo).getTime() || Number(a.matchNo || 0) - Number(b.matchNo || 0);
+    const byGroup = {};
+    groupOrder.forEach(g => {
+      byGroup[g] = groupMatches.filter(m => m.group === g).slice().sort(sortByKickoff);
+    });
+
+    const snapshots = [{ label: 'Start', match: null, matches: [] }];
+
+    for (let round = 1; round <= 3; round += 1) {
+      const neededMatchesPerGroup = round * 2;
+      const isRoundComplete = groupOrder.every(g => (byGroup[g] || []).length >= neededMatchesPerGroup);
+      if (!isRoundComplete) continue;
+
+      const scopeIds = new Set();
+      groupOrder.forEach(g => {
+        byGroup[g].slice(0, neededMatchesPerGroup).forEach(m => scopeIds.add(m.id));
+      });
+
+      const scope = completed.filter(m => scopeIds.has(m.id)).slice().sort(sortByKickoff);
+      snapshots.push({
+        label: `Runda ${round}`,
+        match: scope[scope.length - 1],
+        matches: scope
+      });
+    }
+
+    if (snapshots.length > 1) return snapshots;
+
+    return groupMatches.map((m, index) => ({
+      label: `M${m.matchNo || index + 1}`,
+      match: m,
+      matches: completed.filter(x => isGroup(x) && new Date(x.startTimeRo).getTime() <= new Date(m.startTimeRo).getTime())
     }));
   }
 
@@ -2066,13 +2091,16 @@ function parcursCurrentDataset() {
 function parcursEnsureSelection(players) {
   const valid = new Set(players.map(p => p.key));
   parcursSelectedPlayerKeys = new Set(Array.from(parcursSelectedPlayerKeys).filter(k => valid.has(k)));
-  if (!parcursSelectedPlayerKeys.size) {
+  if (!parcursSelectionInitialized) {
     parcursSelectedPlayerKeys = new Set(players.map(p => p.key));
+    parcursSelectionInitialized = true;
   }
 }
 
 function parcursSelectPreset(preset, players) {
+  parcursSelectionInitialized = true;
   if (preset === 'all') parcursSelectedPlayerKeys = new Set(players.map(p => p.key));
+  else if (preset === 'none') parcursSelectedPlayerKeys = new Set();
   else if (preset === 'current') {
     const currentKey = parcursPlayerKey(currentUser);
     const exists = players.some(p => p.key === currentKey);
@@ -2089,17 +2117,22 @@ function parcursRenderPlayerMenu(players) {
   if (!menu || !button) return;
 
   const selected = players.filter(p => parcursSelectedPlayerKeys.has(p.key));
-  button.textContent = selected.length === players.length ? 'Toți jucătorii' : `${selected.length} jucători selectați`;
+  if (selected.length === players.length) button.textContent = `Toți jucătorii (${players.length})`;
+  else if (!selected.length) button.textContent = 'Niciun jucător selectat';
+  else button.textContent = `${selected.length}/${players.length} jucători selectați`;
 
-  menu.innerHTML = `<div class="parcurs-player-presets">
-    <button type="button" data-parcurs-preset="all">Toți</button>
+  menu.innerHTML = `<div class="parcurs-player-actions">
+    <button type="button" data-parcurs-preset="all">Selectează toți</button>
+    <button type="button" data-parcurs-preset="none">Deselectează toți</button>
+  </div>
+  <div class="parcurs-player-presets">
     <button type="button" data-parcurs-preset="current">Userul curent</button>
     <button type="button" data-parcurs-preset="top3">Top 3</button>
     <button type="button" data-parcurs-preset="top5">Top 5</button>
     <button type="button" data-parcurs-preset="top10">Top 10</button>
   </div>
   <div class="parcurs-player-checks">
-    ${players.map(p => `<label><input type="checkbox" value="${escapeHtml(p.key)}" ${parcursSelectedPlayerKeys.has(p.key) ? 'checked' : ''}><span><i style="background:${p.color}"></i>${escapeHtml(p.name)}</span></label>`).join('')}
+    ${players.map(p => `<label class="parcurs-player-check"><input type="checkbox" value="${escapeHtml(p.key)}" ${parcursSelectedPlayerKeys.has(p.key) ? 'checked' : ''}><span>${escapeHtml(p.name)}</span></label>`).join('')}
   </div>`;
 
   menu.querySelectorAll('[data-parcurs-preset]').forEach(btn => {
@@ -2111,9 +2144,9 @@ function parcursRenderPlayerMenu(players) {
 
   menu.querySelectorAll('input[type="checkbox"]').forEach(input => {
     input.addEventListener('change', () => {
+      parcursSelectionInitialized = true;
       if (input.checked) parcursSelectedPlayerKeys.add(input.value);
       else parcursSelectedPlayerKeys.delete(input.value);
-      if (!parcursSelectedPlayerKeys.size) parcursSelectedPlayerKeys.add(input.value);
       renderParcursPreview();
     });
   });
@@ -2169,6 +2202,7 @@ function bindParcursControls() {
 
   stage.addEventListener('change', () => {
     parcursSelectedPlayerKeys.clear();
+    parcursSelectionInitialized = false;
     renderParcursPreview();
   });
 

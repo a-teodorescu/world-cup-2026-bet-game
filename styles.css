@@ -3893,3 +3893,82 @@ section[data-section="clasament"] .leaderboard-intro-icon {
 #parcursStageSelect {
   min-width: 240px;
 }
+
+
+/* EVOLUTIE_DROPDOWN_FIXES */
+#parcurs-preview .parcurs-controls {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) minmax(240px, 300px);
+  gap: 10px;
+  justify-content: end;
+  align-items: end;
+}
+
+#parcurs-preview .parcurs-controls label {
+  width: 100%;
+}
+
+#parcurs-preview .parcurs-controls select option,
+#parcurs-preview #parcursStageSelect option {
+  color: #07111f;
+  background: #fff;
+}
+
+#parcurs-preview .parcurs-player-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  margin-bottom: 10px;
+}
+
+#parcurs-preview .parcurs-player-actions button {
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.08);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 9px 10px;
+  font-weight: 900;
+  cursor: pointer;
+  text-align: center;
+}
+
+#parcurs-preview .parcurs-player-presets {
+  justify-content: flex-start;
+}
+
+#parcurs-preview .parcurs-player-checks {
+  align-items: stretch;
+  text-align: left;
+}
+
+#parcurs-preview .parcurs-player-check,
+#parcurs-preview .parcurs-player-checks label {
+  justify-content: flex-start;
+  text-align: left;
+  width: 100%;
+  padding: 8px 4px;
+  border-radius: 10px;
+}
+
+#parcurs-preview .parcurs-player-check:hover {
+  background: rgba(255,255,255,.06);
+}
+
+#parcurs-preview .parcurs-player-check input {
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+#parcurs-preview .parcurs-player-check span {
+  display: block;
+  text-align: left;
+}
+
+@media (max-width: 760px) {
+  #parcurs-preview .parcurs-controls {
+    grid-template-columns: 1fr;
+    justify-content: stretch;
+  }
+}
