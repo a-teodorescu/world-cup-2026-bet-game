@@ -5759,10 +5759,11 @@ section[data-section="clasament"] .leaderboard-intro-icon {
 }
 
 
-/* MOBILE PORTRAIT: sticky rank column inside chart with thin separator, preserving original style */
+/* MOBILE PORTRAIT: include rank numbers inside the chart area, keep the same spacing from the vertical title, and preserve desktop layout */
+/* MOBILE PORTRAIT: preserve the archive style and add a fixed rank overlay with a thin separator. */
 @media (max-width: 760px) and (orientation: portrait) {
   #parcurs-preview .parcurs-chart-card {
-    padding: 8px 0 4px;
+    padding: 8px 8px 4px;
   }
 
   #parcurs-preview .parcurs-chart-mobile-shell {
@@ -5792,7 +5793,6 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     max-height: 360px;
     display: block;
     overflow: visible;
-    flex: 0 0 34px;
   }
 
   #parcurs-preview .parcurs-chart-scroll.parcurs-chart-scroll-portrait {
@@ -5833,14 +5833,12 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     margin-right: -34px;
     pointer-events: none;
     overflow: visible;
-  }
-
-  #parcurs-preview .pc-rank-overlay-bg {
-    fill: rgba(18, 33, 56, 0.97);
+    background: radial-gradient(circle at 30% 0%, rgba(253,176,34,.08), transparent 30%), rgba(0,0,0,.12);
+    border-right: 1px solid rgba(255,255,255,.08);
   }
 
   #parcurs-preview .pc-rank-separator {
-    stroke: rgba(255,255,255,0.22);
+    stroke: rgba(255,255,255,.16);
     stroke-width: 1;
     shape-rendering: geometricPrecision;
   }
