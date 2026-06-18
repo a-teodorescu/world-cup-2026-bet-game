@@ -285,7 +285,7 @@ const NAV_ITEMS = [
   { id: 'grupe', label: 'Grupe' },
   { id: 'lucky-strike', label: 'Lucky Strike' },
   { id: 'clasament', label: 'Clasament' },
-  { id: 'parcurs-preview', label: 'Evoluția clasamentului', admin: true },
+  { id: 'parcurs-preview', label: 'Evoluție', admin: true },
   { id: 'admin-scoruri', label: 'Admin scoruri', admin: true },
   { id: 'admin-emailuri', label: 'Admin emailuri', admin: true },
   { id: 'admin-api', label: 'Admin API', admin: true },
@@ -1916,7 +1916,302 @@ if (emailReportDateInput && !emailReportDateInput.value) emailReportDateInput.va
 const emailIncludeAllResultsInput = $('emailIncludeAllResults');
 if (emailIncludeAllResultsInput) emailIncludeAllResultsInput.addEventListener('change', renderEmailPreview);
 
-function renderAll() { renderPredictions(); renderResults(); renderGroups(); renderLuckyStrike(); renderLeaderboard(); renderAdminScores(); renderEmailPreview(); }
+
+const PARCURS_COLORS = ['#32d583', '#ff6b6b', '#9b5cf6', '#fdb022', '#22d3ee', '#ec4899', '#a16207', '#60a5fa', '#34d399', '#f472b6', '#818cf8', '#fb7185'];
+let parcursSelectedPlayerKeys = new Set();
+let parcursControlsBound = false;
+
+const PARCURS_DEMO_PLAYERS = [
+  { key: 'demo-alexandru', name: 'Alexandru', email: 'demo-alexandru', color: '#32d583', ranks: [3,2,2,3,2,2,1,1,1,1] },
+  { key: 'demo-maria', name: 'Maria', email: 'demo-maria', color: '#ff6b6b', ranks: [1,3,4,3,4,4,5,4,4,5] },
+  { key: 'demo-robert', name: 'Robert', email: 'demo-robert', color: '#9b5cf6', ranks: [4,4,3,4,5,5,4,5,5,4] },
+  { key: 'demo-andrei', name: 'Andrei', email: 'demo-andrei', color: '#fdb022', ranks: [5,5,5,5,4,6,6,6,7,7] },
+  { key: 'demo-cristina', name: 'Cristina', email: 'demo-cristina', color: '#22d3ee', ranks: [6,6,6,6,6,5,6,7,6,6] },
+  { key: 'demo-vlad', name: 'Vlad', email: 'demo-vlad', color: '#ec4899', ranks: [7,7,7,7,7,7,7,6,6,6] },
+  { key: 'demo-george', name: 'George', email: 'demo-george', color: '#a16207', ranks: [8,8,8,8,8,8,8,8,8,8] },
+  { key: 'demo-user', name: 'Demo User', email: 'demo-user', color: '#60a5fa', ranks: [2,1,1,1,1,3,3,3,2,2] }
+];
+
+const PARCURS_DEMO_LABELS = ['M1','M4','M8','M12','M18','M24','M32','M40','M52','M64'];
+
+function parcursPlayerKey(row) {
+  return normalize(row?.email || row?.name || '');
+}
+
+function parcursCompletedMatches() {
+  return allMatches()
+    .filter(m => hasResult(m))
+    .slice()
+    .sort((a, b) => new Date(a.startTimeRo).getTime() - new Date(b.startTimeRo).getTime() || Number(a.matchNo || 0) - Number(b.matchNo || 0));
+}
+
+function parcursSnapshotLabel(match, index, mode) {
+  if (!match) return `P${index + 1}`;
+  if (mode === 'day' || mode === 'all') {
+    return new Intl.DateTimeFormat('ro-RO', { day: '2-digit', month: 'short' }).format(new Date(match.startTimeRo));
+  }
+  if (mode === 'group-round') return `Runda ${index + 1}`;
+  return `M${match.matchNo || index + 1}`;
+}
+
+function parcursBuildSnapshots(mode) {
+  const completed = parcursCompletedMatches();
+  let filtered = completed;
+
+  if (mode === 'groups' || mode === 'group-round') filtered = completed.filter(isGroup);
+  if (mode === 'knockout') filtered = completed.filter(isKnockout);
+  if (mode === 'first10') filtered = completed.slice(0, 10);
+  if (mode === 'last10') filtered = completed.slice(Math.max(0, completed.length - 10));
+  if (mode === 'all') filtered = completed;
+
+  if (!filtered.length) return [];
+
+  if (mode === 'day' || mode === 'all') {
+    const byDate = new Map();
+    filtered.forEach(m => {
+      const key = roDateKey(m.startTimeRo);
+      byDate.set(key, m);
+    });
+    return Array.from(byDate.values()).map((m, index) => ({
+      label: parcursSnapshotLabel(m, index, mode),
+      match: m,
+      matches: completed.filter(x => new Date(x.startTimeRo).getTime() <= new Date(m.startTimeRo).getTime())
+    }));
+  }
+
+  if (mode === 'group-round') {
+    const groupMatches = filtered;
+    const rounds = [
+      groupMatches.slice(0, 24),
+      groupMatches.slice(0, 48),
+      groupMatches.slice(0, 72)
+    ].filter(scope => scope.length);
+    return rounds.map((scope, index) => ({
+      label: `Runda ${index + 1}`,
+      match: scope[scope.length - 1],
+      matches: scope
+    }));
+  }
+
+  return filtered.map((m, index) => ({
+    label: parcursSnapshotLabel(m, index, mode),
+    match: m,
+    matches: completed.filter(x => new Date(x.startTimeRo).getTime() <= new Date(m.startTimeRo).getTime())
+  }));
+}
+
+function parcursBuildRealDataset(mode) {
+  let snapshots = parcursBuildSnapshots(mode);
+  const users = getUsers().filter(u => !isAdminUser(u));
+  if (!snapshots.length || !users.length) return null;
+
+  const players = users.map((u, index) => ({
+    key: parcursPlayerKey(u),
+    name: u.name,
+    email: u.email,
+    color: PARCURS_COLORS[index % PARCURS_COLORS.length],
+    ranks: []
+  }));
+
+  snapshots.forEach(snapshot => {
+    const rows = computeLeaderboardRows(snapshot.matches);
+    players.forEach(player => {
+      const row = rows.find(r => parcursPlayerKey(r) === player.key);
+      player.ranks.push(row ? Number(row.rank) : null);
+    });
+  });
+
+  if (mode === 'changes') {
+    const keep = snapshots.map((_, index) => index === 0 || players.some(p => p.ranks[index] !== p.ranks[index - 1]));
+    snapshots = snapshots.filter((_, index) => keep[index]);
+    players.forEach(p => { p.ranks = p.ranks.filter((_, index) => keep[index]); });
+  }
+
+  return {
+    demo: false,
+    labels: snapshots.map(s => s.label),
+    players
+  };
+}
+
+function parcursBuildDemoDataset(mode) {
+  let labels = PARCURS_DEMO_LABELS.slice();
+  let players = PARCURS_DEMO_PLAYERS.map(p => ({ ...p, ranks: p.ranks.slice() }));
+
+  if (mode === 'first10' || mode === 'last10' || mode === 'match') {
+    labels = PARCURS_DEMO_LABELS.slice();
+  } else if (mode === 'day' || mode === 'all') {
+    labels = ['Ziua 1','Ziua 2','Ziua 3','Ziua 4','Ziua 5','Ziua 6','Ziua 7','Ziua 8','Ziua 9','Ziua 10'];
+  } else if (mode === 'group-round') {
+    labels = ['Runda 1','Runda 2','Runda 3'];
+    players = players.map(p => ({ ...p, ranks: [p.ranks[2], p.ranks[5], p.ranks[8]] }));
+  } else if (mode === 'groups') {
+    labels = ['M1','M8','M16','M24','M32','M40','M48','M56','M64','M72'];
+  } else if (mode === 'knockout') {
+    labels = ['R32','R16','QF','SF','Finală'];
+    players = players.map(p => ({ ...p, ranks: [p.ranks[5], p.ranks[6], p.ranks[7], p.ranks[8], p.ranks[9]] }));
+  } else if (mode === 'changes') {
+    labels = ['Start','Sch. 1','Sch. 2','Sch. 3','Sch. 4','Sch. 5'];
+    players = players.map(p => ({ ...p, ranks: [p.ranks[0], p.ranks[1], p.ranks[3], p.ranks[5], p.ranks[7], p.ranks[9]] }));
+  }
+
+  return { demo: true, labels, players };
+}
+
+function parcursCurrentDataset() {
+  const mode = $('parcursStageSelect')?.value || 'day';
+  return parcursBuildRealDataset(mode) || parcursBuildDemoDataset(mode);
+}
+
+function parcursEnsureSelection(players) {
+  const valid = new Set(players.map(p => p.key));
+  parcursSelectedPlayerKeys = new Set(Array.from(parcursSelectedPlayerKeys).filter(k => valid.has(k)));
+  if (!parcursSelectedPlayerKeys.size) {
+    parcursSelectedPlayerKeys = new Set(players.map(p => p.key));
+  }
+}
+
+function parcursSelectPreset(preset, players) {
+  if (preset === 'all') parcursSelectedPlayerKeys = new Set(players.map(p => p.key));
+  else if (preset === 'current') {
+    const currentKey = parcursPlayerKey(currentUser);
+    const exists = players.some(p => p.key === currentKey);
+    if (!exists) return toast('Userul curent nu apare încă în grafic.');
+    parcursSelectedPlayerKeys = new Set([currentKey]);
+  } else if (preset === 'top3') parcursSelectedPlayerKeys = new Set(players.slice(0, 3).map(p => p.key));
+  else if (preset === 'top5') parcursSelectedPlayerKeys = new Set(players.slice(0, 5).map(p => p.key));
+  else if (preset === 'top10') parcursSelectedPlayerKeys = new Set(players.slice(0, 10).map(p => p.key));
+}
+
+function parcursRenderPlayerMenu(players) {
+  const menu = $('parcursPlayerMenu');
+  const button = $('parcursPlayerButton');
+  if (!menu || !button) return;
+
+  const selected = players.filter(p => parcursSelectedPlayerKeys.has(p.key));
+  button.textContent = selected.length === players.length ? 'Toți jucătorii' : `${selected.length} jucători selectați`;
+
+  menu.innerHTML = `<div class="parcurs-player-presets">
+    <button type="button" data-parcurs-preset="all">Toți</button>
+    <button type="button" data-parcurs-preset="current">Userul curent</button>
+    <button type="button" data-parcurs-preset="top3">Top 3</button>
+    <button type="button" data-parcurs-preset="top5">Top 5</button>
+    <button type="button" data-parcurs-preset="top10">Top 10</button>
+  </div>
+  <div class="parcurs-player-checks">
+    ${players.map(p => `<label><input type="checkbox" value="${escapeHtml(p.key)}" ${parcursSelectedPlayerKeys.has(p.key) ? 'checked' : ''}><span><i style="background:${p.color}"></i>${escapeHtml(p.name)}</span></label>`).join('')}
+  </div>`;
+
+  menu.querySelectorAll('[data-parcurs-preset]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      parcursSelectPreset(btn.dataset.parcursPreset, players);
+      renderParcursPreview();
+    });
+  });
+
+  menu.querySelectorAll('input[type="checkbox"]').forEach(input => {
+    input.addEventListener('change', () => {
+      if (input.checked) parcursSelectedPlayerKeys.add(input.value);
+      else parcursSelectedPlayerKeys.delete(input.value);
+      if (!parcursSelectedPlayerKeys.size) parcursSelectedPlayerKeys.add(input.value);
+      renderParcursPreview();
+    });
+  });
+}
+
+function parcursChartSvg(labels, players) {
+  const width = 920, height = 360;
+  const ml = 62, mr = 24, mt = 30, mb = 50;
+  const plotW = width - ml - mr;
+  const plotH = height - mt - mb;
+  const allRanks = players.flatMap(p => p.ranks).filter(v => v != null);
+  const maxRank = Math.max(8, ...allRanks, 1);
+  const safeCount = Math.max(1, labels.length - 1);
+  const x = (i) => ml + (plotW * i / safeCount);
+  const y = (rank) => mt + (plotH * (Number(rank) - 1) / Math.max(1, maxRank - 1));
+
+  let grid = `<text x="${ml}" y="18" class="pc-axis-title">Poziție în clasament</text>`;
+  for (let r = 1; r <= maxRank; r += 1) {
+    const yy = y(r);
+    grid += `<line x1="${ml}" y1="${yy.toFixed(1)}" x2="${width - mr}" y2="${yy.toFixed(1)}" class="pc-grid"/>`;
+    grid += `<text x="${ml - 22}" y="${(yy + 4).toFixed(1)}" class="pc-axis-text">${r}</text>`;
+  }
+
+  labels.forEach((label, i) => {
+    const step = labels.length > 12 ? Math.ceil(labels.length / 10) : 1;
+    if (i % step === 0 || i === labels.length - 1) {
+      grid += `<text x="${x(i).toFixed(1)}" y="${height - 18}" class="pc-x-text">${escapeHtml(label)}</text>`;
+    }
+  });
+
+  const series = players.map(p => {
+    const pts = p.ranks.map((rank, i) => rank == null ? null : [x(i), y(rank)]).filter(Boolean);
+    if (!pts.length) return '';
+    const line = pts.map(([px, py]) => `${px.toFixed(1)},${py.toFixed(1)}`).join(' ');
+    const dots = pts.map(([px, py]) => `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="5" class="pc-dot" style="fill:${p.color}"/>`).join('');
+    return `<polyline points="${line}" class="pc-line" style="stroke:${p.color}"/>${dots}`;
+  }).join('');
+
+  return `<svg viewBox="0 0 ${width} ${height}" class="parcurs-chart-svg" role="img" aria-label="Grafic evoluție clasament">
+    ${grid}
+    ${series}
+    <text x="${width / 2}" y="${height - 2}" class="pc-axis-title">Etape / meciuri jucate</text>
+  </svg>`;
+}
+
+function bindParcursControls() {
+  if (parcursControlsBound) return;
+  const stage = $('parcursStageSelect');
+  const button = $('parcursPlayerButton');
+  const picker = $('parcursPlayerPicker');
+  const menu = $('parcursPlayerMenu');
+  if (!stage || !button || !picker || !menu) return;
+
+  stage.addEventListener('change', () => {
+    parcursSelectedPlayerKeys.clear();
+    renderParcursPreview();
+  });
+
+  button.addEventListener('click', () => {
+    menu.classList.toggle('hidden');
+  });
+
+  document.addEventListener('click', (event) => {
+    if (!picker.contains(event.target)) menu.classList.add('hidden');
+  });
+
+  parcursControlsBound = true;
+}
+
+function renderParcursPreview() {
+  const chart = $('parcursChartCard');
+  const legend = $('parcursLegend');
+  const note = $('parcursChartNote');
+  if (!chart || !legend) return;
+  bindParcursControls();
+
+  const dataset = parcursCurrentDataset();
+  parcursEnsureSelection(dataset.players);
+  const selectedPlayers = dataset.players.filter(p => parcursSelectedPlayerKeys.has(p.key));
+
+  parcursRenderPlayerMenu(dataset.players);
+
+  if (!selectedPlayers.length) {
+    chart.innerHTML = `<div class="empty">Selectează cel puțin un jucător.</div>`;
+    legend.innerHTML = '';
+    return;
+  }
+
+  chart.innerHTML = parcursChartSvg(dataset.labels, selectedPlayers);
+  legend.innerHTML = selectedPlayers.map(p => `<span class="parcurs-legend-item"><i style="background:${p.color}"></i>${escapeHtml(p.name)}</span>`).join('');
+  if (note) {
+    note.innerHTML = dataset.demo
+      ? `<span>Preview cu date demo. Când există rezultate și pronosticuri reale, graficul folosește automat datele din aplicație.</span>`
+      : `<span>Grafic generat din rezultatele și pronosticurile salvate în aplicație.</span>`;
+  }
+}
+
+function renderAll() { renderPredictions(); renderResults(); renderGroups(); renderLuckyStrike(); renderLeaderboard(); renderAdminScores(); renderEmailPreview(); renderParcursPreview(); }
 
 
 function adminTestNow() {
