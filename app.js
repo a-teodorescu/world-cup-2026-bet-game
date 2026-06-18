@@ -2465,8 +2465,8 @@ function parcursChartSvg(labels, players) {
     const height = 360;
 
     if (isPortraitMobile) {
-      const titleW = 18;
-      const rankW = 26;
+      const titleW = 16;
+      const rankW = 24;
       const chartW = 780;
       const plotMl = 28;
       const plotMr = 12;
@@ -2479,12 +2479,12 @@ function parcursChartSvg(labels, players) {
       const plotX = (i) => plotMl + ((chartW - plotMl - plotMr) * i / safeCount);
       const yTitleCenter = mt + plotH / 2;
 
-      let yAxis = `<text x="9" y="${yTitleCenter.toFixed(1)}" class="pc-axis-title pc-y-title-vertical" text-anchor="middle" dominant-baseline="middle" transform="rotate(-90 9 ${yTitleCenter.toFixed(1)})">Poziție în clasament</text>`;
+      let yAxis = `<text x="8" y="${yTitleCenter.toFixed(1)}" class="pc-axis-title pc-y-title-vertical" text-anchor="middle" dominant-baseline="middle" transform="rotate(-90 8 ${yTitleCenter.toFixed(1)})">Poziție în clasament</text>`;
       let rankAxis = '';
       let grid = '';
       for (let r = 1; r <= maxRank; r += 1) {
         const yy = y(r);
-        rankAxis += `<text x="13" y="${yy.toFixed(1)}" class="pc-axis-text pc-y-rank-text" text-anchor="middle" dominant-baseline="middle">${r}</text>`;
+        rankAxis += `<text x="12" y="${yy.toFixed(1)}" class="pc-axis-text pc-y-rank-text" text-anchor="middle" dominant-baseline="middle">${r}</text>`;
         grid += `<line x1="${plotMl}" y1="${yy.toFixed(1)}" x2="${(chartW - plotMr).toFixed(1)}" y2="${yy.toFixed(1)}" class="pc-grid"/>`;
       }
 
