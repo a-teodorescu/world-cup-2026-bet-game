@@ -5601,3 +5601,25 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     font-size: 1.29em;
   }
 }
+
+
+/* CLASAMENT_DELETE_X_REAL_MARGIN_FIX
+   Force the visual space between username and delete X directly on the X button. */
+#clasament .leaderboard-name-with-delete {
+  gap: 0 !important;
+}
+
+#clasament .leaderboard-name-with-delete .leaderboard-delete-user,
+#clasament .leaderboard-top-user .leaderboard-name-with-delete .leaderboard-delete-user,
+#clasament .leaderboard-row-card .leaderboard-name-with-delete .leaderboard-delete-user {
+  margin-left: 28px !important;
+  flex: 0 0 auto;
+}
+
+@media (max-width: 640px) {
+  #clasament .leaderboard-name-with-delete .leaderboard-delete-user,
+  #clasament .leaderboard-top-user .leaderboard-name-with-delete .leaderboard-delete-user,
+  #clasament .leaderboard-row-card .leaderboard-name-with-delete .leaderboard-delete-user {
+    margin-left: 24px !important;
+  }
+}
