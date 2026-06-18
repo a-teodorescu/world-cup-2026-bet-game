@@ -4919,3 +4919,37 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     display: none !important;
   }
 }
+
+
+/* EVOLUTIE_WEB_Y_TITLE_OUTSIDE_AND_ALPHA_PLAYERS
+   Desktop-only: Y axis title is outside the chart card; player list is alphabetized in JS only on web. */
+#parcurs-preview .parcurs-y-axis-title-desktop {
+  display: none;
+}
+
+@media (min-width: 761px) {
+  #parcurs-preview .parcurs-model-card {
+    position: relative;
+  }
+
+  #parcurs-preview .parcurs-y-axis-title-desktop {
+    display: block;
+    position: absolute;
+    left: 4px;
+    top: 56%;
+    transform: translateY(-50%) rotate(-90deg);
+    transform-origin: center;
+    color: var(--muted);
+    font-size: .9rem;
+    font-weight: 900;
+    line-height: 1;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+}
+
+@media (max-width: 760px) {
+  #parcurs-preview .parcurs-y-axis-title-desktop {
+    display: none !important;
+  }
+}

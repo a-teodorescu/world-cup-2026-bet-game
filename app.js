@@ -2304,6 +2304,11 @@ function parcursRenderPlayerMenu(players) {
   else if (!selected.length) button.textContent = 'Niciun jucător selectat';
   else button.textContent = `${selected.length}/${players.length} jucători selectați`;
 
+  const isDesktopPlayerMenu = window.matchMedia && window.matchMedia('(min-width: 761px)').matches;
+  const menuPlayers = isDesktopPlayerMenu
+    ? players.slice().sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'ro', { sensitivity: 'base' }))
+    : players;
+
   menu.innerHTML = `<div class="parcurs-player-actions">
     <button type="button" data-parcurs-preset="all">Selectează toți</button>
     <button type="button" data-parcurs-preset="none">Deselectează toți</button>
@@ -2314,7 +2319,7 @@ function parcursRenderPlayerMenu(players) {
     <button type="button" data-parcurs-preset="top10">Top 10</button>
   </div>
   <div class="parcurs-player-checks">
-    ${players.map(p => `<label class="parcurs-player-check"><input type="checkbox" value="${escapeHtml(p.key)}" ${parcursSelectedPlayerKeys.has(p.key) ? 'checked' : ''}><span>${escapeHtml(p.name)}</span></label>`).join('')}
+    ${menuPlayers.map(p => `<label class="parcurs-player-check"><input type="checkbox" value="${escapeHtml(p.key)}" ${parcursSelectedPlayerKeys.has(p.key) ? 'checked' : ''}><span>${escapeHtml(p.name)}</span></label>`).join('')}
   </div>`;
 
   menu.querySelectorAll('[data-parcurs-preset]').forEach(btn => {
@@ -2346,8 +2351,7 @@ function parcursChartSvg(labels, players) {
     const x = (i) => ml + (plotW * i / safeCount);
     const y = (rank) => mt + (plotH * (Number(rank) - 1) / Math.max(1, maxRank - 1));
 
-    const yTitleCenter = mt + plotH / 2;
-    let grid = `<text x="16" y="${yTitleCenter.toFixed(1)}" class="pc-axis-title pc-y-title-desktop" text-anchor="middle" dominant-baseline="middle" transform="rotate(-90 16 ${yTitleCenter.toFixed(1)})">Poziție în clasament</text>`;
+    let grid = '';
     for (let r = 1; r <= maxRank; r += 1) {
       const yy = y(r);
       grid += `<line x1="${ml}" y1="${yy.toFixed(1)}" x2="${width - mr}" y2="${yy.toFixed(1)}" class="pc-grid"/>`;
