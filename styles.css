@@ -4953,3 +4953,57 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     display: none !important;
   }
 }
+
+
+/* EVOLUTIE_WEB_Y_TITLE_INSIDE_BIG_CARD
+   Desktop-only: Y axis title is inside the large Evoluție card, outside the chart card,
+   placed vertically next to the graph, similar in principle to the X axis title below the chart. */
+#parcurs-preview .parcurs-chart-with-y-axis {
+  width: 100%;
+}
+
+@media (min-width: 761px) {
+  #parcurs-preview .parcurs-chart-with-y-axis {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr);
+    column-gap: 6px;
+    align-items: stretch;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  #parcurs-preview .parcurs-chart-with-y-axis .parcurs-chart-card {
+    width: 100%;
+    min-width: 0;
+  }
+
+  #parcurs-preview .parcurs-y-axis-title-desktop {
+    display: flex !important;
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+    width: 34px;
+    min-width: 34px;
+    height: auto;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-size: .9rem;
+    font-weight: 900;
+    line-height: 1;
+    white-space: nowrap;
+    pointer-events: none;
+    transform: rotate(-90deg) !important;
+    transform-origin: center center !important;
+  }
+}
+
+@media (max-width: 760px) {
+  #parcurs-preview .parcurs-chart-with-y-axis {
+    display: block;
+  }
+
+  #parcurs-preview .parcurs-y-axis-title-desktop {
+    display: none !important;
+  }
+}
