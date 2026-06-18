@@ -5760,10 +5760,9 @@ section[data-section="clasament"] .leaderboard-intro-icon {
 
 
 /* MOBILE PORTRAIT: include rank numbers inside the chart area, keep the same spacing from the vertical title, and preserve desktop layout */
-/* MOBILE PORTRAIT: preserve the archive style and add a fixed rank overlay with a thin separator. */
 @media (max-width: 760px) and (orientation: portrait) {
   #parcurs-preview .parcurs-chart-card {
-    padding: 8px 8px 4px;
+    padding: 8px 0 4px;
   }
 
   #parcurs-preview .parcurs-chart-mobile-shell {
@@ -5793,10 +5792,10 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     max-height: 360px;
     display: block;
     overflow: visible;
+    flex: 0 0 34px;
   }
 
   #parcurs-preview .parcurs-chart-scroll.parcurs-chart-scroll-portrait {
-    position: relative;
     width: 100%;
     max-width: 100%;
     min-width: 0;
@@ -5815,32 +5814,6 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     width: 0;
     height: 0;
     display: none;
-  }
-
-  #parcurs-preview .parcurs-rank-overlay-svg {
-    position: sticky;
-    left: 0;
-    top: 0;
-    z-index: 4;
-    width: 34px;
-    min-width: 34px;
-    max-width: 34px;
-    height: 360px !important;
-    min-height: 360px;
-    max-height: 360px;
-    display: block;
-    float: left;
-    margin-right: -34px;
-    pointer-events: none;
-    overflow: visible;
-    background: radial-gradient(circle at 30% 0%, rgba(253,176,34,.08), transparent 30%), rgba(0,0,0,.12);
-    border-right: 1px solid rgba(255,255,255,.08);
-  }
-
-  #parcurs-preview .pc-rank-separator {
-    stroke: rgba(255,255,255,.16);
-    stroke-width: 1;
-    shape-rendering: geometricPrecision;
   }
 
   #parcurs-preview .parcurs-chart-svg-mobile.parcurs-chart-svg-mobile-portrait {
@@ -5876,6 +5849,138 @@ section[data-section="clasament"] .leaderboard-intro-icon {
 
   #parcurs-preview .parcurs-legend {
     margin-top: 12px;
+    padding-top: 0;
+  }
+}
+
+/* MOBILE PORTRAIT FINAL FIX: keep original archive styling, add fixed rank column inside chart, no dark/transparent overlay */
+@media (max-width: 760px) and (orientation: portrait) {
+  #parcurs-preview .parcurs-chart-card {
+    padding: 8px 6px 6px !important;
+    overflow: hidden;
+  }
+
+  #parcurs-preview .parcurs-chart-mobile-shell {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+
+  #parcurs-preview .parcurs-chart-split.parcurs-chart-split-portrait {
+    display: grid !important;
+    grid-template-columns: 24px minmax(0, 1fr) !important;
+    gap: 6px !important;
+    align-items: start;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  #parcurs-preview .parcurs-y-axis-svg.parcurs-y-axis-svg-portrait {
+    width: 24px !important;
+    min-width: 24px !important;
+    max-width: 24px !important;
+    height: 360px !important;
+    min-height: 360px !important;
+    max-height: 360px !important;
+    display: block;
+    overflow: visible;
+    flex: 0 0 24px;
+  }
+
+  #parcurs-preview .parcurs-portrait-plot-wrap {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    height: 360px;
+    min-height: 360px;
+    max-height: 360px;
+    overflow: hidden;
+    border-radius: 18px;
+    background: transparent;
+  }
+
+  #parcurs-preview .parcurs-portrait-rank-mask {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 3;
+    width: 30px;
+    height: 100%;
+    min-width: 30px;
+    background: var(--panel);
+    border-top-left-radius: 18px;
+    border-bottom-left-radius: 18px;
+    pointer-events: none;
+  }
+
+  #parcurs-preview .parcurs-portrait-rank-svg {
+    width: 30px;
+    height: 360px;
+    display: block;
+    overflow: visible;
+  }
+
+  #parcurs-preview .parcurs-chart-scroll.parcurs-chart-scroll-portrait {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    height: 360px !important;
+    min-height: 360px;
+    max-height: 360px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    box-sizing: border-box;
+    touch-action: pan-x pan-y;
+  }
+
+  #parcurs-preview .parcurs-chart-scroll.parcurs-chart-scroll-portrait::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+  }
+
+  #parcurs-preview .parcurs-chart-svg-mobile.parcurs-chart-svg-mobile-portrait {
+    width: 800px !important;
+    min-width: 800px !important;
+    max-width: none !important;
+    height: 360px !important;
+    min-height: 360px;
+    max-height: 360px;
+    display: block;
+  }
+
+  #parcurs-preview .pc-y-title-vertical {
+    font-size: 10.5px !important;
+    font-weight: 900;
+    letter-spacing: .01em;
+  }
+
+  #parcurs-preview .pc-y-rank-text,
+  #parcurs-preview .pc-x-text {
+    font-size: 11.5px !important;
+    font-weight: 900;
+  }
+
+  #parcurs-preview .pc-rank-separator {
+    stroke: rgba(255,255,255,.12);
+    stroke-width: 1;
+  }
+
+  #parcurs-preview .parcurs-x-axis-title {
+    margin-top: 12px !important;
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 900;
+    line-height: 1.15;
+  }
+
+  #parcurs-preview .parcurs-legend {
+    margin-top: 10px !important;
     padding-top: 0;
   }
 }
