@@ -1951,7 +1951,7 @@ function parcursSnapshotLabel(match, index, mode) {
   if (mode === 'day' || mode === 'all') {
     return new Intl.DateTimeFormat('ro-RO', { day: '2-digit', month: 'short' }).format(new Date(match.startTimeRo));
   }
-  if (mode === 'group-round') return `Runda ${index + 1}`;
+  if (mode === 'round') return `Runda ${index + 1}`;
   return `M${match.matchNo || index + 1}`;
 }
 
@@ -1959,7 +1959,7 @@ function parcursBuildSnapshots(mode) {
   const completed = parcursCompletedMatches();
   let filtered = completed;
 
-  if (mode === 'groups' || mode === 'group-round') filtered = completed.filter(isGroup);
+  if (mode === 'groups' || mode === 'round') filtered = completed.filter(isGroup);
   if (mode === 'knockout') filtered = completed.filter(isKnockout);
   if (mode === 'first10') filtered = completed.slice(0, 10);
   if (mode === 'last10') filtered = completed.slice(Math.max(0, completed.length - 10));
@@ -1980,10 +1980,10 @@ function parcursBuildSnapshots(mode) {
     }));
   }
 
-  if (mode === 'group-round') {
-    const groupMatches = completed.filter(isGroup);
-    const groupOrder = 'ABCDEFGHIJKL'.split('');
+  if (mode === 'round') {
     const sortByKickoff = (a, b) => new Date(a.startTimeRo).getTime() - new Date(b.startTimeRo).getTime() || Number(a.matchNo || 0) - Number(b.matchNo || 0);
+    const groupMatches = completed.filter(isGroup).slice().sort(sortByKickoff);
+    const groupOrder = 'ABCDEFGHIJKL'.split('');
     const byGroup = {};
     groupOrder.forEach(g => {
       byGroup[g] = groupMatches.filter(m => m.group === g).slice().sort(sortByKickoff);
@@ -1993,28 +1993,46 @@ function parcursBuildSnapshots(mode) {
 
     for (let round = 1; round <= 3; round += 1) {
       const neededMatchesPerGroup = round * 2;
-      const isRoundComplete = groupOrder.every(g => (byGroup[g] || []).length >= neededMatchesPerGroup);
-      if (!isRoundComplete) continue;
+      const completeGroups = groupOrder.filter(g => (byGroup[g] || []).length >= neededMatchesPerGroup);
+      if (!completeGroups.length) continue;
 
       const scopeIds = new Set();
-      groupOrder.forEach(g => {
+      completeGroups.forEach(g => {
         byGroup[g].slice(0, neededMatchesPerGroup).forEach(m => scopeIds.add(m.id));
       });
 
       const scope = completed.filter(m => scopeIds.has(m.id)).slice().sort(sortByKickoff);
       snapshots.push({
-        label: `Runda ${round}`,
+        label: `Grupe R${round}`,
         match: scope[scope.length - 1],
         matches: scope
       });
     }
 
+    const knockoutRounds = [
+      { label: '16-imi', matches: completed.filter(m => Number(m.matchNo) >= 73 && Number(m.matchNo) <= 88) },
+      { label: 'Optimi', matches: completed.filter(m => Number(m.matchNo) >= 89 && Number(m.matchNo) <= 96) },
+      { label: 'Sferturi', matches: completed.filter(m => Number(m.matchNo) >= 97 && Number(m.matchNo) <= 100) },
+      { label: 'Semifinale', matches: completed.filter(m => Number(m.matchNo) >= 101 && Number(m.matchNo) <= 102) },
+      { label: 'Finale', matches: completed.filter(m => Number(m.matchNo) >= 103 && Number(m.matchNo) <= 104) }
+    ];
+
+    knockoutRounds.forEach(round => {
+      if (!round.matches.length) return;
+      const latest = round.matches.slice().sort(sortByKickoff).at(-1);
+      snapshots.push({
+        label: round.label,
+        match: latest,
+        matches: completed.filter(m => new Date(m.startTimeRo).getTime() <= new Date(latest.startTimeRo).getTime()).slice().sort(sortByKickoff)
+      });
+    });
+
     if (snapshots.length > 1) return snapshots;
 
-    return groupMatches.map((m, index) => ({
+    return completed.map((m, index) => ({
       label: `M${m.matchNo || index + 1}`,
       match: m,
-      matches: completed.filter(x => isGroup(x) && new Date(x.startTimeRo).getTime() <= new Date(m.startTimeRo).getTime())
+      matches: completed.filter(x => new Date(x.startTimeRo).getTime() <= new Date(m.startTimeRo).getTime())
     }));
   }
 
@@ -2067,9 +2085,9 @@ function parcursBuildDemoDataset(mode) {
     labels = PARCURS_DEMO_LABELS.slice();
   } else if (mode === 'day' || mode === 'all') {
     labels = ['Ziua 1','Ziua 2','Ziua 3','Ziua 4','Ziua 5','Ziua 6','Ziua 7','Ziua 8','Ziua 9','Ziua 10'];
-  } else if (mode === 'group-round') {
-    labels = ['Runda 1','Runda 2','Runda 3'];
-    players = players.map(p => ({ ...p, ranks: [p.ranks[2], p.ranks[5], p.ranks[8]] }));
+  } else if (mode === 'round') {
+    labels = ['Start','Grupe R1','Grupe R2','Grupe R3','16-imi','Optimi','Sferturi','Semifinale','Finale'];
+    players = players.map(p => ({ ...p, ranks: [p.ranks[0], p.ranks[1], p.ranks[2], p.ranks[4], p.ranks[5], p.ranks[6], p.ranks[7], p.ranks[8], p.ranks[9]] }));
   } else if (mode === 'groups') {
     labels = ['M1','M8','M16','M24','M32','M40','M48','M56','M64','M72'];
   } else if (mode === 'knockout') {
@@ -2107,7 +2125,6 @@ function parcursSelectPreset(preset, players) {
     if (!exists) return toast('Userul curent nu apare încă în grafic.');
     parcursSelectedPlayerKeys = new Set([currentKey]);
   } else if (preset === 'top3') parcursSelectedPlayerKeys = new Set(players.slice(0, 3).map(p => p.key));
-  else if (preset === 'top5') parcursSelectedPlayerKeys = new Set(players.slice(0, 5).map(p => p.key));
   else if (preset === 'top10') parcursSelectedPlayerKeys = new Set(players.slice(0, 10).map(p => p.key));
 }
 
@@ -2128,7 +2145,6 @@ function parcursRenderPlayerMenu(players) {
   <div class="parcurs-player-presets">
     <button type="button" data-parcurs-preset="current">Userul curent</button>
     <button type="button" data-parcurs-preset="top3">Top 3</button>
-    <button type="button" data-parcurs-preset="top5">Top 5</button>
     <button type="button" data-parcurs-preset="top10">Top 10</button>
   </div>
   <div class="parcurs-player-checks">
@@ -2181,7 +2197,12 @@ function parcursChartSvg(labels, players) {
     const pts = p.ranks.map((rank, i) => rank == null ? null : [x(i), y(rank)]).filter(Boolean);
     if (!pts.length) return '';
     const line = pts.map(([px, py]) => `${px.toFixed(1)},${py.toFixed(1)}`).join(' ');
-    const dots = pts.map(([px, py]) => `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="5" class="pc-dot" style="fill:${p.color}"/>`).join('');
+    const dots = pts.map(([px, py], pointIndex) => {
+      const rank = p.ranks[pointIndex];
+      const label = labels[pointIndex] || `Etapa ${pointIndex + 1}`;
+      const text = `${p.name} · ${label} · poziția ${rank}`;
+      return `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="5" class="pc-dot parcurs-point" tabindex="0" data-player="${escapeHtml(p.name)}" data-label="${escapeHtml(label)}" data-rank="${escapeHtml(rank)}" style="fill:${p.color}"><title>${escapeHtml(text)}</title></circle>`;
+    }).join('');
     return `<polyline points="${line}" class="pc-line" style="stroke:${p.color}"/>${dots}`;
   }).join('');
 
@@ -2190,6 +2211,50 @@ function parcursChartSvg(labels, players) {
     ${series}
     <text x="${width / 2}" y="${height - 2}" class="pc-axis-title">Etape / meciuri jucate</text>
   </svg>`;
+}
+
+function hideParcursTooltip() {
+  const tip = $('parcursTooltip');
+  if (tip) tip.classList.add('hidden');
+}
+
+function showParcursTooltip(point, event) {
+  const tip = $('parcursTooltip');
+  const card = $('parcursChartCard');
+  if (!tip || !card || !point) return;
+
+  tip.innerHTML = `<strong>${escapeHtml(point.dataset.player || '')}</strong><span>${escapeHtml(point.dataset.label || '')}</span><span>Poziția: #${escapeHtml(point.dataset.rank || '')}</span>`;
+  tip.classList.remove('hidden');
+
+  const cardRect = card.getBoundingClientRect();
+  const eventX = event?.clientX ?? (point.getBoundingClientRect().left + point.getBoundingClientRect().width / 2);
+  const eventY = event?.clientY ?? point.getBoundingClientRect().top;
+
+  let left = eventX - cardRect.left + 12;
+  let top = eventY - cardRect.top - 8;
+
+  const maxLeft = Math.max(8, cardRect.width - 210);
+  left = Math.max(8, Math.min(left, maxLeft));
+  top = Math.max(8, top);
+
+  tip.style.left = `${left}px`;
+  tip.style.top = `${top}px`;
+}
+
+function bindParcursPointTooltips() {
+  const card = $('parcursChartCard');
+  if (!card) return;
+  card.querySelectorAll('.parcurs-point').forEach(point => {
+    point.addEventListener('mouseenter', (event) => showParcursTooltip(point, event));
+    point.addEventListener('mousemove', (event) => showParcursTooltip(point, event));
+    point.addEventListener('mouseleave', hideParcursTooltip);
+    point.addEventListener('focus', (event) => showParcursTooltip(point, event));
+    point.addEventListener('blur', hideParcursTooltip);
+    point.addEventListener('click', (event) => {
+      event.stopPropagation();
+      showParcursTooltip(point, event);
+    });
+  });
 }
 
 function bindParcursControls() {
@@ -2237,6 +2302,7 @@ function renderParcursPreview() {
   }
 
   chart.innerHTML = parcursChartSvg(dataset.labels, selectedPlayers);
+  bindParcursPointTooltips();
   legend.innerHTML = selectedPlayers.map(p => `<span class="parcurs-legend-item"><i style="background:${p.color}"></i>${escapeHtml(p.name)}</span>`).join('');
   if (note) {
     note.innerHTML = dataset.demo

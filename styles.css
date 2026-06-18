@@ -3972,3 +3972,127 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     justify-content: stretch;
   }
 }
+
+
+/* EVOLUTIE_PLAYER_MENU_AND_TOOLTIP_FIX */
+#parcurs-preview .parcurs-model-card {
+  overflow: visible;
+}
+
+#parcurs-preview .parcurs-model-head {
+  position: relative;
+  z-index: 20;
+}
+
+#parcurs-preview .parcurs-chart-card {
+  position: relative;
+  z-index: 1;
+}
+
+#parcurs-preview .parcurs-player-picker {
+  width: 100%;
+}
+
+#parcurs-preview .parcurs-player-menu {
+  left: 0;
+  right: auto;
+  width: min(360px, calc(100vw - 40px));
+  max-height: min(420px, 60vh);
+  overflow-x: hidden;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+#parcurs-preview .parcurs-player-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+#parcurs-preview .parcurs-player-presets {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+#parcurs-preview .parcurs-player-checks {
+  display: grid;
+  gap: 4px;
+  align-items: stretch;
+  text-align: left;
+  width: 100%;
+}
+
+#parcurs-preview .parcurs-player-check,
+#parcurs-preview .parcurs-player-checks label {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  justify-content: start;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 6px;
+  text-align: left;
+  color: var(--text);
+  white-space: normal;
+}
+
+#parcurs-preview .parcurs-player-check input {
+  width: 16px;
+  height: 16px;
+  justify-self: start;
+}
+
+#parcurs-preview .parcurs-player-check span {
+  display: block;
+  min-width: 0;
+  overflow: visible;
+  text-align: left;
+  white-space: normal;
+  word-break: break-word;
+}
+
+#parcurs-preview .parcurs-tooltip {
+  position: absolute;
+  z-index: 80;
+  min-width: 170px;
+  max-width: 220px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 14px;
+  background: rgba(7, 17, 31, .96);
+  color: var(--text);
+  box-shadow: 0 16px 38px rgba(0,0,0,.38);
+  pointer-events: none;
+  font-size: .82rem;
+}
+
+#parcurs-preview .parcurs-tooltip strong,
+#parcurs-preview .parcurs-tooltip span {
+  display: block;
+}
+
+#parcurs-preview .parcurs-tooltip strong {
+  margin-bottom: 4px;
+  color: #eafff3;
+}
+
+#parcurs-preview .parcurs-tooltip span {
+  color: var(--muted);
+}
+
+#parcurs-preview .parcurs-point {
+  cursor: pointer;
+}
+
+#parcurs-preview .parcurs-point:hover,
+#parcurs-preview .parcurs-point:focus {
+  outline: none;
+  filter: drop-shadow(0 0 8px rgba(255,255,255,.55));
+}
+
+@media (max-width: 760px) {
+  #parcurs-preview .parcurs-player-menu {
+    width: min(320px, calc(100vw - 32px));
+  }
+}
