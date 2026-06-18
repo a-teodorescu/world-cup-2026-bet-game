@@ -2462,7 +2462,7 @@ function parcursChartSvg(labels, players) {
 
   function mobileChart() {
     const height = 360;
-    const yAxisW = 82;
+    const yAxisW = 68;
     const plotW = 860;
     const mt = 24, mb = 40;
     const plotH = height - mt - mb;
@@ -2472,8 +2472,8 @@ function parcursChartSvg(labels, players) {
     const y = (rank) => mt + (plotH * (Number(rank) - 1) / Math.max(1, maxRank - 1));
     const plotX = (i) => plotW * i / safeCount;
     const yTitleCenter = mt + plotH / 2;
-    const yTitleX = 16;
-    const rankX = 66;
+    const yTitleX = 15;
+    const rankX = 48;
 
     let yAxis = `<text x="${yTitleX}" y="${yTitleCenter.toFixed(1)}" class="pc-axis-title pc-y-title-vertical" text-anchor="middle" dominant-baseline="middle" transform="rotate(-90 ${yTitleX} ${yTitleCenter.toFixed(1)})">Poziție în clasament</text>`;
     let grid = '';
@@ -2508,11 +2508,11 @@ function parcursChartSvg(labels, players) {
 
     return `<div class="parcurs-chart-mobile-shell">
       <div class="parcurs-chart-split">
-        <svg viewBox="0 0 ${yAxisW} ${height}" class="parcurs-y-axis-svg" role="img" aria-hidden="true">
+        <svg viewBox="0 0 ${yAxisW} ${height}" class="parcurs-y-axis-svg" role="img" aria-hidden="true" preserveAspectRatio="none">
           ${yAxis}
         </svg>
         <div class="parcurs-chart-scroll">
-          <svg viewBox="0 0 ${plotW} ${height}" class="parcurs-chart-svg parcurs-chart-svg-mobile" role="img" aria-label="Grafic evoluție clasament">
+          <svg viewBox="0 0 ${plotW} ${height}" class="parcurs-chart-svg parcurs-chart-svg-mobile" role="img" aria-label="Grafic evoluție clasament" preserveAspectRatio="none">
             ${grid}
             ${xLabels}
             ${series}

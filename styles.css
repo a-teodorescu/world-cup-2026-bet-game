@@ -5858,3 +5858,102 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     padding-top: 0;
   }
 }
+
+
+/* MOBILE_EVOLUTIE_PORTRAIT_AXIS_GRID_REAL_FIX
+   Portrait only:
+   - Y numbers and chart grid share the exact same rendered height
+   - axis + plot are moved left near the vertical title
+   - desktop/web and mobile landscape remain untouched */
+@media (max-width: 760px) and (orientation: portrait) {
+  #parcurs-preview .parcurs-chart-card {
+    padding: 8px 0 4px;
+  }
+
+  #parcurs-preview .parcurs-chart-mobile-shell {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+
+  #parcurs-preview .parcurs-chart-split {
+    display: grid;
+    grid-template-columns: 68px minmax(0, 1fr);
+    gap: 0;
+    align-items: start;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+
+  #parcurs-preview .parcurs-y-axis-svg {
+    width: 68px;
+    min-width: 68px;
+    max-width: 68px;
+    height: 360px !important;
+    min-height: 360px;
+    max-height: 360px;
+    display: block;
+    overflow: visible;
+    flex: 0 0 68px;
+  }
+
+  #parcurs-preview .parcurs-chart-scroll {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    height: 360px !important;
+    min-height: 360px;
+    max-height: 360px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    box-sizing: border-box;
+    touch-action: pan-x pan-y;
+  }
+
+  #parcurs-preview .parcurs-chart-scroll::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+  }
+
+  #parcurs-preview .parcurs-chart-svg-mobile {
+    width: max(560px, 138vw);
+    min-width: 560px;
+    max-width: none;
+    height: 360px !important;
+    min-height: 360px;
+    max-height: 360px;
+    display: block;
+  }
+
+  #parcurs-preview .pc-y-title-vertical {
+    font-size: 10.75px;
+    font-weight: 900;
+    letter-spacing: .01em;
+  }
+
+  #parcurs-preview .pc-y-rank-text,
+  #parcurs-preview .pc-x-text {
+    font-size: 11.5px;
+    font-weight: 900;
+  }
+
+  #parcurs-preview .parcurs-x-axis-title {
+    margin-top: 10px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 900;
+    line-height: 1.15;
+  }
+
+  #parcurs-preview .parcurs-legend {
+    margin-top: 12px;
+    padding-top: 0;
+  }
+}
