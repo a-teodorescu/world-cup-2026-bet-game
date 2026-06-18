@@ -5570,3 +5570,34 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     font-size: .99em;
   }
 }
+
+
+/* CLASAMENT_DELETE_X_BIGGER_MORE_NAME_GAP
+   Increase delete X by another ~30% and add clearer spacing after the user name. */
+#clasament .leaderboard-name-with-delete {
+  gap: 30px;
+}
+
+#clasament .leaderboard-delete-user,
+#clasament .leaderboard-top-user .leaderboard-delete-user,
+#clasament .leaderboard-row-card .leaderboard-delete-user {
+  width: 1.73em;
+  height: 1.73em;
+  min-width: 1.73em;
+  font-size: 1.22em;
+}
+
+@media (max-width: 640px) {
+  #clasament .leaderboard-name-with-delete {
+    gap: 26px;
+  }
+
+  #clasament .leaderboard-delete-user,
+  #clasament .leaderboard-top-user .leaderboard-delete-user,
+  #clasament .leaderboard-row-card .leaderboard-delete-user {
+    width: 1.82em;
+    height: 1.82em;
+    min-width: 1.82em;
+    font-size: 1.29em;
+  }
+}
