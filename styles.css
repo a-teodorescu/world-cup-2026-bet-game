@@ -5734,3 +5734,26 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     margin-top: 16px;
   }
 }
+
+
+/* CLASAMENT_DELETE_X_USER_10_SMALLER
+   Reduce only the delete X next to each user by ~10%. Modal icon stays unchanged. */
+#clasament .leaderboard-delete-user,
+#clasament .leaderboard-top-user .leaderboard-delete-user,
+#clasament .leaderboard-row-card .leaderboard-delete-user {
+  width: 1.56em;
+  height: 1.56em;
+  min-width: 1.56em;
+  font-size: 1.10em;
+}
+
+@media (max-width: 640px) {
+  #clasament .leaderboard-delete-user,
+  #clasament .leaderboard-top-user .leaderboard-delete-user,
+  #clasament .leaderboard-row-card .leaderboard-delete-user {
+    width: 1.64em;
+    height: 1.64em;
+    min-width: 1.64em;
+    font-size: 1.16em;
+  }
+}
