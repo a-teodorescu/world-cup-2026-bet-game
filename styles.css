@@ -5212,3 +5212,21 @@ section[data-section="clasament"] .leaderboard-intro-icon {
 @media (max-width: 760px) {
   /* Mobile intentionally untouched. */
 }
+
+
+/* EVOLUTIE_WEB_DROPDOWN_GAP_AND_TIE_PRESETS
+   Desktop-only: adds clear spacing between Jucător and Etapă dropdowns.
+   JS Top 3/Top 10 now includes all tied users within ranks 1-3 / 1-10. */
+@media (min-width: 761px) {
+  #parcurs-preview .parcurs-controls {
+    column-gap: 24px;
+  }
+
+  #parcurs-preview .parcurs-controls label + label {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  /* Mobile intentionally untouched. */
+}

@@ -2284,10 +2284,10 @@ function parcursEnsureSelection(players) {
 function parcursLeaderboardPresetKeys(limit, players) {
   const validKeys = new Set(players.map(p => p.key));
   const leaderboardKeys = computeLeaderboardRows()
+    .filter(row => Number(row.rank) <= Number(limit))
     .map(row => parcursPlayerKey(row))
     .filter(key => validKeys.has(key));
-  const picked = leaderboardKeys.slice(0, limit);
-  return picked.length ? picked : players.slice(0, limit).map(p => p.key);
+  return leaderboardKeys.length ? leaderboardKeys : players.slice(0, limit).map(p => p.key);
 }
 
 function parcursSelectPreset(preset, players) {
