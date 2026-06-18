@@ -4838,3 +4838,48 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     padding-top: 0;
   }
 }
+
+
+/* EVOLUTIE_DESKTOP_RESTORE_KEEP_MOBILE
+   Restores the good desktop/web chart layout while keeping the current mobile progress. */
+#parcurs-preview .parcurs-chart-desktop-shell {
+  display: block;
+  width: 100%;
+}
+
+#parcurs-preview .parcurs-chart-mobile-shell {
+  display: none;
+}
+
+@media (min-width: 761px) {
+  #parcurs-preview .parcurs-chart-desktop-shell {
+    display: block !important;
+  }
+
+  #parcurs-preview .parcurs-chart-mobile-shell {
+    display: none !important;
+  }
+
+  #parcurs-preview .parcurs-chart-scroll-desktop {
+    width: 100%;
+    max-width: 100%;
+    overflow: visible;
+  }
+
+  #parcurs-preview .parcurs-chart-svg-desktop {
+    width: 100%;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    display: block;
+  }
+}
+
+@media (max-width: 760px) {
+  #parcurs-preview .parcurs-chart-desktop-shell {
+    display: none !important;
+  }
+
+  #parcurs-preview .parcurs-chart-mobile-shell {
+    display: block !important;
+  }
+}
