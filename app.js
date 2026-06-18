@@ -1778,6 +1778,11 @@ function currentLeaderboardAttr(row) {
   return isCurrentLeaderboardUser(row) ? ' data-current-leaderboard="true"' : '';
 }
 
+function leaderboardDeleteButton(row, compact = false) {
+  if (!isAdminUser() || !row || isAdminUser(row)) return '';
+  return `<button type="button" class="delete-user leaderboard-delete-user ${compact ? 'compact' : ''}" data-delete-user="${escapeHtml(row.email)}" aria-label="Șterge userul ${escapeHtml(row.name)}" title="Șterge user">×</button>`;
+}
+
 function scrollToCurrentLeaderboardUser() {
   const clasament = $('clasament');
   if (!clasament || !clasament.classList.contains('active')) return;
@@ -1814,7 +1819,7 @@ function leaderboardTopEntryMarkup(r, admin, podiumRank) {
       <div class="leaderboard-top-badges">
         ${hasAvatar ? `${avatarMarkup}<div class="leaderboard-top-rank">#${podiumRank}</div>` : `<div class="leaderboard-top-rank">#${podiumRank}</div>`}
       </div>
-      <div class="leaderboard-top-user"><strong>${escapeHtml(r.name)}</strong>${adminEmail}<span class="leaderboard-top-points">${r.total} puncte</span></div>
+      <div class="leaderboard-top-user"><strong>${escapeHtml(r.name)}</strong>${adminEmail}<span class="leaderboard-top-points">${r.total} puncte</span>${admin ? leaderboardDeleteButton(r, true) : ''}</div>
     </div>
     <span class="leaderboard-top-breakdown">${r.exact} scoruri exacte • ${r.winner} (doar) pronosticuri corecte</span>
     ${leaderboardStatMarkup(r)}
@@ -1863,6 +1868,7 @@ function renderLeaderboard() {
       <span class="leaderboard-row-mobile-breakdown">${r.exact} scoruri exacte • ${r.winner} (doar) pronosticuri corecte</span>
       ${leaderboardStatMarkup(r, true)}
       <div class="leaderboard-points"><strong>${r.total}</strong><span>puncte</span></div>
+      ${admin ? leaderboardDeleteButton(r) : ''}
     </article>`;
   }).join('') : `<div class="empty">Nu există useri după poziția #3.</div>`;
 
@@ -1882,6 +1888,10 @@ function renderLeaderboard() {
     </div>
     <div class="leaderboard-rest-list">${restHtml}</div>
   </div>`;
+
+  list.querySelectorAll('[data-delete-user]').forEach(btn => {
+    btn.addEventListener('click', () => deleteUser(btn.dataset.deleteUser));
+  });
 }
 function renderAdminScores() {
   const wrap = $('adminScoresList');

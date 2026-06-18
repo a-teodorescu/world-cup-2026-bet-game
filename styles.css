@@ -5230,3 +5230,37 @@ section[data-section="clasament"] .leaderboard-intro-icon {
 @media (max-width: 760px) {
   /* Mobile intentionally untouched. */
 }
+
+
+/* CLASAMENT_ADMIN_DELETE_USER_RESTORE
+   Restore delete user buttons in Clasament, visible only through admin-only markup. */
+#clasament .leaderboard-delete-user {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+#clasament .leaderboard-top-user .leaderboard-delete-user {
+  width: 28px;
+  height: 28px;
+  margin: 8px auto 0;
+  font-size: 1.1rem;
+}
+
+#clasament .leaderboard-row-card .leaderboard-delete-user {
+  grid-column: 1 / -1;
+  justify-self: end;
+  margin-top: -2px;
+}
+
+@media (max-width: 640px) {
+  #clasament .leaderboard-top-user .leaderboard-delete-user {
+    width: 30px;
+    height: 30px;
+  }
+
+  #clasament .leaderboard-row-card .leaderboard-delete-user {
+    justify-self: end;
+    margin-top: 4px;
+  }
+}
