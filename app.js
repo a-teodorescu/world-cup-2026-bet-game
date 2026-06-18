@@ -2463,8 +2463,71 @@ function parcursChartSvg(labels, players) {
   function mobileChart() {
     const isPortraitMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 760px) and (orientation: portrait)').matches;
     const height = 360;
-    const yAxisW = isPortraitMobile ? 46 : 56;
-    const plotW = isPortraitMobile ? 760 : 860;
+
+    if (isPortraitMobile) {
+      const titleW = 34;
+      const chartW = 800;
+      const plotMl = 40;
+      const plotMr = 12;
+      const mt = 24, mb = 40;
+      const plotH = height - mt - mb;
+      const allRanks = players.flatMap(p => p.ranks).filter(v => v != null);
+      const maxRank = Math.max(8, ...allRanks, 1);
+      const safeCount = Math.max(1, labels.length - 1);
+      const y = (rank) => mt + (plotH * (Number(rank) - 1) / Math.max(1, maxRank - 1));
+      const plotX = (i) => plotMl + ((chartW - plotMl - plotMr) * i / safeCount);
+      const yTitleCenter = mt + plotH / 2;
+
+      let yAxis = `<text x="16" y="${yTitleCenter.toFixed(1)}" class="pc-axis-title pc-y-title-vertical" text-anchor="middle" dominant-baseline="middle" transform="rotate(-90 16 ${yTitleCenter.toFixed(1)})">Poziție în clasament</text>`;
+      let grid = '';
+      for (let r = 1; r <= maxRank; r += 1) {
+        const yy = y(r);
+        grid += `<line x1="${plotMl}" y1="${yy.toFixed(1)}" x2="${(chartW - plotMr).toFixed(1)}" y2="${yy.toFixed(1)}" class="pc-grid"/>`;
+        grid += `<text x="18" y="${yy.toFixed(1)}" class="pc-axis-text pc-y-rank-text" text-anchor="middle" dominant-baseline="middle">${r}</text>`;
+      }
+
+      let xLabels = '';
+      labels.forEach((label, i) => {
+        const step = labels.length > 12 ? Math.ceil(labels.length / 10) : 1;
+        if (i % step === 0 || i === labels.length - 1) {
+          xLabels += `<text x="${plotX(i).toFixed(1)}" y="${height - 12}" class="pc-x-text">${escapeHtml(label)}</text>`;
+        }
+      });
+
+      const series = players.map(p => {
+        const pts = p.ranks.map((rank, i) => rank == null ? null : `${plotX(i).toFixed(1)},${y(rank).toFixed(1)}`).filter(Boolean);
+        if (!pts.length) return '';
+        const line = pts.join(' ');
+        const dots = p.ranks.map((rank, pointIndex) => {
+          if (rank == null) return '';
+          const px = plotX(pointIndex);
+          const py = y(rank);
+          const label = labels[pointIndex] || `Etapa ${pointIndex + 1}`;
+          const text = `${p.name} · ${label} · poziția ${rank}`;
+          return `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="5" class="pc-dot parcurs-point" tabindex="0" data-player="${escapeHtml(p.name)}" data-label="${escapeHtml(label)}" data-rank="${escapeHtml(rank)}" style="fill:${p.color}"><title>${escapeHtml(text)}</title></circle>`;
+        }).join('');
+        return `<polyline points="${line}" class="pc-line" style="stroke:${p.color}"/>${dots}`;
+      }).join('');
+
+      return `<div class="parcurs-chart-mobile-shell">
+        <div class="parcurs-chart-split parcurs-chart-split-portrait">
+          <svg viewBox="0 0 ${titleW} ${height}" class="parcurs-y-axis-svg parcurs-y-axis-svg-portrait" role="img" aria-hidden="true" preserveAspectRatio="none">
+            ${yAxis}
+          </svg>
+          <div class="parcurs-chart-scroll parcurs-chart-scroll-portrait">
+            <svg viewBox="0 0 ${chartW} ${height}" class="parcurs-chart-svg parcurs-chart-svg-mobile parcurs-chart-svg-mobile-portrait" role="img" aria-label="Grafic evoluție clasament" preserveAspectRatio="none">
+              ${grid}
+              ${xLabels}
+              ${series}
+            </svg>
+          </div>
+        </div>
+        <div class="parcurs-x-axis-title">Etape / meciuri jucate</div>
+      </div>`;
+    }
+
+    const yAxisW = 56;
+    const plotW = 860;
     const mt = 24, mb = 40;
     const plotH = height - mt - mb;
     const allRanks = players.flatMap(p => p.ranks).filter(v => v != null);
@@ -2473,14 +2536,12 @@ function parcursChartSvg(labels, players) {
     const y = (rank) => mt + (plotH * (Number(rank) - 1) / Math.max(1, maxRank - 1));
     const plotX = (i) => plotW * i / safeCount;
     const yTitleCenter = mt + plotH / 2;
-    const yTitleX = isPortraitMobile ? 5.5 : 10;
-    const rankX = isPortraitMobile ? 29.5 : 34;
 
-    let yAxis = `<text x="${yTitleX}" y="${yTitleCenter.toFixed(1)}" class="pc-axis-title pc-y-title-vertical" text-anchor="middle" dominant-baseline="middle" transform="rotate(-90 ${yTitleX} ${yTitleCenter.toFixed(1)})">Poziție în clasament</text>`;
+    let yAxis = `<text x="10" y="${yTitleCenter.toFixed(1)}" class="pc-axis-title pc-y-title-vertical" text-anchor="middle" dominant-baseline="middle" transform="rotate(-90 10 ${yTitleCenter.toFixed(1)})">Poziție în clasament</text>`;
     let grid = '';
     for (let r = 1; r <= maxRank; r += 1) {
       const yy = y(r);
-      yAxis += `<text x="${rankX}" y="${yy.toFixed(1)}" class="pc-axis-text pc-y-rank-text" text-anchor="middle" dominant-baseline="middle">${r}</text>`;
+      yAxis += `<text x="34" y="${yy.toFixed(1)}" class="pc-axis-text pc-y-rank-text" text-anchor="middle" dominant-baseline="middle">${r}</text>`;
       grid += `<line x1="0" y1="${yy.toFixed(1)}" x2="${plotW}" y2="${yy.toFixed(1)}" class="pc-grid"/>`;
     }
 
