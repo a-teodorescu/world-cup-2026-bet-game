@@ -2462,13 +2462,14 @@ function parcursChartSvg(labels, players) {
 
   function mobileChart() {
     const isPortraitMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 760px) and (orientation: portrait)').matches;
-    const isLandscapeMobile = typeof window !== 'undefined' && window.matchMedia('(orientation: landscape) and (max-height: 500px)').matches;
+    const isLandscapeMobile = typeof window !== 'undefined' && window.matchMedia('(orientation: landscape) and (max-height: 520px)').matches;
     const height = 360;
 
     if (isPortraitMobile) {
-      const titleW = 18;
-      const rankW = 26;
+      const titleW = 16;
+      const rankW = 24;
       const chartW = 780;
+      const plotMl = 28;
       const plotMr = 12;
       const mt = 24, mb = 40;
       const plotH = height - mt - mb;
@@ -2476,16 +2477,16 @@ function parcursChartSvg(labels, players) {
       const maxRank = Math.max(8, ...allRanks, 1);
       const safeCount = Math.max(1, labels.length - 1);
       const y = (rank) => mt + (plotH * (Number(rank) - 1) / Math.max(1, maxRank - 1));
-      const plotX = (i) => ((chartW - plotMr) * i / safeCount);
+      const plotX = (i) => plotMl + ((chartW - plotMl - plotMr) * i / safeCount);
       const yTitleCenter = mt + plotH / 2;
 
-      let yAxis = `<text x="9" y="${yTitleCenter.toFixed(1)}" class="pc-axis-title pc-y-title-vertical" text-anchor="middle" dominant-baseline="middle" transform="rotate(-90 9 ${yTitleCenter.toFixed(1)})">Poziție în clasament</text>`;
+      let yAxis = `<text x="8" y="${yTitleCenter.toFixed(1)}" class="pc-axis-title pc-y-title-vertical" text-anchor="middle" dominant-baseline="middle" transform="rotate(-90 8 ${yTitleCenter.toFixed(1)})">Poziție în clasament</text>`;
       let rankAxis = '';
       let grid = '';
       for (let r = 1; r <= maxRank; r += 1) {
         const yy = y(r);
-        rankAxis += `<text x="13" y="${yy.toFixed(1)}" class="pc-axis-text pc-y-rank-text" text-anchor="middle" dominant-baseline="middle">${r}</text>`;
-        grid += `<line x1="0" y1="${yy.toFixed(1)}" x2="${(chartW - plotMr).toFixed(1)}" y2="${yy.toFixed(1)}" class="pc-grid"/>`;
+        rankAxis += `<text x="12" y="${yy.toFixed(1)}" class="pc-axis-text pc-y-rank-text" text-anchor="middle" dominant-baseline="middle">${r}</text>`;
+        grid += `<line x1="${plotMl}" y1="${yy.toFixed(1)}" x2="${(chartW - plotMr).toFixed(1)}" y2="${yy.toFixed(1)}" class="pc-grid"/>`;
       }
 
       let xLabels = '';
@@ -2528,32 +2529,32 @@ function parcursChartSvg(labels, players) {
           </div>
         </div>
         <div class="parcurs-x-axis-title">Etape / meciuri jucate</div>
-
       </div>`;
     }
 
     if (isLandscapeMobile) {
-      const titleW = 18;
-      const rankW = 28;
-      const chartW = Math.max(820, labels.length * 92);
+      const titleW = 16;
+      const rankW = 24;
+      const chartW = 880;
+      const plotMl = 28;
       const plotMr = 12;
-      const h = 228;
-      const mt = 18, mb = 34;
+      const h = 260;
+      const mt = 20, mb = 38;
       const plotH = h - mt - mb;
       const allRanks = players.flatMap(p => p.ranks).filter(v => v != null);
       const maxRank = Math.max(8, ...allRanks, 1);
       const safeCount = Math.max(1, labels.length - 1);
       const y = (rank) => mt + (plotH * (Number(rank) - 1) / Math.max(1, maxRank - 1));
-      const plotX = (i) => ((chartW - plotMr) * i / safeCount);
+      const plotX = (i) => plotMl + ((chartW - plotMl - plotMr) * i / safeCount);
       const yTitleCenter = mt + plotH / 2;
 
-      let yAxis = `<text x="9" y="${yTitleCenter.toFixed(1)}" class="pc-axis-title pc-y-title-vertical" text-anchor="middle" dominant-baseline="middle" transform="rotate(-90 9 ${yTitleCenter.toFixed(1)})">Poziție în clasament</text>`;
+      let yAxis = `<text x="8" y="${yTitleCenter.toFixed(1)}" class="pc-axis-title pc-y-title-vertical" text-anchor="middle" dominant-baseline="middle" transform="rotate(-90 8 ${yTitleCenter.toFixed(1)})">Poziție în clasament</text>`;
       let rankAxis = '';
       let grid = '';
       for (let r = 1; r <= maxRank; r += 1) {
         const yy = y(r);
-        rankAxis += `<text x="14" y="${yy.toFixed(1)}" class="pc-axis-text pc-y-rank-text" text-anchor="middle" dominant-baseline="middle">${r}</text>`;
-        grid += `<line x1="0" y1="${yy.toFixed(1)}" x2="${(chartW - plotMr).toFixed(1)}" y2="${yy.toFixed(1)}" class="pc-grid"/>`;
+        rankAxis += `<text x="12" y="${yy.toFixed(1)}" class="pc-axis-text pc-y-rank-text" text-anchor="middle" dominant-baseline="middle">${r}</text>`;
+        grid += `<line x1="${plotMl}" y1="${yy.toFixed(1)}" x2="${(chartW - plotMr).toFixed(1)}" y2="${yy.toFixed(1)}" class="pc-grid"/>`;
       }
 
       let xLabels = '';
