@@ -2461,10 +2461,10 @@ function parcursChartSvg(labels, players) {
   }
 
   function mobileChart() {
-    const width = 920, height = 390;
-    const yAxisW = 60;
-    const mr = 18, mt = 42, mb = 46;
-    const plotW = width - yAxisW - mr;
+    const height = 360;
+    const yAxisW = 82;
+    const plotW = 860;
+    const mt = 24, mb = 40;
     const plotH = height - mt - mb;
     const allRanks = players.flatMap(p => p.ranks).filter(v => v != null);
     const maxRank = Math.max(8, ...allRanks, 1);
@@ -2472,12 +2472,14 @@ function parcursChartSvg(labels, players) {
     const y = (rank) => mt + (plotH * (Number(rank) - 1) / Math.max(1, maxRank - 1));
     const plotX = (i) => plotW * i / safeCount;
     const yTitleCenter = mt + plotH / 2;
+    const yTitleX = 16;
+    const rankX = 66;
 
-    let yAxis = `<text x="10" y="${yTitleCenter.toFixed(1)}" class="pc-axis-title pc-y-title-vertical" text-anchor="middle" dominant-baseline="middle" transform="rotate(-90 10 ${yTitleCenter.toFixed(1)})">Poziție în clasament</text>`;
+    let yAxis = `<text x="${yTitleX}" y="${yTitleCenter.toFixed(1)}" class="pc-axis-title pc-y-title-vertical" text-anchor="middle" dominant-baseline="middle" transform="rotate(-90 ${yTitleX} ${yTitleCenter.toFixed(1)})">Poziție în clasament</text>`;
     let grid = '';
     for (let r = 1; r <= maxRank; r += 1) {
       const yy = y(r);
-      yAxis += `<text x="${yAxisW - 6}" y="${yy.toFixed(1)}" class="pc-axis-text pc-y-rank-text" text-anchor="end" dominant-baseline="middle">${r}</text>`;
+      yAxis += `<text x="${rankX}" y="${yy.toFixed(1)}" class="pc-axis-text pc-y-rank-text" text-anchor="middle" dominant-baseline="middle">${r}</text>`;
       grid += `<line x1="0" y1="${yy.toFixed(1)}" x2="${plotW}" y2="${yy.toFixed(1)}" class="pc-grid"/>`;
     }
 
@@ -2485,7 +2487,7 @@ function parcursChartSvg(labels, players) {
     labels.forEach((label, i) => {
       const step = labels.length > 12 ? Math.ceil(labels.length / 10) : 1;
       if (i % step === 0 || i === labels.length - 1) {
-        xLabels += `<text x="${plotX(i).toFixed(1)}" y="${height - 18}" class="pc-x-text">${escapeHtml(label)}</text>`;
+        xLabels += `<text x="${plotX(i).toFixed(1)}" y="${height - 12}" class="pc-x-text">${escapeHtml(label)}</text>`;
       }
     });
 
