@@ -855,7 +855,7 @@ function confirmDeleteUserPopup(target) {
           <h3 id="deleteUserModalTitle">Confirmare ștergere user</h3>
           <p>Ești sigur că vrei să ștergi definitiv userul <strong>${name}</strong>?</p>
           ${email ? `<span class="delete-user-modal-email">${email}</span>` : ''}
-          <div class="delete-user-modal-warning">Această acțiune va șterge și toate pronosticurile lui și nu poate fi anulată.</div>
+          <div class="delete-user-modal-warning">Această acțiune va șterge definitiv userul, toate pronosticurile lui și toate datele asociate. Datele nu vor mai putea fi recuperate.</div>
         </div>
         <div class="delete-user-modal-actions">
           <button type="button" class="secondary delete-user-modal-cancel">Anulează</button>

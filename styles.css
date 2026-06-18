@@ -5539,3 +5539,34 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     width: 100%;
   }
 }
+
+
+/* CLASAMENT_DELETE_X_RIGHT_BIGGER_MESSAGE
+   Move delete X slightly to the right and increase it by about 30%. */
+#clasament .leaderboard-name-with-delete {
+  gap: 16px;
+}
+
+#clasament .leaderboard-delete-user,
+#clasament .leaderboard-top-user .leaderboard-delete-user,
+#clasament .leaderboard-row-card .leaderboard-delete-user {
+  width: 1.33em;
+  height: 1.33em;
+  min-width: 1.33em;
+  font-size: .94em;
+}
+
+@media (max-width: 640px) {
+  #clasament .leaderboard-name-with-delete {
+    gap: 14px;
+  }
+
+  #clasament .leaderboard-delete-user,
+  #clasament .leaderboard-top-user .leaderboard-delete-user,
+  #clasament .leaderboard-row-card .leaderboard-delete-user {
+    width: 1.4em;
+    height: 1.4em;
+    min-width: 1.4em;
+    font-size: .99em;
+  }
+}
