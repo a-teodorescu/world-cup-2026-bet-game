@@ -4574,3 +4574,97 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     padding-top: 0;
   }
 }
+
+
+/* MOBILE_EVOLUTIE_GRAPH_POLISH_V2
+   Refines mobile sizing and spacing after static Y-axis implementation. */
+@media (max-width: 760px) {
+  #predictii .prediction-score-menu {
+    width: 120px;
+    max-height: 324px;
+    padding: 9px;
+    gap: 7px;
+  }
+
+  #predictii .prediction-score-option {
+    min-height: 43px;
+    font-size: 1.3rem;
+    border-radius: 15px;
+  }
+
+  #parcurs-preview .parcurs-chart-card {
+    padding: 10px 8px 8px;
+  }
+
+  #parcurs-preview .parcurs-chart-split {
+    grid-template-columns: 104px minmax(0, 1fr);
+    align-items: start;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  #parcurs-preview .parcurs-y-axis-svg {
+    width: 104px;
+    min-width: 104px;
+    max-width: 104px;
+    height: auto;
+    display: block;
+    overflow: visible;
+  }
+
+  #parcurs-preview .parcurs-chart-scroll {
+    width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  #parcurs-preview .parcurs-chart-scroll::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+  }
+
+  #parcurs-preview .parcurs-chart-svg {
+    width: max(700px, 170vw);
+    min-width: 700px;
+    max-width: none;
+  }
+
+  #parcurs-preview .pc-axis-title {
+    font-size: 12px;
+    font-weight: 900;
+  }
+
+  #parcurs-preview .pc-axis-text,
+  #parcurs-preview .pc-x-text {
+    font-size: 12px;
+    font-weight: 900;
+  }
+
+  #parcurs-preview .parcurs-legend {
+    margin-top: 6px;
+  }
+
+  #parcurs-preview .parcurs-player-menu label {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 54px;
+    line-height: 1.1;
+  }
+
+  #parcurs-preview .parcurs-player-menu input[type="checkbox"] {
+    flex: 0 0 auto;
+    margin: 0;
+  }
+
+  #parcurs-preview .parcurs-player-menu label span {
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+    padding-left: 2px;
+  }
+}

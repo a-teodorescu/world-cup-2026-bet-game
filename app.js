@@ -309,6 +309,15 @@ function rebuildMobileSectionSelect(activeId) {
   sectionSelect.value = allowed.has(activeId) ? activeId : 'predictii';
 }
 
+
+function forceSectionTopScroll() {
+  const jump = () => window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  jump();
+  requestAnimationFrame(jump);
+  setTimeout(jump, 80);
+  setTimeout(jump, 240);
+}
+
 function updateNavigationState() {
   const id = (location.hash || '#predictii').slice(1);
   document.querySelectorAll('.nav a').forEach(a => a.classList.toggle('active', a.getAttribute('href') === `#${id}`));
@@ -341,7 +350,7 @@ async function showApp() {
   renderAll();
   if (hash === 'clasament') scrollToCurrentLeaderboardUser();
   else if (hash === 'predictii') scrollToCurrentPredictionMatch();
-  else if (hash === 'parcurs-preview') window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  else if (hash === 'parcurs-preview') forceSectionTopScroll();
   else window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
 }
 function showLanding() {
@@ -447,7 +456,7 @@ window.addEventListener('hashchange', async () => {
 
   if (id === 'clasament') scrollToCurrentLeaderboardUser();
   else if (id === 'predictii') scrollToCurrentPredictionMatch();
-  else if (id === 'parcurs-preview') window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  else if (id === 'parcurs-preview') forceSectionTopScroll();
 });
 
 document.querySelectorAll('.filter').forEach(btn => btn.addEventListener('click', () => {
@@ -2326,23 +2335,22 @@ function parcursRenderPlayerMenu(players) {
 }
 
 function parcursChartSvg(labels, players) {
-  const width = 920, height = 360;
-  const yAxisW = 86;
-  const ml = 10, mr = 24, mt = 44, mb = 50;
+  const width = 920, height = 390;
+  const yAxisW = 118;
+  const ml = 8, mr = 24, mt = 62, mb = 54;
   const plotW = width - yAxisW - mr;
   const plotH = height - mt - mb;
   const allRanks = players.flatMap(p => p.ranks).filter(v => v != null);
   const maxRank = Math.max(8, ...allRanks, 1);
   const safeCount = Math.max(1, labels.length - 1);
-  const x = (i) => yAxisW + (plotW * i / safeCount);
   const y = (rank) => mt + (plotH * (Number(rank) - 1) / Math.max(1, maxRank - 1));
   const plotX = (i) => plotW * i / safeCount;
 
-  let yAxis = `<text x="${ml}" y="18" class="pc-axis-title">Poziție în clasament</text>`;
+  let yAxis = `<text x="${ml}" y="22" class="pc-axis-title">Poziție în clasament</text>`;
   let grid = '';
   for (let r = 1; r <= maxRank; r += 1) {
     const yy = y(r);
-    yAxis += `<text x="${yAxisW - 28}" y="${(yy + 4).toFixed(1)}" class="pc-axis-text">${r}</text>`;
+    yAxis += `<text x="${yAxisW - 24}" y="${(yy + 4).toFixed(1)}" class="pc-axis-text">${r}</text>`;
     grid += `<line x1="0" y1="${yy.toFixed(1)}" x2="${plotW}" y2="${yy.toFixed(1)}" class="pc-grid"/>`;
   }
 
@@ -2350,7 +2358,7 @@ function parcursChartSvg(labels, players) {
   labels.forEach((label, i) => {
     const step = labels.length > 12 ? Math.ceil(labels.length / 10) : 1;
     if (i % step === 0 || i === labels.length - 1) {
-      xLabels += `<text x="${plotX(i).toFixed(1)}" y="${height - 18}" class="pc-x-text">${escapeHtml(label)}</text>`;
+      xLabels += `<text x="${plotX(i).toFixed(1)}" y="${height - 22}" class="pc-x-text">${escapeHtml(label)}</text>`;
     }
   });
 
@@ -2378,7 +2386,7 @@ function parcursChartSvg(labels, players) {
         ${grid}
         ${xLabels}
         ${series}
-        <text x="${plotW / 2}" y="${height - 2}" class="pc-axis-title">Etape / meciuri jucate</text>
+        <text x="${plotW / 2}" y="${height - 4}" class="pc-axis-title">Etape / meciuri jucate</text>
       </svg>
     </div>
   </div>`;
