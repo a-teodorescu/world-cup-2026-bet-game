@@ -5623,3 +5623,20 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     margin-left: 24px !important;
   }
 }
+
+
+/* CLASAMENT_DELETE_X_HALF_SPACE_FIX
+   Halve the forced space between username and delete X. */
+#clasament .leaderboard-name-with-delete .leaderboard-delete-user,
+#clasament .leaderboard-top-user .leaderboard-name-with-delete .leaderboard-delete-user,
+#clasament .leaderboard-row-card .leaderboard-name-with-delete .leaderboard-delete-user {
+  margin-left: 14px !important;
+}
+
+@media (max-width: 640px) {
+  #clasament .leaderboard-name-with-delete .leaderboard-delete-user,
+  #clasament .leaderboard-top-user .leaderboard-name-with-delete .leaderboard-delete-user,
+  #clasament .leaderboard-row-card .leaderboard-name-with-delete .leaderboard-delete-user {
+    margin-left: 12px !important;
+  }
+}
