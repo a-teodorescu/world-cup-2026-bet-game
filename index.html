@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260618-evolutie-rounds-tooltip" />
+  <link rel="stylesheet" href="styles.css?v=20260618-evolutie-remove-top-text" />
 </head>
 <body>
   <div class="bg-orb orb-one"></div>
@@ -297,13 +297,6 @@
     </section>
 
     <section id="parcurs-preview" class="section app-section admin-only-section" data-section="parcurs-preview">
-      <div class="section-head">
-        <div>
-          <h2>Evoluție</h2>
-          <p>Evoluția poziției în clasament pentru fiecare jucător. Momentan pagina este vizibilă doar pentru admin.</p>
-        </div>
-      </div>
-
       <div class="parcurs-preview-layout">
         <article class="parcurs-model-card">
           <div class="parcurs-model-head">
@@ -321,14 +314,10 @@
               </label>
 
               <label>Etapă
-                <select id="parcursStageSelect">
-                  <option value="match">După fiecare meci</option>
-                  <option value="day" selected>După fiecare zi de meciuri</option>
-                  <option value="round">După fiecare rundă</option>
-                  <option value="all">Tot turneul</option>
-                  <option value="first10">Primele 10 meciuri</option>
-                  <option value="last10">Ultimele 10 meciuri</option>
-                </select>
+                <div id="parcursStagePicker" class="parcurs-player-picker parcurs-stage-picker">
+                  <button id="parcursStageButton" class="parcurs-player-button parcurs-stage-button" type="button">După fiecare zi de meciuri</button>
+                  <div id="parcursStageMenu" class="parcurs-player-menu parcurs-stage-menu hidden"></div>
+                </div>
               </label>
             </div>
           </div>
@@ -381,7 +370,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js?v=20260612-popup-final-fix"></script>
   <script src="matches.js?v=20260612-popup-final-fix"></script>
-  <script src="app.js?v=20260618-evolutie-rounds-tooltip"></script>
+  <script src="app.js?v=20260618-evolutie-remove-top-text"></script>
   <script src="forgot-username.js?v=20260612-transition-fix"></script>
 </body>
 </html>

@@ -1921,6 +1921,16 @@ const PARCURS_COLORS = ['#32d583', '#ff6b6b', '#9b5cf6', '#fdb022', '#22d3ee', '
 let parcursSelectedPlayerKeys = new Set();
 let parcursSelectionInitialized = false;
 let parcursControlsBound = false;
+let parcursStageMode = 'day';
+
+const PARCURS_STAGE_OPTIONS = [
+  { value: 'match', label: 'După fiecare meci' },
+  { value: 'day', label: 'După fiecare zi de meciuri' },
+  { value: 'round', label: 'După fiecare rundă' },
+  { value: 'all', label: 'Tot turneul' },
+  { value: 'first10', label: 'Primele 10 meciuri' },
+  { value: 'last10', label: 'Ultimele 10 meciuri' }
+];
 
 const PARCURS_DEMO_PLAYERS = [
   { key: 'demo-alexandru', name: 'Alexandru', email: 'demo-alexandru', color: '#32d583', ranks: [3,2,2,3,2,2,1,1,1,1] },
@@ -2102,7 +2112,7 @@ function parcursBuildDemoDataset(mode) {
 }
 
 function parcursCurrentDataset() {
-  const mode = $('parcursStageSelect')?.value || 'day';
+  const mode = parcursStageMode || 'day';
   return parcursBuildRealDataset(mode) || parcursBuildDemoDataset(mode);
 }
 
@@ -2257,26 +2267,54 @@ function bindParcursPointTooltips() {
   });
 }
 
+function parcursStageLabel(value = parcursStageMode) {
+  return PARCURS_STAGE_OPTIONS.find(o => o.value === value)?.label || 'După fiecare zi de meciuri';
+}
+
+function parcursRenderStageMenu() {
+  const menu = $('parcursStageMenu');
+  const button = $('parcursStageButton');
+  if (!menu || !button) return;
+
+  button.textContent = parcursStageLabel();
+  menu.innerHTML = `<div class="parcurs-stage-options">
+    ${PARCURS_STAGE_OPTIONS.map(option => `<button type="button" class="${option.value === parcursStageMode ? 'active' : ''}" data-parcurs-stage="${escapeHtml(option.value)}">${escapeHtml(option.label)}</button>`).join('')}
+  </div>`;
+
+  menu.querySelectorAll('[data-parcurs-stage]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      parcursStageMode = btn.dataset.parcursStage || 'day';
+      parcursSelectedPlayerKeys.clear();
+      parcursSelectionInitialized = false;
+      menu.classList.add('hidden');
+      renderParcursPreview();
+    });
+  });
+}
+
 function bindParcursControls() {
   if (parcursControlsBound) return;
-  const stage = $('parcursStageSelect');
-  const button = $('parcursPlayerButton');
-  const picker = $('parcursPlayerPicker');
-  const menu = $('parcursPlayerMenu');
-  if (!stage || !button || !picker || !menu) return;
+  const playerButton = $('parcursPlayerButton');
+  const playerPicker = $('parcursPlayerPicker');
+  const playerMenu = $('parcursPlayerMenu');
+  const stageButton = $('parcursStageButton');
+  const stagePicker = $('parcursStagePicker');
+  const stageMenu = $('parcursStageMenu');
+  if (!playerButton || !playerPicker || !playerMenu || !stageButton || !stagePicker || !stageMenu) return;
 
-  stage.addEventListener('change', () => {
-    parcursSelectedPlayerKeys.clear();
-    parcursSelectionInitialized = false;
-    renderParcursPreview();
+  playerButton.addEventListener('click', () => {
+    playerMenu.classList.toggle('hidden');
+    stageMenu.classList.add('hidden');
   });
 
-  button.addEventListener('click', () => {
-    menu.classList.toggle('hidden');
+  stageButton.addEventListener('click', () => {
+    stageMenu.classList.toggle('hidden');
+    playerMenu.classList.add('hidden');
   });
 
   document.addEventListener('click', (event) => {
-    if (!picker.contains(event.target)) menu.classList.add('hidden');
+    if (!playerPicker.contains(event.target)) playerMenu.classList.add('hidden');
+    if (!stagePicker.contains(event.target)) stageMenu.classList.add('hidden');
   });
 
   parcursControlsBound = true;
@@ -2294,6 +2332,7 @@ function renderParcursPreview() {
   const selectedPlayers = dataset.players.filter(p => parcursSelectedPlayerKeys.has(p.key));
 
   parcursRenderPlayerMenu(dataset.players);
+  parcursRenderStageMenu();
 
   if (!selectedPlayers.length) {
     chart.innerHTML = `<div class="empty">Selectează cel puțin un jucător.</div>`;
@@ -2304,11 +2343,7 @@ function renderParcursPreview() {
   chart.innerHTML = parcursChartSvg(dataset.labels, selectedPlayers);
   bindParcursPointTooltips();
   legend.innerHTML = selectedPlayers.map(p => `<span class="parcurs-legend-item"><i style="background:${p.color}"></i>${escapeHtml(p.name)}</span>`).join('');
-  if (note) {
-    note.innerHTML = dataset.demo
-      ? `<span>Preview cu date demo. Când există rezultate și pronosticuri reale, graficul folosește automat datele din aplicație.</span>`
-      : `<span>Grafic generat din rezultatele și pronosticurile salvate în aplicație.</span>`;
-  }
+  if (note) note.innerHTML = '';
 }
 
 function renderAll() { renderPredictions(); renderResults(); renderGroups(); renderLuckyStrike(); renderLeaderboard(); renderAdminScores(); renderEmailPreview(); renderParcursPreview(); }

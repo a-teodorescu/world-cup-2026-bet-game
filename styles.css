@@ -4096,3 +4096,53 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     width: min(320px, calc(100vw - 32px));
   }
 }
+
+
+/* EVOLUTIE_STAGE_DROPDOWN_MATCH_PLAYER */
+#parcurs-preview .parcurs-stage-picker {
+  width: 100%;
+}
+
+#parcurs-preview .parcurs-stage-menu {
+  left: 0;
+  right: auto;
+  width: min(320px, calc(100vw - 40px));
+  max-height: min(360px, 58vh);
+}
+
+#parcurs-preview .parcurs-stage-options {
+  display: grid;
+  gap: 6px;
+}
+
+#parcurs-preview .parcurs-stage-options button {
+  width: 100%;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-weight: 900;
+  text-align: left;
+  cursor: pointer;
+}
+
+#parcurs-preview .parcurs-stage-options button:hover,
+#parcurs-preview .parcurs-stage-options button.active {
+  border-color: rgba(255,255,255,.14);
+  background: rgba(255,255,255,.08);
+}
+
+#parcurs-preview .parcurs-chart-note:empty {
+  display: none;
+}
+
+
+/* EVOLUTIE_REMOVE_TOP_SECTION_TEXT */
+#parcurs-preview {
+  padding-top: 0;
+}
+
+#parcurs-preview .parcurs-chart-note:empty {
+  display: none;
+}
