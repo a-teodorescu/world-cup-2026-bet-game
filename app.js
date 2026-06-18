@@ -341,6 +341,7 @@ async function showApp() {
   renderAll();
   if (hash === 'clasament') scrollToCurrentLeaderboardUser();
   else if (hash === 'predictii') scrollToCurrentPredictionMatch();
+  else if (hash === 'parcurs-preview') window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
   else window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
 }
 function showLanding() {
@@ -446,6 +447,7 @@ window.addEventListener('hashchange', async () => {
 
   if (id === 'clasament') scrollToCurrentLeaderboardUser();
   else if (id === 'predictii') scrollToCurrentPredictionMatch();
+  else if (id === 'parcurs-preview') window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
 });
 
 document.querySelectorAll('.filter').forEach(btn => btn.addEventListener('click', () => {
@@ -2325,35 +2327,41 @@ function parcursRenderPlayerMenu(players) {
 
 function parcursChartSvg(labels, players) {
   const width = 920, height = 360;
-  const ml = 62, mr = 24, mt = 30, mb = 50;
-  const plotW = width - ml - mr;
+  const yAxisW = 86;
+  const ml = 10, mr = 24, mt = 44, mb = 50;
+  const plotW = width - yAxisW - mr;
   const plotH = height - mt - mb;
   const allRanks = players.flatMap(p => p.ranks).filter(v => v != null);
   const maxRank = Math.max(8, ...allRanks, 1);
   const safeCount = Math.max(1, labels.length - 1);
-  const x = (i) => ml + (plotW * i / safeCount);
+  const x = (i) => yAxisW + (plotW * i / safeCount);
   const y = (rank) => mt + (plotH * (Number(rank) - 1) / Math.max(1, maxRank - 1));
+  const plotX = (i) => plotW * i / safeCount;
 
-  let grid = `<text x="${ml}" y="18" class="pc-axis-title">Poziție în clasament</text>`;
+  let yAxis = `<text x="${ml}" y="18" class="pc-axis-title">Poziție în clasament</text>`;
+  let grid = '';
   for (let r = 1; r <= maxRank; r += 1) {
     const yy = y(r);
-    grid += `<line x1="${ml}" y1="${yy.toFixed(1)}" x2="${width - mr}" y2="${yy.toFixed(1)}" class="pc-grid"/>`;
-    grid += `<text x="${ml - 22}" y="${(yy + 4).toFixed(1)}" class="pc-axis-text">${r}</text>`;
+    yAxis += `<text x="${yAxisW - 28}" y="${(yy + 4).toFixed(1)}" class="pc-axis-text">${r}</text>`;
+    grid += `<line x1="0" y1="${yy.toFixed(1)}" x2="${plotW}" y2="${yy.toFixed(1)}" class="pc-grid"/>`;
   }
 
+  let xLabels = '';
   labels.forEach((label, i) => {
     const step = labels.length > 12 ? Math.ceil(labels.length / 10) : 1;
     if (i % step === 0 || i === labels.length - 1) {
-      grid += `<text x="${x(i).toFixed(1)}" y="${height - 18}" class="pc-x-text">${escapeHtml(label)}</text>`;
+      xLabels += `<text x="${plotX(i).toFixed(1)}" y="${height - 18}" class="pc-x-text">${escapeHtml(label)}</text>`;
     }
   });
 
   const series = players.map(p => {
-    const pts = p.ranks.map((rank, i) => rank == null ? null : [x(i), y(rank)]).filter(Boolean);
+    const pts = p.ranks.map((rank, i) => rank == null ? null : `${plotX(i).toFixed(1)},${y(rank).toFixed(1)}`).filter(Boolean);
     if (!pts.length) return '';
-    const line = pts.map(([px, py]) => `${px.toFixed(1)},${py.toFixed(1)}`).join(' ');
-    const dots = pts.map(([px, py], pointIndex) => {
-      const rank = p.ranks[pointIndex];
+    const line = pts.join(' ');
+    const dots = p.ranks.map((rank, pointIndex) => {
+      if (rank == null) return '';
+      const px = plotX(pointIndex);
+      const py = y(rank);
       const label = labels[pointIndex] || `Etapa ${pointIndex + 1}`;
       const text = `${p.name} · ${label} · poziția ${rank}`;
       return `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="5" class="pc-dot parcurs-point" tabindex="0" data-player="${escapeHtml(p.name)}" data-label="${escapeHtml(label)}" data-rank="${escapeHtml(rank)}" style="fill:${p.color}"><title>${escapeHtml(text)}</title></circle>`;
@@ -2361,11 +2369,19 @@ function parcursChartSvg(labels, players) {
     return `<polyline points="${line}" class="pc-line" style="stroke:${p.color}"/>${dots}`;
   }).join('');
 
-  return `<div class="parcurs-chart-scroll"><svg viewBox="0 0 ${width} ${height}" class="parcurs-chart-svg" role="img" aria-label="Grafic evoluție clasament">
-    ${grid}
-    ${series}
-    <text x="${width / 2}" y="${height - 2}" class="pc-axis-title">Etape / meciuri jucate</text>
-  </svg></div>`;
+  return `<div class="parcurs-chart-split">
+    <svg viewBox="0 0 ${yAxisW} ${height}" class="parcurs-y-axis-svg" role="img" aria-hidden="true">
+      ${yAxis}
+    </svg>
+    <div class="parcurs-chart-scroll">
+      <svg viewBox="0 0 ${plotW} ${height}" class="parcurs-chart-svg" role="img" aria-label="Grafic evoluție clasament">
+        ${grid}
+        ${xLabels}
+        ${series}
+        <text x="${plotW / 2}" y="${height - 2}" class="pc-axis-title">Etape / meciuri jucate</text>
+      </svg>
+    </div>
+  </div>`;
 }
 
 function hideParcursTooltip() {
