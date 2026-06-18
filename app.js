@@ -2461,9 +2461,10 @@ function parcursChartSvg(labels, players) {
   }
 
   function mobileChart() {
+    const isPortraitMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 760px) and (orientation: portrait)').matches;
     const height = 360;
-    const yAxisW = 56;
-    const plotW = 860;
+    const yAxisW = isPortraitMobile ? 46 : 56;
+    const plotW = isPortraitMobile ? 760 : 860;
     const mt = 24, mb = 40;
     const plotH = height - mt - mb;
     const allRanks = players.flatMap(p => p.ranks).filter(v => v != null);
@@ -2472,8 +2473,8 @@ function parcursChartSvg(labels, players) {
     const y = (rank) => mt + (plotH * (Number(rank) - 1) / Math.max(1, maxRank - 1));
     const plotX = (i) => plotW * i / safeCount;
     const yTitleCenter = mt + plotH / 2;
-    const yTitleX = 10;
-    const rankX = 34;
+    const yTitleX = isPortraitMobile ? 5.5 : 10;
+    const rankX = isPortraitMobile ? 29.5 : 34;
 
     let yAxis = `<text x="${yTitleX}" y="${yTitleCenter.toFixed(1)}" class="pc-axis-title pc-y-title-vertical" text-anchor="middle" dominant-baseline="middle" transform="rotate(-90 ${yTitleX} ${yTitleCenter.toFixed(1)})">Poziție în clasament</text>`;
     let grid = '';

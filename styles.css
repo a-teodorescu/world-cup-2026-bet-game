@@ -5879,7 +5879,7 @@ section[data-section="clasament"] .leaderboard-intro-icon {
 
   #parcurs-preview .parcurs-chart-split {
     display: grid;
-    grid-template-columns: 56px minmax(0, 1fr);
+    grid-template-columns: 46px minmax(0, 1fr);
     gap: 0;
     align-items: start;
     width: 100%;
@@ -5889,15 +5889,15 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   }
 
   #parcurs-preview .parcurs-y-axis-svg {
-    width: 56px;
-    min-width: 56px;
-    max-width: 56px;
+    width: 46px;
+    min-width: 46px;
+    max-width: 46px;
     height: 360px !important;
     min-height: 360px;
     max-height: 360px;
     display: block;
     overflow: visible;
-    flex: 0 0 56px;
+    flex: 0 0 46px;
   }
 
   #parcurs-preview .parcurs-chart-scroll {
@@ -5922,8 +5922,8 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   }
 
   #parcurs-preview .parcurs-chart-svg-mobile {
-    width: max(560px, 138vw);
-    min-width: 560px;
+    width: 760px;
+    min-width: 760px;
     max-width: none;
     height: 360px !important;
     min-height: 360px;
@@ -5944,7 +5944,7 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   }
 
   #parcurs-preview .parcurs-x-axis-title {
-    margin-top: 10px;
+    margin-top: 12px;
     text-align: center;
     color: var(--muted);
     font-size: 12px;
