@@ -4192,3 +4192,36 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   margin-top: 18px;
   padding-top: 4px;
 }
+
+
+/* EVOLUTIE_KEEP_PLAYER_SELECTION
+   Changing the Etapă filter recalculates the chart without resetting selected players. */
+
+
+/* EVOLUTIE_PREVENT_CHART_SHIFT
+   Prevents horizontal layout shift when selecting/deselecting many users changes page height
+   and the browser scrollbar appears/disappears. */
+html {
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+}
+
+body {
+  scrollbar-gutter: stable;
+}
+
+#parcurs-preview .parcurs-model-card,
+#parcurs-preview .parcurs-chart-card,
+#parcurs-preview .parcurs-chart-svg {
+  box-sizing: border-box;
+}
+
+#parcurs-preview .parcurs-chart-card {
+  width: 100%;
+  min-height: 400px;
+}
+
+#parcurs-preview .parcurs-chart-svg {
+  width: 100%;
+  max-width: 100%;
+}

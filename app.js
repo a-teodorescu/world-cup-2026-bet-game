@@ -2335,8 +2335,6 @@ function parcursRenderStageMenu() {
   menu.querySelectorAll('[data-parcurs-stage]').forEach(btn => {
     btn.addEventListener('click', () => {
       parcursStageMode = btn.dataset.parcursStage || 'day';
-      parcursSelectedPlayerKeys.clear();
-      parcursSelectionInitialized = false;
       menu.classList.add('hidden');
       renderParcursPreview();
     });
