@@ -1918,14 +1918,25 @@ if (emailIncludeAllResultsInput) emailIncludeAllResultsInput.addEventListener('c
 
 
 const PARCURS_COLORS = [
-  '#32d583', '#ff6b6b', '#9b5cf6', '#fdb022', '#22d3ee',
-  '#ec4899', '#a16207', '#60a5fa', '#34d399', '#f472b6',
-  '#818cf8', '#fb7185', '#14b8a6', '#f97316', '#84cc16',
-  '#e879f9', '#38bdf8', '#f43f5e', '#a3e635', '#c084fc',
-  '#2dd4bf', '#fb923c', '#4ade80', '#facc15', '#22c55e',
-  '#06b6d4', '#8b5cf6', '#d946ef', '#eab308', '#ef4444',
-  '#10b981', '#3b82f6', '#f59e0b', '#dc2626', '#7c3aed',
-  '#0891b2', '#65a30d', '#be185d', '#0ea5e9', '#ea580c'
+  '#ef4444', '#3b82f6', '#22c55e', '#f59e0b', '#a855f7',
+  '#06b6d4', '#ec4899', '#84cc16', '#f97316', '#14b8a6',
+  '#6366f1', '#eab308', '#f43f5e', '#0ea5e9', '#65a30d',
+  '#d946ef', '#fb923c', '#2dd4bf', '#8b5cf6', '#dc2626',
+  '#38bdf8', '#4ade80', '#c084fc', '#facc15', '#10b981',
+  '#60a5fa', '#be185d', '#0891b2', '#7c3aed', '#ea580c',
+  '#a3e635', '#fb7185', '#818cf8', '#34d399', '#f472b6',
+  '#22d3ee', '#32d583', '#ff6b6b', '#9b5cf6', '#fdb022'
+];
+
+const PARCURS_CONTRAST_BASE_COLORS = [
+  '#ef4444', '#3b82f6', '#22c55e', '#f59e0b', '#a855f7',
+  '#06b6d4', '#ec4899', '#84cc16', '#f97316', '#14b8a6',
+  '#6366f1', '#eab308', '#f43f5e', '#0ea5e9', '#65a30d',
+  '#d946ef', '#fb923c', '#2dd4bf', '#8b5cf6', '#dc2626',
+  '#38bdf8', '#4ade80', '#c084fc', '#facc15', '#10b981',
+  '#60a5fa', '#be185d', '#0891b2', '#7c3aed', '#ea580c',
+  '#a3e635', '#fb7185', '#818cf8', '#34d399', '#f472b6',
+  '#22d3ee', '#32d583', '#ff6b6b', '#9b5cf6', '#fdb022'
 ];
 let parcursSelectedPlayerKeys = new Set();
 let parcursSelectionInitialized = false;
@@ -1953,6 +1964,37 @@ const PARCURS_DEMO_PLAYERS = [
 ];
 
 const PARCURS_DEMO_LABELS = ['M1','M4','M8','M12','M18','M24','M32','M40','M52','M64'];
+
+function parcursHighContrastPalette(count) {
+  const total = Math.max(0, Number(count) || 0);
+  if (total <= 0) return [];
+  if (total === 1) return ['#3b82f6'];
+  if (total === 2) return ['#ef4444', '#3b82f6'];
+  if (total === 3) return ['#ef4444', '#3b82f6', '#22c55e'];
+  if (total === 4) return ['#ef4444', '#3b82f6', '#22c55e', '#f59e0b'];
+  if (total === 5) return ['#ef4444', '#3b82f6', '#22c55e', '#f59e0b', '#a855f7'];
+
+  if (total <= PARCURS_CONTRAST_BASE_COLORS.length) {
+    return PARCURS_CONTRAST_BASE_COLORS.slice(0, total);
+  }
+
+  const colors = PARCURS_CONTRAST_BASE_COLORS.slice();
+  for (let i = colors.length; i < total; i += 1) {
+    const hue = Math.round((i * 137.508) % 360);
+    const lightness = i % 2 === 0 ? 56 : 66;
+    colors.push(`hsl(${hue} 88% ${lightness}%)`);
+  }
+  return colors;
+}
+
+function parcursApplyDynamicContrastColors(players) {
+  const palette = parcursHighContrastPalette(players.length);
+  return players.map((player, index) => ({
+    ...player,
+    color: palette[index % palette.length]
+  }));
+}
+
 
 function parcursPlayerKey(row) {
   return normalize(row?.email || row?.name || '');
@@ -2338,7 +2380,7 @@ function renderParcursPreview() {
 
   const dataset = parcursCurrentDataset();
   parcursEnsureSelection(dataset.players);
-  const selectedPlayers = dataset.players.filter(p => parcursSelectedPlayerKeys.has(p.key));
+  const selectedPlayers = parcursApplyDynamicContrastColors(dataset.players.filter(p => parcursSelectedPlayerKeys.has(p.key)));
 
   parcursRenderPlayerMenu(dataset.players);
   parcursRenderStageMenu();

@@ -4171,3 +4171,24 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     padding-top: 22px !important;
   }
 }
+
+
+/* EVOLUTIE_DYNAMIC_CONTRAST_COLORS
+   User colors in the chart are reassigned dynamically for the current selection,
+   so smaller selections get stronger contrast instead of keeping fixed per-user colors. */
+#parcurs-preview .parcurs-legend-item i {
+  transition: background-color .18s ease;
+}
+
+#parcurs-preview .pc-line,
+#parcurs-preview .pc-dot {
+  transition: stroke .18s ease, fill .18s ease;
+}
+
+
+/* EVOLUTIE_LEGEND_SPACING
+   Adds breathing room between the chart axis and the selected players legend. */
+#parcurs-preview .parcurs-legend {
+  margin-top: 18px;
+  padding-top: 4px;
+}
