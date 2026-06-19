@@ -2617,20 +2617,28 @@ function showParcursTooltip(point) {
   const offsetParent = tip.offsetParent || document.body;
   const parentRect = offsetParent.getBoundingClientRect();
   const pointCenterX = pointRect.left + (pointRect.width / 2);
+  const isMobileTooltip = window.matchMedia('(hover: none) and (pointer: coarse), (max-width: 932px)').matches;
 
   const cardLeftLimit = (cardRect.left - parentRect.left) + 8;
   const cardRightLimit = (cardRect.right - parentRect.left) - tipRect.width - 8;
   const cardTopLimit = (cardRect.top - parentRect.top) + 8;
   const cardBottomLimit = (cardRect.bottom - parentRect.top) - tipRect.height - 8;
+  const parentTopLimit = 8;
+  const parentBottomLimit = (parentRect.height || window.innerHeight) - tipRect.height - 8;
 
   let left = pointCenterX - parentRect.left - (tipRect.width / 2);
   left = Math.max(cardLeftLimit, Math.min(left, Math.max(cardLeftLimit, cardRightLimit)));
 
   let top = pointRect.top - parentRect.top - tipRect.height - 8;
-  if (top < cardTopLimit) {
-    top = pointRect.bottom - parentRect.top + 8;
+
+  if (isMobileTooltip) {
+    top = Math.max(parentTopLimit, Math.min(top, Math.max(parentTopLimit, parentBottomLimit)));
+  } else {
+    if (top < cardTopLimit) {
+      top = pointRect.bottom - parentRect.top + 8;
+    }
+    top = Math.max(cardTopLimit, Math.min(top, Math.max(cardTopLimit, cardBottomLimit)));
   }
-  top = Math.max(cardTopLimit, Math.min(top, Math.max(cardTopLimit, cardBottomLimit)));
 
   tip.style.left = `${left}px`;
   tip.style.top = `${top}px`;
