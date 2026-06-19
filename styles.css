@@ -4087,12 +4087,28 @@ section[data-section="clasament"] .leaderboard-intro-icon {
 
 #parcurs-preview .parcurs-point {
   cursor: pointer;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform .16s ease, filter .16s ease, stroke-width .16s ease;
 }
 
-#parcurs-preview .parcurs-point:hover,
-#parcurs-preview .parcurs-point:focus {
+#parcurs-preview .parcurs-point.is-active {
   outline: none;
-  filter: drop-shadow(0 0 8px rgba(255,255,255,.55));
+  transform: scale(1.34);
+  filter: drop-shadow(0 0 10px rgba(255,255,255,.78));
+  stroke: rgba(255,255,255,.98);
+  stroke-width: 2.6;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  #parcurs-preview .parcurs-point:hover,
+  #parcurs-preview .parcurs-point:focus {
+    outline: none;
+    transform: scale(1.28);
+    filter: drop-shadow(0 0 9px rgba(255,255,255,.72));
+    stroke: rgba(255,255,255,.96);
+    stroke-width: 2.4;
+  }
 }
 
 @media (max-width: 760px) {

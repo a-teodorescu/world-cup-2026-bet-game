@@ -2598,15 +2598,25 @@ function parcursChartSvg(labels, players) {
   return `${desktopChart()}${mobileChart()}`;
 }
 
+function clearActiveParcursPoints() {
+  const card = $('parcursChartCard');
+  if (!card) return;
+  card.querySelectorAll('.parcurs-point.is-active').forEach(point => point.classList.remove('is-active'));
+}
+
 function hideParcursTooltip() {
   const tip = $('parcursTooltip');
   if (tip) tip.classList.add('hidden');
+  clearActiveParcursPoints();
 }
 
 function showParcursTooltip(point) {
   const tip = $('parcursTooltip');
   const card = $('parcursChartCard');
   if (!tip || !card || !point) return;
+
+  clearActiveParcursPoints();
+  point.classList.add('is-active');
 
   tip.innerHTML = `<strong>${escapeHtml(point.dataset.player || '')}</strong><span>${escapeHtml(point.dataset.label || '')}</span><span>Poziția: #${escapeHtml(point.dataset.rank || '')}</span>`;
   tip.classList.remove('hidden');
