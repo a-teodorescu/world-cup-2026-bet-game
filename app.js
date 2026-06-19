@@ -2611,20 +2611,26 @@ function showParcursTooltip(point) {
   tip.innerHTML = `<strong>${escapeHtml(point.dataset.player || '')}</strong><span>${escapeHtml(point.dataset.label || '')}</span><span>Poziția: #${escapeHtml(point.dataset.rank || '')}</span>`;
   tip.classList.remove('hidden');
 
-  const cardRect = card.getBoundingClientRect();
   const pointRect = point.getBoundingClientRect();
+  const cardRect = card.getBoundingClientRect();
   const tipRect = tip.getBoundingClientRect();
+  const offsetParent = tip.offsetParent || document.body;
+  const parentRect = offsetParent.getBoundingClientRect();
   const pointCenterX = pointRect.left + (pointRect.width / 2);
 
-  let left = pointCenterX - cardRect.left - (tipRect.width / 2);
-  let top = pointRect.top - cardRect.top - tipRect.height - 10;
+  const cardLeftLimit = (cardRect.left - parentRect.left) + 8;
+  const cardRightLimit = (cardRect.right - parentRect.left) - tipRect.width - 8;
+  const cardTopLimit = (cardRect.top - parentRect.top) + 8;
+  const cardBottomLimit = (cardRect.bottom - parentRect.top) - tipRect.height - 8;
 
-  const maxLeft = Math.max(8, cardRect.width - tipRect.width - 8);
-  left = Math.max(8, Math.min(left, maxLeft));
-  if (top < 8) {
-    top = pointRect.bottom - cardRect.top + 10;
+  let left = pointCenterX - parentRect.left - (tipRect.width / 2);
+  left = Math.max(cardLeftLimit, Math.min(left, Math.max(cardLeftLimit, cardRightLimit)));
+
+  let top = pointRect.top - parentRect.top - tipRect.height - 8;
+  if (top < cardTopLimit) {
+    top = pointRect.bottom - parentRect.top + 8;
   }
-  top = Math.max(8, top);
+  top = Math.max(cardTopLimit, Math.min(top, Math.max(cardTopLimit, cardBottomLimit)));
 
   tip.style.left = `${left}px`;
   tip.style.top = `${top}px`;

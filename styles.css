@@ -3976,6 +3976,7 @@ section[data-section="clasament"] .leaderboard-intro-icon {
 
 /* EVOLUTIE_PLAYER_MENU_AND_TOOLTIP_FIX */
 #parcurs-preview .parcurs-model-card {
+  position: relative;
   overflow: visible;
 }
 
