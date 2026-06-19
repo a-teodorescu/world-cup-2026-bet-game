@@ -2110,6 +2110,8 @@ let parcursSelectedPlayerKeys = new Set();
 let parcursSelectionInitialized = false;
 let parcursControlsBound = false;
 let parcursStageMode = 'day';
+let parcursActivePoint = null;
+let parcursTooltipOutsideBound = false;
 
 const PARCURS_STAGE_OPTIONS = [
   { value: 'match', label: 'După fiecare meci' },
@@ -2598,10 +2600,15 @@ function parcursChartSvg(labels, players) {
   return `${desktopChart()}${mobileChart()}`;
 }
 
+function parcursIsMobileTooltipMode() {
+  return typeof window !== 'undefined' && window.matchMedia('(hover: none) and (pointer: coarse), (max-width: 932px)').matches;
+}
+
 function clearActiveParcursPoints() {
   const card = $('parcursChartCard');
   if (!card) return;
   card.querySelectorAll('.parcurs-point.is-active').forEach(point => point.classList.remove('is-active'));
+  parcursActivePoint = null;
 }
 
 function hideParcursTooltip() {
@@ -2616,6 +2623,7 @@ function showParcursTooltip(point) {
   if (!tip || !card || !point) return;
 
   clearActiveParcursPoints();
+  parcursActivePoint = point;
   point.classList.add('is-active');
 
   tip.innerHTML = `<strong>${escapeHtml(point.dataset.player || '')}</strong><span>${escapeHtml(point.dataset.label || '')}</span><span>Poziția: #${escapeHtml(point.dataset.rank || '')}</span>`;
@@ -2627,28 +2635,18 @@ function showParcursTooltip(point) {
   const offsetParent = tip.offsetParent || document.body;
   const parentRect = offsetParent.getBoundingClientRect();
   const pointCenterX = pointRect.left + (pointRect.width / 2);
-  const isMobileTooltip = window.matchMedia('(hover: none) and (pointer: coarse), (max-width: 932px)').matches;
 
   const cardLeftLimit = (cardRect.left - parentRect.left) + 8;
   const cardRightLimit = (cardRect.right - parentRect.left) - tipRect.width - 8;
-  const cardTopLimit = (cardRect.top - parentRect.top) + 8;
-  const cardBottomLimit = (cardRect.bottom - parentRect.top) - tipRect.height - 8;
   const parentTopLimit = 8;
   const parentBottomLimit = (parentRect.height || window.innerHeight) - tipRect.height - 8;
 
   let left = pointCenterX - parentRect.left - (tipRect.width / 2);
   left = Math.max(cardLeftLimit, Math.min(left, Math.max(cardLeftLimit, cardRightLimit)));
 
+  // Always keep the tooltip above the selected/hovered point on mobile and desktop.
   let top = pointRect.top - parentRect.top - tipRect.height - 8;
-
-  if (isMobileTooltip) {
-    top = Math.max(parentTopLimit, Math.min(top, Math.max(parentTopLimit, parentBottomLimit)));
-  } else {
-    if (top < cardTopLimit) {
-      top = pointRect.bottom - parentRect.top + 8;
-    }
-    top = Math.max(cardTopLimit, Math.min(top, Math.max(cardTopLimit, cardBottomLimit)));
-  }
+  top = Math.max(parentTopLimit, Math.min(top, Math.max(parentTopLimit, parentBottomLimit)));
 
   tip.style.left = `${left}px`;
   tip.style.top = `${top}px`;
@@ -2657,17 +2655,48 @@ function showParcursTooltip(point) {
 function bindParcursPointTooltips() {
   const card = $('parcursChartCard');
   if (!card) return;
+
   card.querySelectorAll('.parcurs-point').forEach(point => {
     point.addEventListener('mouseenter', () => showParcursTooltip(point));
-    point.addEventListener('mousemove', () => showParcursTooltip(point));
-    point.addEventListener('mouseleave', hideParcursTooltip);
+    point.addEventListener('mousemove', () => {
+      if (!parcursIsMobileTooltipMode()) showParcursTooltip(point);
+    });
+    point.addEventListener('mouseleave', () => {
+      if (!parcursIsMobileTooltipMode()) hideParcursTooltip();
+    });
     point.addEventListener('focus', () => showParcursTooltip(point));
-    point.addEventListener('blur', hideParcursTooltip);
+    point.addEventListener('blur', () => {
+      if (!parcursIsMobileTooltipMode()) hideParcursTooltip();
+    });
     point.addEventListener('click', (event) => {
       event.stopPropagation();
       showParcursTooltip(point);
     });
   });
+
+  card.querySelectorAll('.parcurs-chart-scroll').forEach(scrollArea => {
+    let tooltipScrollFrame = null;
+    scrollArea.addEventListener('scroll', () => {
+      const tip = $('parcursTooltip');
+      if (!parcursActivePoint || !card.contains(parcursActivePoint) || !tip || tip.classList.contains('hidden')) return;
+      if (tooltipScrollFrame) return;
+      tooltipScrollFrame = requestAnimationFrame(() => {
+        tooltipScrollFrame = null;
+        if (parcursActivePoint && card.contains(parcursActivePoint)) showParcursTooltip(parcursActivePoint);
+      });
+    }, { passive: true });
+  });
+
+  if (!parcursTooltipOutsideBound) {
+    document.addEventListener('click', (event) => {
+      const chart = $('parcursChartCard');
+      const tip = $('parcursTooltip');
+      if (!tip || tip.classList.contains('hidden')) return;
+      if (chart && chart.contains(event.target)) return;
+      hideParcursTooltip();
+    });
+    parcursTooltipOutsideBound = true;
+  }
 }
 
 function parcursStageLabel(value = parcursStageMode) {
