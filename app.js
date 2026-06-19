@@ -2462,13 +2462,17 @@ function parcursChartSvg(labels, players) {
 
   function mobileChart() {
     const isPortraitMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 760px) and (orientation: portrait)').matches;
-    const isLandscapeMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 932px) and (orientation: landscape)').matches && !window.matchMedia('(max-width: 760px) and (orientation: portrait)').matches;
+    const isMobileLandscape = typeof window !== 'undefined' && (
+      window.matchMedia('(orientation: landscape) and (hover: none) and (pointer: coarse)').matches ||
+      window.matchMedia('(orientation: landscape) and (max-height: 520px)').matches ||
+      window.matchMedia('(orientation: landscape) and (max-width: 932px)').matches
+    );
     const height = 360;
 
-    if (isPortraitMobile) {
+    if (isPortraitMobile || isMobileLandscape) {
       const titleW = 16;
       const rankW = 24;
-      const chartW = 780;
+      const chartW = isMobileLandscape ? 920 : 780;
       const plotMl = 28;
       const plotMr = 12;
       const mt = 24, mb = 40;
@@ -2522,74 +2526,6 @@ function parcursChartSvg(labels, players) {
           </svg>
           <div class="parcurs-chart-scroll parcurs-chart-scroll-portrait">
             <svg viewBox="0 0 ${chartW} ${height}" class="parcurs-chart-svg parcurs-chart-svg-mobile parcurs-chart-svg-mobile-portrait" role="img" aria-label="Grafic evoluție clasament" preserveAspectRatio="none">
-              ${grid}
-              ${xLabels}
-              ${series}
-            </svg>
-          </div>
-        </div>
-        <div class="parcurs-x-axis-title">Etape / meciuri jucate</div>
-      </div>`;
-    }
-
-    if (isLandscapeMobile) {
-      const titleW = 16;
-      const rankW = 24;
-      const chartW = 920;
-      const plotMl = 32;
-      const plotMr = 14;
-      const h = 250;
-      const mt = 18, mb = 36;
-      const plotH = h - mt - mb;
-      const allRanks = players.flatMap(p => p.ranks).filter(v => v != null);
-      const maxRank = Math.max(8, ...allRanks, 1);
-      const safeCount = Math.max(1, labels.length - 1);
-      const y = (rank) => mt + (plotH * (Number(rank) - 1) / Math.max(1, maxRank - 1));
-      const plotX = (i) => plotMl + ((chartW - plotMl - plotMr) * i / safeCount);
-      const yTitleCenter = mt + plotH / 2;
-
-      let yAxis = `<text x="8" y="${yTitleCenter.toFixed(1)}" class="pc-axis-title pc-y-title-vertical" text-anchor="middle" dominant-baseline="middle" transform="rotate(-90 8 ${yTitleCenter.toFixed(1)})">Poziție în clasament</text>`;
-      let rankAxis = '';
-      let grid = '';
-      for (let r = 1; r <= maxRank; r += 1) {
-        const yy = y(r);
-        rankAxis += `<text x="12" y="${yy.toFixed(1)}" class="pc-axis-text pc-y-rank-text" text-anchor="middle" dominant-baseline="middle">${r}</text>`;
-        grid += `<line x1="${plotMl}" y1="${yy.toFixed(1)}" x2="${(chartW - plotMr).toFixed(1)}" y2="${yy.toFixed(1)}" class="pc-grid"/>`;
-      }
-
-      let xLabels = '';
-      labels.forEach((label, i) => {
-        const step = labels.length > 14 ? Math.ceil(labels.length / 10) : 1;
-        if (i % step === 0 || i === labels.length - 1) {
-          xLabels += `<text x="${plotX(i).toFixed(1)}" y="${h - 12}" class="pc-x-text">${escapeHtml(label)}</text>`;
-        }
-      });
-
-      const series = players.map(p => {
-        const pts = p.ranks.map((rank, i) => rank == null ? null : `${plotX(i).toFixed(1)},${y(rank).toFixed(1)}`).filter(Boolean);
-        if (!pts.length) return '';
-        const line = pts.join(' ');
-        const dots = p.ranks.map((rank, pointIndex) => {
-          if (rank == null) return '';
-          const px = plotX(pointIndex);
-          const py = y(rank);
-          const label = labels[pointIndex] || `Etapa ${pointIndex + 1}`;
-          const text = `${p.name} · ${label} · poziția ${rank}`;
-          return `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="5" class="pc-dot parcurs-point" tabindex="0" data-player="${escapeHtml(p.name)}" data-label="${escapeHtml(label)}" data-rank="${escapeHtml(rank)}" style="fill:${p.color}"><title>${escapeHtml(text)}</title></circle>`;
-        }).join('');
-        return `<polyline points="${line}" class="pc-line" style="stroke:${p.color}"/>${dots}`;
-      }).join('');
-
-      return `<div class="parcurs-chart-mobile-shell parcurs-chart-mobile-shell-landscape">
-        <div class="parcurs-chart-split parcurs-chart-split-landscape">
-          <svg viewBox="0 0 ${titleW} ${h}" class="parcurs-y-axis-svg parcurs-y-axis-svg-landscape" role="img" aria-hidden="true" preserveAspectRatio="none">
-            ${yAxis}
-          </svg>
-          <svg viewBox="0 0 ${rankW} ${h}" class="parcurs-y-ranks-svg parcurs-y-ranks-svg-landscape" role="img" aria-hidden="true" preserveAspectRatio="none">
-            ${rankAxis}
-          </svg>
-          <div class="parcurs-chart-scroll parcurs-chart-scroll-landscape">
-            <svg viewBox="0 0 ${chartW} ${h}" class="parcurs-chart-svg parcurs-chart-svg-mobile parcurs-chart-svg-mobile-landscape" role="img" aria-label="Grafic evoluție clasament" preserveAspectRatio="none">
               ${grid}
               ${xLabels}
               ${series}
