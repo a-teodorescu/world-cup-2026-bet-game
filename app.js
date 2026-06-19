@@ -2474,7 +2474,7 @@ function parcursChartSvg(labels, players) {
       const rankW = 24;
       const chartW = isMobileLandscape ? 720 : 780;
       const plotMl = 28;
-      const plotMr = 12;
+      const plotMr = 28;
       const mt = 24, mb = 40;
       const plotH = height - mt - mb;
       const allRanks = players.flatMap(p => p.ranks).filter(v => v != null);
@@ -2603,7 +2603,7 @@ function hideParcursTooltip() {
   if (tip) tip.classList.add('hidden');
 }
 
-function showParcursTooltip(point, event) {
+function showParcursTooltip(point) {
   const tip = $('parcursTooltip');
   const card = $('parcursChartCard');
   if (!tip || !card || !point) return;
@@ -2612,14 +2612,18 @@ function showParcursTooltip(point, event) {
   tip.classList.remove('hidden');
 
   const cardRect = card.getBoundingClientRect();
-  const eventX = event?.clientX ?? (point.getBoundingClientRect().left + point.getBoundingClientRect().width / 2);
-  const eventY = event?.clientY ?? point.getBoundingClientRect().top;
+  const pointRect = point.getBoundingClientRect();
+  const tipRect = tip.getBoundingClientRect();
+  const pointCenterX = pointRect.left + (pointRect.width / 2);
 
-  let left = eventX - cardRect.left + 12;
-  let top = eventY - cardRect.top - 8;
+  let left = pointCenterX - cardRect.left - (tipRect.width / 2);
+  let top = pointRect.top - cardRect.top - tipRect.height - 10;
 
-  const maxLeft = Math.max(8, cardRect.width - 210);
+  const maxLeft = Math.max(8, cardRect.width - tipRect.width - 8);
   left = Math.max(8, Math.min(left, maxLeft));
+  if (top < 8) {
+    top = pointRect.bottom - cardRect.top + 10;
+  }
   top = Math.max(8, top);
 
   tip.style.left = `${left}px`;
@@ -2630,14 +2634,14 @@ function bindParcursPointTooltips() {
   const card = $('parcursChartCard');
   if (!card) return;
   card.querySelectorAll('.parcurs-point').forEach(point => {
-    point.addEventListener('mouseenter', (event) => showParcursTooltip(point, event));
-    point.addEventListener('mousemove', (event) => showParcursTooltip(point, event));
+    point.addEventListener('mouseenter', () => showParcursTooltip(point));
+    point.addEventListener('mousemove', () => showParcursTooltip(point));
     point.addEventListener('mouseleave', hideParcursTooltip);
-    point.addEventListener('focus', (event) => showParcursTooltip(point, event));
+    point.addEventListener('focus', () => showParcursTooltip(point));
     point.addEventListener('blur', hideParcursTooltip);
     point.addEventListener('click', (event) => {
       event.stopPropagation();
-      showParcursTooltip(point, event);
+      showParcursTooltip(point);
     });
   });
 }

@@ -4065,6 +4065,7 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   box-shadow: 0 16px 38px rgba(0,0,0,.38);
   pointer-events: none;
   font-size: .82rem;
+  text-align: center;
 }
 
 #parcurs-preview .parcurs-tooltip strong,
@@ -4075,10 +4076,12 @@ section[data-section="clasament"] .leaderboard-intro-icon {
 #parcurs-preview .parcurs-tooltip strong {
   margin-bottom: 4px;
   color: #eafff3;
+  text-align: center;
 }
 
 #parcurs-preview .parcurs-tooltip span {
   color: var(--muted);
+  text-align: center;
 }
 
 #parcurs-preview .parcurs-point {
@@ -5983,8 +5986,14 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   }
 
   #parcurs-preview .parcurs-x-axis-title {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    align-self: center;
     margin-top: 12px;
+    margin-right: auto;
     margin-bottom: 4px;
+    margin-left: auto;
     text-align: center;
     color: var(--muted);
     font-size: 11px;
