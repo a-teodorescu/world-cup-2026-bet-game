@@ -5881,6 +5881,9 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   #parcurs-preview .parcurs-chart-card {
     padding: 8px 0 0;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
   }
 
   #parcurs-preview .parcurs-chart-mobile-shell {
@@ -5888,6 +5891,7 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     max-width: 100%;
     overflow: hidden;
     box-sizing: border-box;
+    margin-bottom: 0;
   }
 
   #parcurs-preview .parcurs-chart-split.parcurs-chart-split-portrait {
@@ -5969,8 +5973,8 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   }
 
   #parcurs-preview .parcurs-x-axis-title {
-    margin-top: 4px;
-    margin-bottom: 0;
+    margin-top: 10px;
+    margin-bottom: 6px;
     text-align: center;
     color: var(--muted);
     font-size: 11px;
@@ -5979,7 +5983,8 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   }
 
   #parcurs-preview .parcurs-legend {
-    margin-top: 2px;
+    margin-top: 0;
     padding-top: 0;
+    padding-bottom: 12px;
   }
 }
