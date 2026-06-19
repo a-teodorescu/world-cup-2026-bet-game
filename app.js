@@ -2680,9 +2680,29 @@ function bindParcursPointTooltips() {
 
   card.querySelectorAll('.parcurs-chart-scroll').forEach(scrollArea => {
     let tooltipScrollFrame = null;
+
+    const hideMobileTooltipOnSwipe = () => {
+      if (parcursIsMobileTooltipMode() && parcursActivePoint) {
+        hideParcursTooltip();
+        return true;
+      }
+      return false;
+    };
+
+    scrollArea.addEventListener('touchmove', hideMobileTooltipOnSwipe, { passive: true });
+    scrollArea.addEventListener('pointermove', (event) => {
+      if (event.pointerType === 'touch') hideMobileTooltipOnSwipe();
+    }, { passive: true });
+
     scrollArea.addEventListener('scroll', () => {
       const tip = $('parcursTooltip');
       if (!parcursActivePoint || !card.contains(parcursActivePoint) || !tip || tip.classList.contains('hidden')) return;
+
+      if (parcursIsMobileTooltipMode()) {
+        hideParcursTooltip();
+        return;
+      }
+
       if (tooltipScrollFrame) return;
       tooltipScrollFrame = requestAnimationFrame(() => {
         tooltipScrollFrame = null;
