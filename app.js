@@ -2657,14 +2657,18 @@ function bindParcursPointTooltips() {
   if (!card) return;
 
   card.querySelectorAll('.parcurs-point').forEach(point => {
-    point.addEventListener('mouseenter', () => showParcursTooltip(point));
+    point.addEventListener('mouseenter', () => {
+      if (!parcursIsMobileTooltipMode()) showParcursTooltip(point);
+    });
     point.addEventListener('mousemove', () => {
       if (!parcursIsMobileTooltipMode()) showParcursTooltip(point);
     });
     point.addEventListener('mouseleave', () => {
       if (!parcursIsMobileTooltipMode()) hideParcursTooltip();
     });
-    point.addEventListener('focus', () => showParcursTooltip(point));
+    point.addEventListener('focus', () => {
+      if (!parcursIsMobileTooltipMode()) showParcursTooltip(point);
+    });
     point.addEventListener('blur', () => {
       if (!parcursIsMobileTooltipMode()) hideParcursTooltip();
     });
