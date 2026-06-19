@@ -2673,6 +2673,7 @@ function bindParcursPointTooltips() {
       if (!parcursIsMobileTooltipMode()) hideParcursTooltip();
     });
     point.addEventListener('click', (event) => {
+      if (!parcursIsMobileTooltipMode()) return;
       event.stopPropagation();
       showParcursTooltip(point);
     });
