@@ -563,6 +563,188 @@ code { background: rgba(255,255,255,.1); padding: 2px 7px; border-radius: 8px; c
   color: #6ee7b7;
 }
 
+
+
+/* Login prize teaser popup */
+body.prize-popup-open {
+  overflow: hidden;
+}
+
+.prize-popup-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 180;
+  display: grid;
+  place-items: center;
+  padding: clamp(14px, 3vw, 28px);
+}
+
+.prize-popup-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(3, 9, 20, .72);
+  backdrop-filter: blur(12px);
+}
+
+.prize-popup-dialog {
+  position: relative;
+  width: min(100%, 900px);
+  min-height: 430px;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, .92fr);
+  align-items: center;
+  gap: 18px;
+  padding: clamp(28px, 5vw, 58px);
+  border: 1px solid rgba(139, 92, 246, .56);
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(139, 92, 246, .22), transparent 34%),
+    linear-gradient(135deg, rgba(255,255,255,.105), rgba(255,255,255,.038)),
+    rgba(7, 17, 31, .96);
+  box-shadow: 0 34px 100px rgba(0,0,0,.52), 0 0 0 1px rgba(255,255,255,.035) inset;
+}
+
+.prize-popup-dialog::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(7,17,31,.94) 0%, rgba(7,17,31,.76) 44%, rgba(7,17,31,.25) 100%),
+    linear-gradient(180deg, rgba(7,17,31,.34), rgba(7,17,31,.74));
+  z-index: 1;
+}
+
+.prize-popup-dialog::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 30px;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgba(110,231,249,.12), rgba(139,92,246,.2), rgba(255,255,255,.04));
+  opacity: .7;
+  z-index: 1;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  padding: 1px;
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+}
+
+.prize-popup-copy {
+  position: relative;
+  z-index: 2;
+  max-width: 520px;
+}
+
+.prize-popup-icon {
+  display: grid;
+  place-items: center;
+  width: 66px;
+  height: 66px;
+  margin-bottom: 28px;
+  border: 1px solid rgba(139,92,246,.55);
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(139,92,246,.22), rgba(255,255,255,.06));
+  box-shadow: 0 18px 45px rgba(139,92,246,.16);
+  font-size: 1.65rem;
+}
+
+.prize-popup-copy h2 {
+  margin: 0 0 22px;
+  font-size: clamp(2.55rem, 5.6vw, 4.3rem);
+  line-height: .95;
+  letter-spacing: -.06em;
+}
+
+.prize-popup-copy h2 span {
+  color: #b38cff;
+  text-shadow: 0 0 28px rgba(139,92,246,.3);
+}
+
+.prize-popup-copy p {
+  margin: 0;
+  max-width: 560px;
+  color: rgba(247, 251, 255, .88);
+  font-size: clamp(1.02rem, 2.2vw, 1.35rem);
+  line-height: 1.55;
+}
+
+.prize-popup-visual {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(circle at 72% 58%, rgba(139, 92, 246, .28), transparent 28%),
+    url('assets/prize-popup.jpg') center / cover no-repeat;
+  filter: saturate(.7) hue-rotate(24deg) brightness(.72);
+  opacity: .62;
+}
+
+.prize-popup-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 3;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 999px;
+  background: rgba(7,17,31,.26);
+  color: var(--text);
+  font-size: 2rem;
+  line-height: 1;
+  box-shadow: none;
+}
+
+.prize-popup-close:hover {
+  background: rgba(255,255,255,.12);
+  transform: none;
+}
+
+@media (max-width: 760px) {
+  .prize-popup-dialog {
+    min-height: 520px;
+    grid-template-columns: 1fr;
+    align-content: end;
+    padding: 30px 24px;
+    border-radius: 26px;
+  }
+
+  .prize-popup-dialog::before {
+    background:
+      linear-gradient(180deg, rgba(7,17,31,.28) 0%, rgba(7,17,31,.82) 46%, rgba(7,17,31,.96) 100%);
+  }
+
+  .prize-popup-copy {
+    align-self: end;
+    max-width: none;
+  }
+
+  .prize-popup-icon {
+    width: 54px;
+    height: 54px;
+    margin-bottom: 18px;
+    font-size: 1.35rem;
+  }
+
+  .prize-popup-copy h2 {
+    margin-bottom: 14px;
+  }
+
+  .prize-popup-copy p {
+    font-size: .98rem;
+  }
+
+  .prize-popup-visual {
+    background-position: center top;
+    opacity: .72;
+  }
+}
+
+
 /* Forgot username recovery */
 .forgot-username {
   margin-top: 12px;

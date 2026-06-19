@@ -390,6 +390,41 @@ function registerOrLoginLocal(name, email) {
   return normalizeUserRow(existing);
 }
 
+
+const PRIZE_POPUP_SEEN_PREFIX = 'wc2026_prize_popup_seen_';
+
+function prizePopupSessionKey() {
+  return `${PRIZE_POPUP_SEEN_PREFIX}${normalize(currentUser?.email || currentUser?.username || 'guest')}`;
+}
+
+function closePrizePopup(markSeen = true) {
+  const modal = $('prizePopupModal');
+  if (!modal) return;
+  modal.classList.add('hidden');
+  document.body.classList.remove('prize-popup-open');
+  if (markSeen && currentUser) sessionStorage.setItem(prizePopupSessionKey(), '1');
+}
+
+function maybeShowPrizePopup() {
+  const modal = $('prizePopupModal');
+  if (!modal || !currentUser) return;
+  if (sessionStorage.getItem(prizePopupSessionKey()) === '1') return;
+  modal.classList.remove('hidden');
+  document.body.classList.add('prize-popup-open');
+  const closeBtn = $('prizePopupClose');
+  if (closeBtn) closeBtn.focus({ preventScroll: true });
+}
+
+function bindPrizePopup() {
+  const closeBtn = $('prizePopupClose');
+  if (closeBtn) closeBtn.addEventListener('click', () => closePrizePopup(true));
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    const modal = $('prizePopupModal');
+    if (modal && !modal.classList.contains('hidden')) closePrizePopup(true);
+  });
+}
+
 $('loginForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const name = $('playerName').value.trim();
@@ -415,6 +450,7 @@ $('loginForm').addEventListener('submit', async (e) => {
     catch { location.hash = 'predictii'; }
     await showApp();
     toast(isAdminUser() ? 'Te-ai conectat ca admin.' : 'Te-ai conectat cu succes.');
+    maybeShowPrizePopup();
   } catch (err) {
     console.error(err);
     $('loginMessage').textContent = err.message || 'Nu am putut face autentificarea.';
@@ -428,6 +464,7 @@ $('loginForm').addEventListener('submit', async (e) => {
 $('logoutBtn').addEventListener('click', () => {
   localStorage.removeItem(STORAGE.current);
   sessionStorage.removeItem('wc2026_admin_pin');
+  if (currentUser) sessionStorage.removeItem(prizePopupSessionKey());
   currentUser = null;
   location.hash = 'home';
   showLanding();
@@ -3079,6 +3116,7 @@ function bindAdminTests() {
 }
 
 bindAdminTests();
+bindPrizePopup();
 
 (async function init(){
   initSupabase();
@@ -3095,5 +3133,8 @@ bindAdminTests();
     toast(err.message || 'Nu am putut inițializa aplicația.');
     loadLocalData();
   }
-  if (currentUser) await showApp(); else showLanding();
+  if (currentUser) {
+    await showApp();
+    maybeShowPrizePopup();
+  } else showLanding();
 })();
