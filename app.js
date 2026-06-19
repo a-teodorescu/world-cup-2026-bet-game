@@ -286,7 +286,7 @@ const NAV_ITEMS = [
   { id: 'grupe', label: 'Grupe' },
   { id: 'lucky-strike', label: 'Lucky Strike' },
   { id: 'clasament', label: 'Clasament' },
-  { id: 'parcurs-preview', label: 'Evoluție', admin: true },
+  { id: 'parcurs-preview', label: 'Evoluție' },
   { id: 'admin-scoruri', label: 'Admin scoruri', admin: true },
   { id: 'admin-emailuri', label: 'Admin emailuri', admin: true },
   { id: 'admin-api', label: 'Admin API', admin: true },
