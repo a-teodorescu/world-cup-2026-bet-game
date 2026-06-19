@@ -2622,9 +2622,12 @@ function showParcursTooltip(point) {
   const card = $('parcursChartCard');
   if (!tip || !card || !point) return;
 
-  clearActiveParcursPoints();
-  parcursActivePoint = point;
-  point.classList.add('is-active');
+  const isMobileTooltip = parcursIsMobileTooltipMode();
+  if (isMobileTooltip) {
+    clearActiveParcursPoints();
+    parcursActivePoint = point;
+    point.classList.add('is-active');
+  }
 
   tip.innerHTML = `<strong>${escapeHtml(point.dataset.player || '')}</strong><span>${escapeHtml(point.dataset.label || '')}</span><span>Poziția: #${escapeHtml(point.dataset.rank || '')}</span>`;
   tip.classList.remove('hidden');
@@ -2657,6 +2660,16 @@ function bindParcursPointTooltips() {
   if (!card) return;
 
   card.querySelectorAll('.parcurs-point').forEach(point => {
+    point.addEventListener('mousedown', (event) => {
+      if (!parcursIsMobileTooltipMode()) {
+        event.preventDefault();
+      }
+    });
+    point.addEventListener('pointerdown', (event) => {
+      if (!parcursIsMobileTooltipMode() && event.pointerType === 'mouse') {
+        event.preventDefault();
+      }
+    });
     point.addEventListener('mouseenter', () => {
       if (!parcursIsMobileTooltipMode()) showParcursTooltip(point);
     });
@@ -2667,48 +2680,35 @@ function bindParcursPointTooltips() {
       if (!parcursIsMobileTooltipMode()) hideParcursTooltip();
     });
     point.addEventListener('focus', () => {
-      if (!parcursIsMobileTooltipMode()) showParcursTooltip(point);
+      if (parcursIsMobileTooltipMode()) showParcursTooltip(point);
     });
     point.addEventListener('blur', () => {
-      if (!parcursIsMobileTooltipMode()) hideParcursTooltip();
+      if (parcursIsMobileTooltipMode()) hideParcursTooltip();
     });
     point.addEventListener('click', (event) => {
-      if (!parcursIsMobileTooltipMode()) return;
+      if (!parcursIsMobileTooltipMode()) {
+        event.preventDefault();
+        point.blur();
+        return;
+      }
       event.stopPropagation();
       showParcursTooltip(point);
     });
   });
 
   card.querySelectorAll('.parcurs-chart-scroll').forEach(scrollArea => {
-    let tooltipScrollFrame = null;
-
     const hideMobileTooltipOnSwipe = () => {
       if (parcursIsMobileTooltipMode() && parcursActivePoint) {
         hideParcursTooltip();
-        return true;
       }
-      return false;
     };
 
     scrollArea.addEventListener('touchmove', hideMobileTooltipOnSwipe, { passive: true });
     scrollArea.addEventListener('pointermove', (event) => {
       if (event.pointerType === 'touch') hideMobileTooltipOnSwipe();
     }, { passive: true });
-
     scrollArea.addEventListener('scroll', () => {
-      const tip = $('parcursTooltip');
-      if (!parcursActivePoint || !card.contains(parcursActivePoint) || !tip || tip.classList.contains('hidden')) return;
-
-      if (parcursIsMobileTooltipMode()) {
-        hideParcursTooltip();
-        return;
-      }
-
-      if (tooltipScrollFrame) return;
-      tooltipScrollFrame = requestAnimationFrame(() => {
-        tooltipScrollFrame = null;
-        if (parcursActivePoint && card.contains(parcursActivePoint)) showParcursTooltip(parcursActivePoint);
-      });
+      if (parcursIsMobileTooltipMode()) hideMobileTooltipOnSwipe();
     }, { passive: true });
   });
 
