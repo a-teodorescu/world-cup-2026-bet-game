@@ -5879,7 +5879,7 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   }
 
   #parcurs-preview .parcurs-chart-card {
-    padding: 8px 0 4px;
+    padding: 8px 0 0;
     overflow: hidden;
   }
 
@@ -5905,9 +5905,9 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     width: 16px;
     min-width: 16px;
     max-width: 16px;
-    height: 260px !important;
-    min-height: 260px;
-    max-height: 260px;
+    height: 280px !important;
+    min-height: 280px;
+    max-height: 280px;
     display: block;
     overflow: visible;
     flex: 0 0 16px;
@@ -5917,9 +5917,9 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     width: 24px;
     min-width: 24px;
     max-width: 24px;
-    height: 260px !important;
-    min-height: 260px;
-    max-height: 260px;
+    height: 280px !important;
+    min-height: 280px;
+    max-height: 280px;
     display: block;
     overflow: hidden;
     flex: 0 0 24px;
@@ -5929,9 +5929,9 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    height: 260px !important;
-    min-height: 260px;
-    max-height: 260px;
+    height: 280px !important;
+    min-height: 280px;
+    max-height: 280px;
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
@@ -5947,12 +5947,12 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   }
 
   #parcurs-preview .parcurs-chart-svg-mobile.parcurs-chart-svg-mobile-portrait {
-    width: 920px;
-    min-width: 920px;
+    width: 760px;
+    min-width: 760px;
     max-width: none;
-    height: 260px !important;
-    min-height: 260px;
-    max-height: 260px;
+    height: 280px !important;
+    min-height: 280px;
+    max-height: 280px;
     display: block;
   }
 
@@ -5969,7 +5969,8 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   }
 
   #parcurs-preview .parcurs-x-axis-title {
-    margin-top: 8px;
+    margin-top: 6px;
+    margin-bottom: 0;
     text-align: center;
     color: var(--muted);
     font-size: 11px;
@@ -5978,7 +5979,7 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   }
 
   #parcurs-preview .parcurs-legend {
-    margin-top: 10px;
+    margin-top: 6px;
     padding-top: 0;
   }
 }

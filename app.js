@@ -2467,12 +2467,12 @@ function parcursChartSvg(labels, players) {
       window.matchMedia('(orientation: landscape) and (max-height: 520px)').matches ||
       window.matchMedia('(orientation: landscape) and (max-width: 932px)').matches
     );
-    const height = 360;
+    const height = isMobileLandscape ? 280 : 360;
 
     if (isPortraitMobile || isMobileLandscape) {
       const titleW = 16;
       const rankW = 24;
-      const chartW = isMobileLandscape ? 920 : 780;
+      const chartW = isMobileLandscape ? 760 : 780;
       const plotMl = 28;
       const plotMr = 12;
       const mt = 24, mb = 40;
