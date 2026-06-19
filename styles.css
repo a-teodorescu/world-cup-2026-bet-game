@@ -573,10 +573,18 @@ body.prize-popup-open {
 .prize-popup-modal {
   position: fixed;
   inset: 0;
-  z-index: 180;
+  z-index: 10050;
   display: grid;
   place-items: center;
   padding: clamp(14px, 3vw, 28px);
+  visibility: visible;
+  opacity: 1;
+}
+
+#prizePopupModal[data-open="true"] {
+  display: grid !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 .prize-popup-backdrop {
@@ -705,8 +713,19 @@ body.prize-popup-open {
 }
 
 @media (max-width: 760px) {
+  .prize-popup-modal {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw;
+    min-height: 100svh;
+    padding: 14px;
+    place-items: center;
+  }
+
   .prize-popup-dialog {
-    min-height: 520px;
+    width: min(100%, 420px);
+    min-height: min(520px, calc(100svh - 28px));
+    max-height: calc(100svh - 28px);
     grid-template-columns: 1fr;
     align-content: end;
     padding: 30px 24px;

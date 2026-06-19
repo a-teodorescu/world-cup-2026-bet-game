@@ -391,28 +391,73 @@ function registerOrLoginLocal(name, email) {
 }
 
 
-const PRIZE_POPUP_SEEN_PREFIX = 'wc2026_prize_popup_seen_';
+const PRIZE_POPUP_SEEN_PREFIX = 'wc2026_prize_popup_seen_v2_';
+const PRIZE_POPUP_LOGIN_ID_KEY = 'wc2026_prize_popup_login_id_v2';
+
+function safeSessionGet(key) {
+  try { return sessionStorage.getItem(key); }
+  catch { return null; }
+}
+
+function safeSessionSet(key, value) {
+  try { sessionStorage.setItem(key, value); }
+  catch {}
+}
+
+function safeSessionRemove(key) {
+  try { sessionStorage.removeItem(key); }
+  catch {}
+}
+
+function ensurePrizePopupLoginId(reset = false) {
+  if (!currentUser) return 'guest';
+  let loginId = safeSessionGet(PRIZE_POPUP_LOGIN_ID_KEY);
+  if (reset || !loginId) {
+    loginId = `${Date.now()}_${normalize(currentUser.email || currentUser.username || currentUser.name || 'user')}`;
+    safeSessionSet(PRIZE_POPUP_LOGIN_ID_KEY, loginId);
+  }
+  return loginId;
+}
 
 function prizePopupSessionKey() {
-  return `${PRIZE_POPUP_SEEN_PREFIX}${normalize(currentUser?.email || currentUser?.username || 'guest')}`;
+  const identity = normalize(currentUser?.email || currentUser?.username || currentUser?.name || 'guest');
+  return `${PRIZE_POPUP_SEEN_PREFIX}${identity}_${ensurePrizePopupLoginId(false)}`;
 }
 
 function closePrizePopup(markSeen = true) {
   const modal = $('prizePopupModal');
   if (!modal) return;
   modal.classList.add('hidden');
+  modal.removeAttribute('data-open');
+  modal.style.removeProperty('display');
+  modal.style.removeProperty('visibility');
+  modal.style.removeProperty('opacity');
   document.body.classList.remove('prize-popup-open');
-  if (markSeen && currentUser) sessionStorage.setItem(prizePopupSessionKey(), '1');
+  if (markSeen && currentUser) safeSessionSet(prizePopupSessionKey(), '1');
 }
 
 function maybeShowPrizePopup() {
   const modal = $('prizePopupModal');
   if (!modal || !currentUser) return;
-  if (sessionStorage.getItem(prizePopupSessionKey()) === '1') return;
-  modal.classList.remove('hidden');
-  document.body.classList.add('prize-popup-open');
-  const closeBtn = $('prizePopupClose');
-  if (closeBtn) closeBtn.focus({ preventScroll: true });
+  if (safeSessionGet(prizePopupSessionKey()) === '1') return;
+
+  const openPopup = () => {
+    modal.classList.remove('hidden');
+    modal.setAttribute('data-open', 'true');
+    modal.style.display = 'grid';
+    modal.style.visibility = 'visible';
+    modal.style.opacity = '1';
+    document.body.classList.add('prize-popup-open');
+    const closeBtn = $('prizePopupClose');
+    if (closeBtn) {
+      try { closeBtn.focus({ preventScroll: true }); }
+      catch { try { closeBtn.focus(); } catch {} }
+    }
+  };
+
+  openPopup();
+  requestAnimationFrame(openPopup);
+  setTimeout(openPopup, 120);
 }
 
 function bindPrizePopup() {
@@ -446,6 +491,8 @@ $('loginForm').addEventListener('submit', async (e) => {
     const user = onlineMode ? await registerOrLoginOnline(name, email) : registerOrLoginLocal(name, email);
     currentUser = { id: user.id, name: user.name, username: user.name, email: user.email, role: user.role };
     localStorage.setItem(STORAGE.current, JSON.stringify(currentUser));
+    ensurePrizePopupLoginId(true);
+    safeSessionRemove(prizePopupSessionKey());
     try { history.replaceState(null, '', '#predictii'); }
     catch { location.hash = 'predictii'; }
     await showApp();
@@ -464,7 +511,8 @@ $('loginForm').addEventListener('submit', async (e) => {
 $('logoutBtn').addEventListener('click', () => {
   localStorage.removeItem(STORAGE.current);
   sessionStorage.removeItem('wc2026_admin_pin');
-  if (currentUser) sessionStorage.removeItem(prizePopupSessionKey());
+  if (currentUser) safeSessionRemove(prizePopupSessionKey());
+  safeSessionRemove(PRIZE_POPUP_LOGIN_ID_KEY);
   currentUser = null;
   location.hash = 'home';
   showLanding();
