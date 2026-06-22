@@ -1281,8 +1281,8 @@ body.modal-open {
   display: inline-grid;
   place-items: center;
   width: 22px;
-  height: 22px;
-  margin-top: 3px;
+  height: 18px;
+  margin-top: 2px;
   border-radius: 999px;
   background: rgba(50,213,131,.18);
   border: 1px solid rgba(50,213,131,.42);
@@ -6275,7 +6275,7 @@ section[data-section="clasament"] .leaderboard-intro-icon {
 }
 .ko-tree-scroll {
   overflow-x: auto;
-  overflow-y: hidden;
+  overflow-y: auto;
   border: 1px solid rgba(255,255,255,.13);
   border-radius: 28px;
   background:
@@ -6288,9 +6288,9 @@ section[data-section="clasament"] .leaderboard-intro-icon {
 }
 .ko-tree-svg {
   display: block;
-  width: 1810px;
-  min-width: 1810px;
-  height: 930px;
+  width: 1220px;
+  min-width: 1220px;
+  height: 1225px;
 }
 .ko-tree-label {
   fill: rgba(231,238,255,.78);
@@ -6306,15 +6306,12 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
-.ko-tree-line.is-right {
-  stroke: rgba(167,139,250,.46);
-}
 .ko-tree-match-card {
   width: 100%;
   height: 100%;
   box-sizing: border-box;
   overflow: hidden;
-  padding: 7px;
+  padding: 6px;
   border: 1px solid rgba(255,255,255,.14);
   border-radius: 16px;
   background:
@@ -6353,8 +6350,8 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   grid-template-columns: minmax(0, 1fr) 24px;
   align-items: center;
   gap: 6px;
-  height: 22px;
-  margin-top: 3px;
+  height: 18px;
+  margin-top: 2px;
   padding: 0 5px;
   border-radius: 10px;
   background: rgba(255,255,255,.055);
@@ -6374,7 +6371,7 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 850;
 }
 .ko-tree-team strong {
@@ -6385,7 +6382,7 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   border-radius: 8px;
   background: rgba(7,17,31,.78);
   color: var(--text);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 950;
 }
 .ko-tree-team.is-placeholder {
@@ -6564,8 +6561,8 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     border-radius: 20px;
   }
   .ko-tree-svg {
-    width: 1810px;
-    min-width: 1810px;
+    width: 1220px;
+    min-width: 1220px;
   }
   .knockout-match {
     padding: 12px;

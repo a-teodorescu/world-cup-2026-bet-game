@@ -1191,76 +1191,68 @@ function renderKnockoutMatchCard(match) {
   </article>`;
 }
 
-const KNOCKOUT_TREE_SIDES = {
-  left: {
-    side: 'left',
-    columns: [
-      { key: 'l-r32', label: 'Șaisprezecimi', ids: ['R32-01', 'R32-04', 'R32-03', 'R32-06', 'R32-12', 'R32-11', 'R32-10', 'R32-09'] },
-      { key: 'l-r16', label: 'Optimi', ids: ['R16-01', 'R16-02', 'R16-05', 'R16-06'] },
-      { key: 'l-qf', label: 'Sferturi', ids: ['QF-01', 'QF-02'] },
-      { key: 'l-sf', label: 'Semifinale', ids: ['SF-01'] }
-    ],
-    edges: [
-      ['R32-01', 'R16-01'], ['R32-04', 'R16-01'],
-      ['R32-03', 'R16-02'], ['R32-06', 'R16-02'],
-      ['R16-01', 'QF-01'], ['R16-02', 'QF-01'],
-      ['R32-12', 'R16-05'], ['R32-11', 'R16-05'],
-      ['R32-10', 'R16-06'], ['R32-09', 'R16-06'],
-      ['R16-05', 'QF-02'], ['R16-06', 'QF-02'],
-      ['QF-01', 'SF-01'], ['QF-02', 'SF-01'],
-      ['SF-01', 'F-01']
-    ]
-  },
-  right: {
-    side: 'right',
-    columns: [
-      { key: 'r-sf', label: 'Semifinale', ids: ['SF-02'] },
-      { key: 'r-qf', label: 'Sferturi', ids: ['QF-03', 'QF-04'] },
-      { key: 'r-r16', label: 'Optimi', ids: ['R16-03', 'R16-04', 'R16-07', 'R16-08'] },
-      { key: 'r-r32', label: 'Șaisprezecimi', ids: ['R32-02', 'R32-05', 'R32-07', 'R32-08', 'R32-15', 'R32-14', 'R32-13', 'R32-16'] }
-    ],
-    edges: [
-      ['R32-02', 'R16-03'], ['R32-05', 'R16-03'],
-      ['R32-07', 'R16-04'], ['R32-08', 'R16-04'],
-      ['R16-03', 'QF-03'], ['R16-04', 'QF-03'],
-      ['R32-15', 'R16-07'], ['R32-14', 'R16-07'],
-      ['R32-13', 'R16-08'], ['R32-16', 'R16-08'],
-      ['R16-07', 'QF-04'], ['R16-08', 'QF-04'],
-      ['QF-03', 'SF-02'], ['QF-04', 'SF-02'],
-      ['SF-02', 'F-01']
-    ]
-  }
+const KNOCKOUT_TREE_PYRAMID = {
+  columns: [
+    { key: 'r32', label: 'Șaisprezecimi', ids: ['R32-01', 'R32-04', 'R32-03', 'R32-06', 'R32-12', 'R32-11', 'R32-10', 'R32-09', 'R32-02', 'R32-05', 'R32-07', 'R32-08', 'R32-15', 'R32-14', 'R32-13', 'R32-16'] },
+    { key: 'r16', label: 'Optimi', ids: ['R16-01', 'R16-02', 'R16-05', 'R16-06', 'R16-03', 'R16-04', 'R16-07', 'R16-08'] },
+    { key: 'qf', label: 'Sferturi', ids: ['QF-01', 'QF-02', 'QF-03', 'QF-04'] },
+    { key: 'sf', label: 'Semifinale', ids: ['SF-01', 'SF-02'] },
+    { key: 'final', label: 'Finală', ids: ['F-01'] }
+  ],
+  edges: [
+    ['R32-01', 'R16-01'], ['R32-04', 'R16-01'],
+    ['R32-03', 'R16-02'], ['R32-06', 'R16-02'],
+    ['R32-12', 'R16-05'], ['R32-11', 'R16-05'],
+    ['R32-10', 'R16-06'], ['R32-09', 'R16-06'],
+    ['R32-02', 'R16-03'], ['R32-05', 'R16-03'],
+    ['R32-07', 'R16-04'], ['R32-08', 'R16-04'],
+    ['R32-15', 'R16-07'], ['R32-14', 'R16-07'],
+    ['R32-13', 'R16-08'], ['R32-16', 'R16-08'],
+    ['R16-01', 'QF-01'], ['R16-02', 'QF-01'],
+    ['R16-05', 'QF-02'], ['R16-06', 'QF-02'],
+    ['R16-03', 'QF-03'], ['R16-04', 'QF-03'],
+    ['R16-07', 'QF-04'], ['R16-08', 'QF-04'],
+    ['QF-01', 'SF-01'], ['QF-02', 'SF-01'],
+    ['QF-03', 'SF-02'], ['QF-04', 'SF-02'],
+    ['SF-01', 'F-01'], ['SF-02', 'F-01']
+  ]
 };
 
 function knockoutTreeLayout() {
   const cardW = 170;
-  const cardH = 74;
+  const cardH = 62;
   const finalW = 210;
-  const finalH = 88;
-  const width = 1810;
-  const height = 930;
-  const r32Centers = [82, 190, 298, 406, 514, 622, 730, 838];
-  const r16Centers = [136, 352, 568, 784];
-  const qfCenters = [244, 676];
-  const sfCenters = [460];
+  const finalH = 82;
+  const width = 1220;
+  const height = 1225;
+  const r32Centers = Array.from({ length: 16 }, (_, index) => 70 + index * 72);
+  const r16Centers = r32Centers.reduce((items, center, index) => {
+    if (index % 2 === 0) items.push((center + r32Centers[index + 1]) / 2);
+    return items;
+  }, []);
+  const qfCenters = r16Centers.reduce((items, center, index) => {
+    if (index % 2 === 0) items.push((center + r16Centers[index + 1]) / 2);
+    return items;
+  }, []);
+  const sfCenters = qfCenters.reduce((items, center, index) => {
+    if (index % 2 === 0) items.push((center + qfCenters[index + 1]) / 2);
+    return items;
+  }, []);
+  const finalCenters = [(sfCenters[0] + sfCenters[1]) / 2];
   const positions = {};
 
   function place(ids, x, centers, w = cardW, h = cardH) {
     ids.forEach((id, index) => {
-      const center = centers[index] ?? centers[centers.length - 1] ?? 460;
+      const center = centers[index] ?? centers[centers.length - 1] ?? 610;
       positions[id] = { id, x, y: center - h / 2, w, h, cx: x + w / 2, cy: center };
     });
   }
 
-  place(KNOCKOUT_TREE_SIDES.left.columns[0].ids, 20, r32Centers);
-  place(KNOCKOUT_TREE_SIDES.left.columns[1].ids, 230, r16Centers);
-  place(KNOCKOUT_TREE_SIDES.left.columns[2].ids, 440, qfCenters);
-  place(KNOCKOUT_TREE_SIDES.left.columns[3].ids, 630, sfCenters);
-  place(['F-01'], 820, [460], finalW, finalH);
-  place(KNOCKOUT_TREE_SIDES.right.columns[0].ids, 1040, sfCenters);
-  place(KNOCKOUT_TREE_SIDES.right.columns[1].ids, 1230, qfCenters);
-  place(KNOCKOUT_TREE_SIDES.right.columns[2].ids, 1440, r16Centers);
-  place(KNOCKOUT_TREE_SIDES.right.columns[3].ids, 1620, r32Centers);
+  place(KNOCKOUT_TREE_PYRAMID.columns[0].ids, 20, r32Centers);
+  place(KNOCKOUT_TREE_PYRAMID.columns[1].ids, 260, r16Centers);
+  place(KNOCKOUT_TREE_PYRAMID.columns[2].ids, 500, qfCenters);
+  place(KNOCKOUT_TREE_PYRAMID.columns[3].ids, 740, sfCenters);
+  place(KNOCKOUT_TREE_PYRAMID.columns[4].ids, 970, finalCenters, finalW, finalH);
 
   return { width, height, cardW, cardH, finalW, finalH, positions };
 }
@@ -1268,55 +1260,29 @@ function knockoutTreeLayout() {
 function knockoutTreeColumnLabels(layout) {
   const labels = [
     { x: 20 + 85, label: 'Șaisprezecimi' },
-    { x: 230 + 85, label: 'Optimi' },
-    { x: 440 + 85, label: 'Sferturi' },
-    { x: 630 + 85, label: 'Semifinale' },
-    { x: 820 + 105, label: 'Finală' },
-    { x: 1040 + 85, label: 'Semifinale' },
-    { x: 1230 + 85, label: 'Sferturi' },
-    { x: 1440 + 85, label: 'Optimi' },
-    { x: 1620 + 85, label: 'Șaisprezecimi' }
+    { x: 260 + 85, label: 'Optimi' },
+    { x: 500 + 85, label: 'Sferturi' },
+    { x: 740 + 85, label: 'Semifinale' },
+    { x: 970 + 105, label: 'Finală' }
   ];
   return labels.map(item => `<text class="ko-tree-label" x="${item.x}" y="28" text-anchor="middle">${escapeHtml(item.label)}</text>`).join('');
 }
 
-function knockoutTreeConnectorPath(from, to, side, layout) {
+function knockoutTreeConnectorPath(from, to, layout) {
   if (!from || !to) return '';
-  if (to.id === 'F-01') {
-    if (side === 'left') {
-      const x1 = from.x + from.w;
-      const x2 = to.x;
-      const mid = x1 + (x2 - x1) * 0.56;
-      return `M${x1} ${from.cy} H${mid} V${to.cy} H${x2}`;
-    }
-    const x1 = from.x;
-    const x2 = to.x + to.w;
-    const mid = x1 + (x2 - x1) * 0.56;
-    return `M${x1} ${from.cy} H${mid} V${to.cy} H${x2}`;
-  }
-  if (side === 'left') {
-    const x1 = from.x + from.w;
-    const x2 = to.x;
-    const mid = x1 + (x2 - x1) / 2;
-    return `M${x1} ${from.cy} H${mid} V${to.cy} H${x2}`;
-  }
-  const x1 = from.x;
-  const x2 = to.x + to.w;
+  const x1 = from.x + from.w;
+  const x2 = to.x;
   const mid = x1 + (x2 - x1) / 2;
   return `M${x1} ${from.cy} H${mid} V${to.cy} H${x2}`;
 }
 
 function knockoutTreeConnectors(layout) {
-  const items = [];
-  ['left', 'right'].forEach(side => {
-    KNOCKOUT_TREE_SIDES[side].edges.forEach(([fromId, toId]) => {
-      const from = layout.positions[fromId];
-      const to = layout.positions[toId];
-      if (!from || !to) return;
-      items.push(`<path class="ko-tree-line ${side === 'right' ? 'is-right' : ''}" d="${knockoutTreeConnectorPath(from, to, side, layout)}"/>`);
-    });
-  });
-  return items.join('');
+  return KNOCKOUT_TREE_PYRAMID.edges.map(([fromId, toId]) => {
+    const from = layout.positions[fromId];
+    const to = layout.positions[toId];
+    if (!from || !to) return '';
+    return `<path class="ko-tree-line" d="${knockoutTreeConnectorPath(from, to, layout)}"/>`;
+  }).join('');
 }
 
 function knockoutTreeMatchTitle(match) {
