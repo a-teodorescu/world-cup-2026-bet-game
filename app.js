@@ -1191,6 +1191,192 @@ function renderKnockoutMatchCard(match) {
   </article>`;
 }
 
+const KNOCKOUT_TREE_SIDES = {
+  left: {
+    side: 'left',
+    columns: [
+      { key: 'l-r32', label: 'Șaisprezecimi', ids: ['R32-01', 'R32-04', 'R32-03', 'R32-06', 'R32-12', 'R32-11', 'R32-10', 'R32-09'] },
+      { key: 'l-r16', label: 'Optimi', ids: ['R16-01', 'R16-02', 'R16-05', 'R16-06'] },
+      { key: 'l-qf', label: 'Sferturi', ids: ['QF-01', 'QF-02'] },
+      { key: 'l-sf', label: 'Semifinale', ids: ['SF-01'] }
+    ],
+    edges: [
+      ['R32-01', 'R16-01'], ['R32-04', 'R16-01'],
+      ['R32-03', 'R16-02'], ['R32-06', 'R16-02'],
+      ['R16-01', 'QF-01'], ['R16-02', 'QF-01'],
+      ['R32-12', 'R16-05'], ['R32-11', 'R16-05'],
+      ['R32-10', 'R16-06'], ['R32-09', 'R16-06'],
+      ['R16-05', 'QF-02'], ['R16-06', 'QF-02'],
+      ['QF-01', 'SF-01'], ['QF-02', 'SF-01'],
+      ['SF-01', 'F-01']
+    ]
+  },
+  right: {
+    side: 'right',
+    columns: [
+      { key: 'r-sf', label: 'Semifinale', ids: ['SF-02'] },
+      { key: 'r-qf', label: 'Sferturi', ids: ['QF-03', 'QF-04'] },
+      { key: 'r-r16', label: 'Optimi', ids: ['R16-03', 'R16-04', 'R16-07', 'R16-08'] },
+      { key: 'r-r32', label: 'Șaisprezecimi', ids: ['R32-02', 'R32-05', 'R32-07', 'R32-08', 'R32-15', 'R32-14', 'R32-13', 'R32-16'] }
+    ],
+    edges: [
+      ['R32-02', 'R16-03'], ['R32-05', 'R16-03'],
+      ['R32-07', 'R16-04'], ['R32-08', 'R16-04'],
+      ['R16-03', 'QF-03'], ['R16-04', 'QF-03'],
+      ['R32-15', 'R16-07'], ['R32-14', 'R16-07'],
+      ['R32-13', 'R16-08'], ['R32-16', 'R16-08'],
+      ['R16-07', 'QF-04'], ['R16-08', 'QF-04'],
+      ['QF-03', 'SF-02'], ['QF-04', 'SF-02'],
+      ['SF-02', 'F-01']
+    ]
+  }
+};
+
+function knockoutTreeLayout() {
+  const cardW = 170;
+  const cardH = 74;
+  const finalW = 210;
+  const finalH = 88;
+  const width = 1810;
+  const height = 930;
+  const r32Centers = [82, 190, 298, 406, 514, 622, 730, 838];
+  const r16Centers = [136, 352, 568, 784];
+  const qfCenters = [244, 676];
+  const sfCenters = [460];
+  const positions = {};
+
+  function place(ids, x, centers, w = cardW, h = cardH) {
+    ids.forEach((id, index) => {
+      const center = centers[index] ?? centers[centers.length - 1] ?? 460;
+      positions[id] = { id, x, y: center - h / 2, w, h, cx: x + w / 2, cy: center };
+    });
+  }
+
+  place(KNOCKOUT_TREE_SIDES.left.columns[0].ids, 20, r32Centers);
+  place(KNOCKOUT_TREE_SIDES.left.columns[1].ids, 230, r16Centers);
+  place(KNOCKOUT_TREE_SIDES.left.columns[2].ids, 440, qfCenters);
+  place(KNOCKOUT_TREE_SIDES.left.columns[3].ids, 630, sfCenters);
+  place(['F-01'], 820, [460], finalW, finalH);
+  place(KNOCKOUT_TREE_SIDES.right.columns[0].ids, 1040, sfCenters);
+  place(KNOCKOUT_TREE_SIDES.right.columns[1].ids, 1230, qfCenters);
+  place(KNOCKOUT_TREE_SIDES.right.columns[2].ids, 1440, r16Centers);
+  place(KNOCKOUT_TREE_SIDES.right.columns[3].ids, 1620, r32Centers);
+
+  return { width, height, cardW, cardH, finalW, finalH, positions };
+}
+
+function knockoutTreeColumnLabels(layout) {
+  const labels = [
+    { x: 20 + 85, label: 'Șaisprezecimi' },
+    { x: 230 + 85, label: 'Optimi' },
+    { x: 440 + 85, label: 'Sferturi' },
+    { x: 630 + 85, label: 'Semifinale' },
+    { x: 820 + 105, label: 'Finală' },
+    { x: 1040 + 85, label: 'Semifinale' },
+    { x: 1230 + 85, label: 'Sferturi' },
+    { x: 1440 + 85, label: 'Optimi' },
+    { x: 1620 + 85, label: 'Șaisprezecimi' }
+  ];
+  return labels.map(item => `<text class="ko-tree-label" x="${item.x}" y="28" text-anchor="middle">${escapeHtml(item.label)}</text>`).join('');
+}
+
+function knockoutTreeConnectorPath(from, to, side, layout) {
+  if (!from || !to) return '';
+  if (to.id === 'F-01') {
+    if (side === 'left') {
+      const x1 = from.x + from.w;
+      const x2 = to.x;
+      const mid = x1 + (x2 - x1) * 0.56;
+      return `M${x1} ${from.cy} H${mid} V${to.cy} H${x2}`;
+    }
+    const x1 = from.x;
+    const x2 = to.x + to.w;
+    const mid = x1 + (x2 - x1) * 0.56;
+    return `M${x1} ${from.cy} H${mid} V${to.cy} H${x2}`;
+  }
+  if (side === 'left') {
+    const x1 = from.x + from.w;
+    const x2 = to.x;
+    const mid = x1 + (x2 - x1) / 2;
+    return `M${x1} ${from.cy} H${mid} V${to.cy} H${x2}`;
+  }
+  const x1 = from.x;
+  const x2 = to.x + to.w;
+  const mid = x1 + (x2 - x1) / 2;
+  return `M${x1} ${from.cy} H${mid} V${to.cy} H${x2}`;
+}
+
+function knockoutTreeConnectors(layout) {
+  const items = [];
+  ['left', 'right'].forEach(side => {
+    KNOCKOUT_TREE_SIDES[side].edges.forEach(([fromId, toId]) => {
+      const from = layout.positions[fromId];
+      const to = layout.positions[toId];
+      if (!from || !to) return;
+      items.push(`<path class="ko-tree-line ${side === 'right' ? 'is-right' : ''}" d="${knockoutTreeConnectorPath(from, to, side, layout)}"/>`);
+    });
+  });
+  return items.join('');
+}
+
+function knockoutTreeMatchTitle(match) {
+  if (!match) return '';
+  const stage = knockoutRoundName(match.stage);
+  const date = formatRoDate(match).replace(',', '');
+  return `#${match.matchNo} · ${stage} · ${date}`;
+}
+
+function knockoutTreeTeamRow(entry, score, isWinner = false) {
+  const label = entry?.label || '—';
+  return `<div class="ko-tree-team ${entry?.placeholder ? 'is-placeholder' : ''} ${isWinner ? 'is-winner' : ''}">
+    ${teamInline(label)}
+    <strong>${score}</strong>
+  </div>`;
+}
+
+function renderKnockoutTreeCard(match, isFinal = false) {
+  const played = match && hasResult(match);
+  const effective = match ? effectiveMatch(match) : null;
+  const homeScore = played ? Number(effective.resultHome) : '—';
+  const awayScore = played ? Number(effective.resultAway) : '—';
+  const tieClass = played && !match.winnerSide ? ' is-waiting-tiebreak' : '';
+  const finalClass = isFinal ? ' is-final' : '';
+  if (!match) return '<div xmlns="http://www.w3.org/1999/xhtml" class="ko-tree-match-card is-empty"></div>';
+  return `<div xmlns="http://www.w3.org/1999/xhtml" class="ko-tree-match-card ${played ? 'is-played' : ''}${tieClass}${finalClass}">
+    <div class="ko-tree-meta"><span>#${match.matchNo}</span><span>${escapeHtml(match.romaniaDate || '')}</span></div>
+    ${knockoutTreeTeamRow(match.resolvedHome, homeScore, match.winnerSide === 'home')}
+    ${knockoutTreeTeamRow(match.resolvedAway, awayScore, match.winnerSide === 'away')}
+  </div>`;
+}
+
+function knockoutTreeCards(layout, matchesById) {
+  return Object.entries(layout.positions).map(([id, pos]) => {
+    const match = matchesById.get(id);
+    const isFinal = id === 'F-01';
+    return `<foreignObject x="${pos.x}" y="${pos.y}" width="${pos.w}" height="${pos.h}">
+      ${renderKnockoutTreeCard(match, isFinal)}
+    </foreignObject>`;
+  }).join('');
+}
+
+function renderKnockoutTree(matches) {
+  const layout = knockoutTreeLayout();
+  const matchesById = new Map(matches.map(match => [match.id, match]));
+  return `<div class="ko-tree-scroll" aria-label="Tablou eliminatoriu complet cu scroll orizontal">
+    <svg class="ko-tree-svg" viewBox="0 0 ${layout.width} ${layout.height}" role="img" aria-label="Bracket fazele eliminatorii Cupa Mondială 2026">
+      <defs>
+        <filter id="koTreeGlow" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="2.5" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      ${knockoutTreeColumnLabels(layout)}
+      ${knockoutTreeConnectors(layout)}
+      ${knockoutTreeCards(layout, matchesById)}
+    </svg>
+  </div>`;
+}
+
 function renderEliminatorii() {
   const wrap = $('knockoutBracket');
   const status = $('knockoutStatus');
@@ -1204,18 +1390,10 @@ function renderEliminatorii() {
 
   status.innerHTML = `<div class="knockout-status-card"><span>Grupe finalizate</span><strong>${areAllGroupsComplete() ? 'Da' : 'Nu'}</strong><small>${groupPlayed}/72 rezultate grupe</small></div>
     <div class="knockout-status-card"><span>Sloturi Round of 32</span><strong>${resolvedR32Sides}/32</strong><small>Se completează din clasamente</small></div>
-    <div class="knockout-status-card"><span>Meciuri eliminatorii jucate</span><strong>${knockoutPlayed}/32</strong><small>Câștigătoarele avansează automat</small></div>`;
-
-  const mainRounds = KNOCKOUT_ROUNDS.map(round => {
-    const roundMatches = matches.filter(m => m.stage === round.stage);
-    return `<section class="knockout-round">
-      <div class="knockout-round-head"><strong>${round.label}</strong><span>${round.range}</span></div>
-      <div class="knockout-round-matches">${roundMatches.map(renderKnockoutMatchCard).join('')}</div>
-    </section>`;
-  }).join('');
+    <div class="knockout-status-card"><span>Meciuri eliminatorii jucate</span><strong>${knockoutPlayed}/32</strong><small>Câștigătoarele avansează automat din rezultate/API</small></div>`;
 
   const thirdPlace = matches.filter(m => m.stage === 'Third place play-off');
-  wrap.innerHTML = `<div class="knockout-bracket-scroll">${mainRounds}</div>
+  wrap.innerHTML = `${renderKnockoutTree(matches)}
     <section class="knockout-third-place">
       <div class="knockout-round-head"><strong>Finala mică</strong><span>Meciul 103</span></div>
       <div class="knockout-round-matches">${thirdPlace.map(renderKnockoutMatchCard).join('')}</div>

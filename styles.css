@@ -6233,7 +6233,7 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   display: none !important;
 }
 
-/* Eliminatorii - admin preview bracket */
+/* Eliminatorii - admin tree bracket */
 #eliminatorii .knockout-section-head .eyebrow {
   margin: 0 0 8px;
 }
@@ -6273,17 +6273,136 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   display: grid;
   gap: 18px;
 }
-.knockout-bracket-scroll {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(245px, 1fr));
-  align-items: start;
-  gap: 16px;
+.ko-tree-scroll {
   overflow-x: auto;
-  padding: 4px 4px 16px;
-  scrollbar-color: rgba(255,255,255,.28) transparent;
+  overflow-y: hidden;
+  border: 1px solid rgba(255,255,255,.13);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(139,92,246,.14), transparent 38%),
+    radial-gradient(circle at 0% 0%, rgba(110,231,249,.08), transparent 28%),
+    linear-gradient(180deg, rgba(255,255,255,.075), rgba(255,255,255,.035));
+  box-shadow: 0 24px 70px rgba(0,0,0,.24);
+  padding: 14px;
+  scrollbar-color: rgba(167,139,250,.58) rgba(255,255,255,.05);
 }
-.knockout-round {
-  min-width: 245px;
+.ko-tree-svg {
+  display: block;
+  width: 1810px;
+  min-width: 1810px;
+  height: 930px;
+}
+.ko-tree-label {
+  fill: rgba(231,238,255,.78);
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: -.02em;
+}
+.ko-tree-line {
+  fill: none;
+  stroke: rgba(148,163,184,.46);
+  stroke-width: 2.5;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.ko-tree-line.is-right {
+  stroke: rgba(167,139,250,.46);
+}
+.ko-tree-match-card {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  padding: 7px;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at top left, rgba(139,92,246,.16), transparent 56%),
+    linear-gradient(180deg, rgba(15,23,42,.96), rgba(8,13,25,.94));
+  box-shadow: 0 14px 30px rgba(0,0,0,.25);
+  color: var(--text);
+}
+.ko-tree-match-card.is-final {
+  border-color: rgba(167,139,250,.42);
+  background:
+    radial-gradient(circle at top, rgba(167,139,250,.22), transparent 54%),
+    linear-gradient(180deg, rgba(22,16,46,.98), rgba(8,13,25,.96));
+  box-shadow: 0 0 0 1px rgba(167,139,250,.16), 0 22px 42px rgba(0,0,0,.32);
+}
+.ko-tree-match-card.is-played {
+  border-color: rgba(50,213,131,.38);
+}
+.ko-tree-match-card.is-waiting-tiebreak {
+  border-color: rgba(253,176,34,.42);
+}
+.ko-tree-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+  color: rgba(167,180,200,.82);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.ko-tree-team {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 24px;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  margin-top: 3px;
+  padding: 0 5px;
+  border-radius: 10px;
+  background: rgba(255,255,255,.055);
+  border: 1px solid rgba(255,255,255,.055);
+}
+.ko-tree-team .team-inline {
+  min-width: 0;
+  display: flex;
+}
+.ko-tree-team .flag-badge {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+}
+.ko-tree-team .team-name {
+  max-width: 96px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 850;
+}
+.ko-tree-team strong {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 18px;
+  border-radius: 8px;
+  background: rgba(7,17,31,.78);
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 950;
+}
+.ko-tree-team.is-placeholder {
+  opacity: .70;
+}
+.ko-tree-team.is-placeholder .team-name {
+  color: var(--muted);
+  font-weight: 750;
+}
+.ko-tree-team.is-winner {
+  background: linear-gradient(135deg, rgba(50,213,131,.22), rgba(110,231,249,.10));
+  border-color: rgba(50,213,131,.38);
+}
+.ko-tree-team.is-winner strong {
+  background: rgba(50,213,131,.22);
+  border: 1px solid rgba(50,213,131,.52);
+  color: #d7ffe9;
 }
 .knockout-round-head {
   display: flex;
@@ -6426,11 +6545,11 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   .knockout-status {
     grid-template-columns: 1fr;
   }
-  .knockout-bracket-scroll {
-    grid-template-columns: repeat(5, 255px);
-    margin-left: -2px;
-    margin-right: -2px;
-    padding-bottom: 18px;
+  .ko-tree-scroll {
+    margin-left: -8px;
+    margin-right: -8px;
+    padding: 10px;
+    border-radius: 22px;
   }
   .knockout-third-place {
     max-width: none;
@@ -6444,8 +6563,9 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     padding: 14px;
     border-radius: 20px;
   }
-  .knockout-bracket-scroll {
-    grid-template-columns: repeat(5, 245px);
+  .ko-tree-svg {
+    width: 1810px;
+    min-width: 1810px;
   }
   .knockout-match {
     padding: 12px;
