@@ -296,6 +296,7 @@ const NAV_ITEMS = [
   { id: 'predictii', label: 'Pronosticuri' },
   { id: 'rezultate', label: 'Rezultate' },
   { id: 'grupe', label: 'Grupe' },
+  { id: 'eliminatorii', label: 'Eliminatorii', admin: true },
   { id: 'lucky-strike', label: 'Lucky Strike' },
   { id: 'clasament', label: 'Clasament' },
   { id: 'parcurs-preview', label: 'Evoluție' },
@@ -1005,6 +1006,220 @@ function renderGroups() {
       </tbody></table></div>`;
 
   $('groupStandings').innerHTML = groupCards + thirdPlaceCard;
+}
+
+
+const KNOCKOUT_ROUNDS = [
+  { stage: 'Round of 32', label: 'Șaisprezecimi', range: 'Meciurile 73–88' },
+  { stage: 'Round of 16', label: 'Optimi', range: 'Meciurile 89–96' },
+  { stage: 'Quarterfinals', label: 'Sferturi', range: 'Meciurile 97–100' },
+  { stage: 'Semifinals', label: 'Semifinale', range: 'Meciurile 101–102' },
+  { stage: 'Final', label: 'Finală', range: 'Meciul 104' }
+];
+
+function knockoutRoundName(stage) {
+  return KNOCKOUT_ROUNDS.find(r => r.stage === stage)?.label || stage;
+}
+
+function knockoutPlaceholderLabel(slot) {
+  const raw = String(slot || '').trim();
+  const direct = raw.match(/^([12])([A-L])$/);
+  if (direct) return `Locul ${direct[1]} Grupa ${direct[2]}`;
+  const third = raw.match(/^3([A-L](?:\/[A-L])*)$/);
+  if (third) return `Locul 3 Gr. ${third[1]}`;
+  return raw
+    .replace(/^Winner\s+/i, 'Câștigătoare ')
+    .replace(/^Loser\s+/i, 'Învinsă ');
+}
+
+function knockoutRoundOf32ThirdSlots() {
+  return allMatches()
+    .filter(m => Number(m.matchNo) >= 73 && Number(m.matchNo) <= 88)
+    .flatMap(m => ['home', 'away'].map(side => ({ match: m, side, slot: m[side] })))
+    .filter(item => /^3[A-L](?:\/[A-L])*$/.test(String(item.slot || '').trim()))
+    .map(item => ({
+      key: `${item.match.id}-${item.side}`,
+      matchId: item.match.id,
+      side: item.side,
+      slot: item.slot,
+      candidates: String(item.slot).replace(/^3/, '').split('/')
+    }));
+}
+
+function knockoutThirdPlaceAssignments(groups = groupStats()) {
+  if (!areAllGroupsComplete()) return {};
+  const thirdRows = bestThirdPlaceRows(groups).slice(0, 8);
+  const slots = knockoutRoundOf32ThirdSlots();
+  const assigned = {};
+
+  function backtrack(index, usedGroups) {
+    if (index >= slots.length) return true;
+    const slot = slots[index];
+    const candidates = thirdRows.filter(row => slot.candidates.includes(row.group) && !usedGroups.has(row.group));
+    for (const row of candidates) {
+      assigned[slot.key] = row;
+      usedGroups.add(row.group);
+      if (backtrack(index + 1, usedGroups)) return true;
+      usedGroups.delete(row.group);
+      delete assigned[slot.key];
+    }
+    return false;
+  }
+
+  if (!backtrack(0, new Set())) {
+    // Fallback defensiv: alege cea mai bună echipă disponibilă pentru fiecare slot.
+    const usedGroups = new Set();
+    slots.forEach(slot => {
+      const row = thirdRows.find(r => slot.candidates.includes(r.group) && !usedGroups.has(r.group));
+      if (row) {
+        assigned[slot.key] = row;
+        usedGroups.add(row.group);
+      }
+    });
+  }
+  return assigned;
+}
+
+function resolveGroupPositionSlot(slot, groups) {
+  const match = String(slot || '').trim().match(/^([12])([A-L])$/);
+  if (!match) return null;
+  const position = Number(match[1]);
+  const group = match[2];
+  if (groupPlayedMatchesCount(group) !== 6) {
+    return { label: knockoutPlaceholderLabel(slot), team: null, placeholder: true, detail: `Așteaptă finalizarea Grupei ${group}` };
+  }
+  const row = sortGroupRows(Object.values(groups[group] || {}))[position - 1];
+  if (!row) return { label: knockoutPlaceholderLabel(slot), team: null, placeholder: true, detail: `Nu există încă suficiente date pentru Grupa ${group}` };
+  return { label: row.team, team: row.team, placeholder: false, detail: `Locul ${position} · Grupa ${group}` };
+}
+
+function resolveThirdPlaceSlot(slot, groups, assignments, key) {
+  const match = String(slot || '').trim().match(/^3([A-L](?:\/[A-L])*)$/);
+  if (!match) return null;
+  if (!areAllGroupsComplete()) {
+    return { label: knockoutPlaceholderLabel(slot), team: null, placeholder: true, detail: 'Așteaptă finalizarea tuturor grupelor' };
+  }
+  const row = assignments[key];
+  if (!row) return { label: knockoutPlaceholderLabel(slot), team: null, placeholder: true, detail: 'Slotul de locul 3 va fi stabilit automat' };
+  return { label: row.team, team: row.team, placeholder: false, detail: `Locul 3 · Grupa ${row.group}` };
+}
+
+function resolveKnockoutEndpoint(raw, sideKey, context) {
+  const slot = String(raw || '').trim();
+  const winner = slot.match(/^Winner\s+(.+)$/i);
+  if (winner) {
+    const source = winner[1].trim();
+    return context.winners[source] || { label: knockoutPlaceholderLabel(slot), team: null, placeholder: true, detail: `Așteaptă câștigătoarea ${source}` };
+  }
+  const loser = slot.match(/^Loser\s+(.+)$/i);
+  if (loser) {
+    const source = loser[1].trim();
+    return context.losers[source] || { label: knockoutPlaceholderLabel(slot), team: null, placeholder: true, detail: `Așteaptă învinsa ${source}` };
+  }
+  const groupSlot = resolveGroupPositionSlot(slot, context.groups);
+  if (groupSlot) return groupSlot;
+  const thirdSlot = resolveThirdPlaceSlot(slot, context.groups, context.thirdAssignments, sideKey);
+  if (thirdSlot) return thirdSlot;
+  return { label: canonicalTeamName(slot), team: canonicalTeamName(slot), placeholder: isPlaceholderTeam(slot), detail: '' };
+}
+
+function knockoutWinnerSide(match) {
+  const m = effectiveMatch(match);
+  if (!hasResult(m)) return null;
+  const home = Number(m.resultHome);
+  const away = Number(m.resultAway);
+  if (home > away) return 'home';
+  if (away > home) return 'away';
+  return null;
+}
+
+function buildKnockoutBracketState() {
+  const groups = groupStats();
+  const context = {
+    groups,
+    thirdAssignments: knockoutThirdPlaceAssignments(groups),
+    winners: {},
+    losers: {}
+  };
+
+  const matches = allEffectiveMatches()
+    .filter(isKnockout)
+    .slice()
+    .sort((a, b) => Number(a.matchNo || 0) - Number(b.matchNo || 0));
+
+  const resolvedMatches = matches.map(match => {
+    const home = resolveKnockoutEndpoint(match.home, `${match.id}-home`, context);
+    const away = resolveKnockoutEndpoint(match.away, `${match.id}-away`, context);
+    const winnerSide = knockoutWinnerSide(match);
+    const winner = winnerSide === 'home' ? home : winnerSide === 'away' ? away : null;
+    const loser = winnerSide === 'home' ? away : winnerSide === 'away' ? home : null;
+    const resultLabel = hasResult(match) ? `${effectiveMatch(match).resultHome} - ${effectiveMatch(match).resultAway}` : '—';
+    const resolved = { ...match, resolvedHome: home, resolvedAway: away, winnerSide, resultLabel };
+
+    if (winner?.team || winner?.label) context.winners[match.id] = { ...winner, detail: `Câștigătoare ${match.id}` };
+    if (loser?.team || loser?.label) context.losers[match.id] = { ...loser, detail: `Învinsă ${match.id}` };
+    return resolved;
+  });
+
+  return { matches: resolvedMatches, context };
+}
+
+function knockoutTeamMarkup(entry, score, isWinner = false) {
+  const label = entry?.label || '—';
+  const detail = entry?.detail || '';
+  return `<div class="knockout-team ${entry?.placeholder ? 'is-placeholder' : ''} ${isWinner ? 'is-winner' : ''}">
+    <div class="knockout-team-main">${teamInline(label)}<strong class="knockout-score-cell">${score}</strong></div>
+    ${detail ? `<small>${escapeHtml(detail)}</small>` : ''}
+  </div>`;
+}
+
+function renderKnockoutMatchCard(match) {
+  const played = hasResult(match);
+  const effective = effectiveMatch(match);
+  const homeScore = played ? Number(effective.resultHome) : '—';
+  const awayScore = played ? Number(effective.resultAway) : '—';
+  const tieNote = played && !match.winnerSide ? '<div class="knockout-warning">Egalitate: așteaptă departajarea / date complete din API.</div>' : '';
+  return `<article class="knockout-match ${played ? 'is-played' : ''}">
+    <div class="knockout-match-top">
+      <span>#${match.matchNo}</span>
+      <span>${escapeHtml(formatRoDate(match))} RO</span>
+    </div>
+    ${knockoutTeamMarkup(match.resolvedHome, homeScore, match.winnerSide === 'home')}
+    ${knockoutTeamMarkup(match.resolvedAway, awayScore, match.winnerSide === 'away')}
+    ${tieNote}
+    <div class="knockout-match-bottom">${escapeHtml(match.venue || '')}</div>
+  </article>`;
+}
+
+function renderEliminatorii() {
+  const wrap = $('knockoutBracket');
+  const status = $('knockoutStatus');
+  if (!wrap || !status) return;
+
+  const { matches } = buildKnockoutBracketState();
+  const groupPlayed = allMatches().filter(m => isGroup(m) && hasResult(m)).length;
+  const knockoutPlayed = matches.filter(m => hasResult(m)).length;
+  const r32 = matches.filter(m => Number(m.matchNo) >= 73 && Number(m.matchNo) <= 88);
+  const resolvedR32Sides = r32.reduce((count, m) => count + [m.resolvedHome, m.resolvedAway].filter(side => !side?.placeholder).length, 0);
+
+  status.innerHTML = `<div class="knockout-status-card"><span>Grupe finalizate</span><strong>${areAllGroupsComplete() ? 'Da' : 'Nu'}</strong><small>${groupPlayed}/72 rezultate grupe</small></div>
+    <div class="knockout-status-card"><span>Sloturi Round of 32</span><strong>${resolvedR32Sides}/32</strong><small>Se completează din clasamente</small></div>
+    <div class="knockout-status-card"><span>Meciuri eliminatorii jucate</span><strong>${knockoutPlayed}/32</strong><small>Câștigătoarele avansează automat</small></div>`;
+
+  const mainRounds = KNOCKOUT_ROUNDS.map(round => {
+    const roundMatches = matches.filter(m => m.stage === round.stage);
+    return `<section class="knockout-round">
+      <div class="knockout-round-head"><strong>${round.label}</strong><span>${round.range}</span></div>
+      <div class="knockout-round-matches">${roundMatches.map(renderKnockoutMatchCard).join('')}</div>
+    </section>`;
+  }).join('');
+
+  const thirdPlace = matches.filter(m => m.stage === 'Third place play-off');
+  wrap.innerHTML = `<div class="knockout-bracket-scroll">${mainRounds}</div>
+    <section class="knockout-third-place">
+      <div class="knockout-round-head"><strong>Finala mică</strong><span>Meciul 103</span></div>
+      <div class="knockout-round-matches">${thirdPlace.map(renderKnockoutMatchCard).join('')}</div>
+    </section>`;
 }
 
 
@@ -2970,7 +3185,7 @@ function renderParcursPreview() {
   if (note) note.innerHTML = '';
 }
 
-function renderAll() { renderPredictions(); renderResults(); renderGroups(); renderLuckyStrike(); renderLeaderboard(); renderAdminScores(); renderEmailPreview(); renderParcursPreview(); }
+function renderAll() { renderPredictions(); renderResults(); renderGroups(); renderEliminatorii(); renderLuckyStrike(); renderLeaderboard(); renderAdminScores(); renderEmailPreview(); renderParcursPreview(); }
 
 
 function adminTestNow() {
