@@ -109,7 +109,14 @@ async function loadData() {
     console.warn('[app-api] match overrides not available', err.message);
   }
 
-  return { users, predictions, results, luckyStrikes, matchOverrides };
+  let prizeDismissals = [];
+  try {
+    prizeDismissals = await supabaseFetch('/wc2026_prize_popup_dismissals?select=user_id,dismissed_at');
+  } catch (err) {
+    console.warn('[app-api] prize popup dismissals not available', err.message);
+  }
+
+  return { users, predictions, results, luckyStrikes, matchOverrides, prizeDismissals };
 }
 
 async function registerOrLogin({ name, email }) {
@@ -168,6 +175,19 @@ async function saveLuckyStrike({ userId, team }) {
   return { ok: true };
 }
 
+async function dismissPrizePopup({ userId }) {
+  if (!userId) throw new Error('Lipsește userul pentru închiderea pop-up-ului de premii.');
+  await supabaseFetch('/wc2026_prize_popup_dismissals?on_conflict=user_id', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Prefer: 'resolution=merge-duplicates,return=minimal'
+    },
+    body: JSON.stringify({ user_id: userId, dismissed_at: new Date().toISOString() })
+  });
+  return { ok: true };
+}
+
 async function adminDeleteUser({ adminEmail, adminPin, targetEmail }) {
   const data = await rpc('wc2026_admin_delete_user', {
     admin_email: adminEmail,
@@ -198,6 +218,7 @@ exports.handler = async (event) => {
     if (action === 'registerOrLogin') return json(200, await registerOrLogin(body));
     if (action === 'savePredictions') return json(200, await savePredictions(body));
     if (action === 'saveLuckyStrike') return json(200, await saveLuckyStrike(body));
+    if (action === 'dismissPrizePopup') return json(200, await dismissPrizePopup(body));
     if (action === 'adminDeleteUser') return json(200, await adminDeleteUser(body));
     if (action === 'adminReplaceResults') return json(200, await adminReplaceResults(body));
 

@@ -12,6 +12,11 @@ create table if not exists public.wc2026_users (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.wc2026_prize_popup_dismissals (
+  user_id uuid primary key references public.wc2026_users(id) on delete cascade,
+  dismissed_at timestamptz not null default now()
+);
+
 create table if not exists public.wc2026_predictions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.wc2026_users(id) on delete cascade,
@@ -41,6 +46,7 @@ values (true, 'admin@gmail.com', 'ADMIN_PIN_DEFAULT')
 on conflict (id) do update set admin_email = excluded.admin_email, admin_pin = excluded.admin_pin;
 
 alter table public.wc2026_users enable row level security;
+alter table public.wc2026_prize_popup_dismissals enable row level security;
 alter table public.wc2026_predictions enable row level security;
 alter table public.wc2026_results enable row level security;
 alter table public.wc2026_admin_settings enable row level security;
@@ -48,6 +54,9 @@ alter table public.wc2026_admin_settings enable row level security;
 -- Ștergem politicile dacă există, ca scriptul să poată fi rulat de mai multe ori.
 drop policy if exists "wc2026_users_select" on public.wc2026_users;
 drop policy if exists "wc2026_users_insert" on public.wc2026_users;
+drop policy if exists "wc2026_prize_popup_dismissals_select" on public.wc2026_prize_popup_dismissals;
+drop policy if exists "wc2026_prize_popup_dismissals_insert" on public.wc2026_prize_popup_dismissals;
+drop policy if exists "wc2026_prize_popup_dismissals_update" on public.wc2026_prize_popup_dismissals;
 drop policy if exists "wc2026_predictions_select" on public.wc2026_predictions;
 drop policy if exists "wc2026_predictions_insert" on public.wc2026_predictions;
 drop policy if exists "wc2026_predictions_update" on public.wc2026_predictions;
@@ -55,6 +64,10 @@ drop policy if exists "wc2026_results_select" on public.wc2026_results;
 
 create policy "wc2026_users_select" on public.wc2026_users for select using (true);
 create policy "wc2026_users_insert" on public.wc2026_users for insert with check (true);
+
+create policy "wc2026_prize_popup_dismissals_select" on public.wc2026_prize_popup_dismissals for select using (true);
+create policy "wc2026_prize_popup_dismissals_insert" on public.wc2026_prize_popup_dismissals for insert with check (true);
+create policy "wc2026_prize_popup_dismissals_update" on public.wc2026_prize_popup_dismissals for update using (true) with check (true);
 
 create policy "wc2026_predictions_select" on public.wc2026_predictions for select using (true);
 create policy "wc2026_predictions_insert" on public.wc2026_predictions for insert with check (true);

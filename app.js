@@ -5,7 +5,8 @@ const STORAGE = {
   predictions: 'wc2026_predictions_v3',
   resultOverrides: 'wc2026_result_overrides_v1',
   luckyStrikes: 'wc2026_lucky_strikes_v1',
-  matchOverrides: 'wc2026_match_overrides_v1'
+  matchOverrides: 'wc2026_match_overrides_v1',
+  prizePopupDismissals: 'wc2026_prize_popup_dismissals_v1'
 };
 const ADMIN_ACCOUNT = { name: 'admin', email: 'admin@gmail.com' };
 const LOCK_HOURS_BEFORE_START = 0.5;
@@ -49,6 +50,7 @@ let predictionsCache = {};
 let resultsCache = {};
 let luckyStrikesCache = {};
 let matchOverridesCache = {};
+let prizePopupDismissalsCache = {};
 let onlineMode = false;
 let supabaseClient = null;
 
@@ -156,6 +158,8 @@ function localLuckyStrikes() { return JSON.parse(localStorage.getItem(STORAGE.lu
 function saveLocalLuckyStrikes(data) { localStorage.setItem(STORAGE.luckyStrikes, JSON.stringify(data)); }
 function localMatchOverrides() { return JSON.parse(localStorage.getItem(STORAGE.matchOverrides) || '{}'); }
 function saveLocalMatchOverrides(data) { localStorage.setItem(STORAGE.matchOverrides, JSON.stringify(data)); }
+function localPrizePopupDismissals() { return JSON.parse(localStorage.getItem(STORAGE.prizePopupDismissals) || '{}'); }
+function saveLocalPrizePopupDismissals(data) { localStorage.setItem(STORAGE.prizePopupDismissals, JSON.stringify(data)); }
 
 function normalizeUserRow(u) {
   return {
@@ -177,6 +181,7 @@ async function loadOnlineData() {
   const results = payload.results || [];
   const luckyRows = payload.luckyStrikes || [];
   const overrideRows = payload.matchOverrides || [];
+  const prizeRows = payload.prizeDismissals || [];
 
   usersCache = users.map(normalizeUserRow);
 
@@ -217,6 +222,11 @@ async function loadOnlineData() {
     }
   });
 
+  prizePopupDismissalsCache = {};
+  prizeRows.forEach(row => {
+    if (row.user_id) prizePopupDismissalsCache[row.user_id] = { dismissedAt: row.dismissed_at || row.created_at || true };
+  });
+
   matchOverridesCache = {};
   overrideRows.forEach(row => {
     if (row.match_id) {
@@ -235,6 +245,7 @@ function loadLocalData() {
   resultsCache = localResults();
   luckyStrikesCache = localLuckyStrikes();
   matchOverridesCache = localMatchOverrides();
+  prizePopupDismissalsCache = localPrizePopupDismissals();
 }
 
 async function refreshData() {
@@ -247,6 +258,7 @@ function getAllPredictions() { return predictionsCache; }
 function getResultOverrides() { return resultsCache; }
 function getLuckyStrikes() { return luckyStrikesCache || {}; }
 function getMatchOverrides() { return matchOverridesCache || {}; }
+function getPrizePopupDismissals() { return prizePopupDismissalsCache || {}; }
 
 function applyMatchOverride(m) {
   const o = getMatchOverrides()[m.id];
@@ -391,40 +403,43 @@ function registerOrLoginLocal(name, email) {
 }
 
 
-const PRIZE_POPUP_SEEN_PREFIX = 'wc2026_prize_popup_seen_v2_';
-const PRIZE_POPUP_LOGIN_ID_KEY = 'wc2026_prize_popup_login_id_v2';
 
-function safeSessionGet(key) {
-  try { return sessionStorage.getItem(key); }
-  catch { return null; }
+const PRIZE_POPUP_DISMISSED_PREFIX = 'wc2026_prize_popup_dismissed_v1_';
+
+function prizePopupIdentity() {
+  return normalize(currentUser?.email || currentUser?.username || currentUser?.name || 'guest');
 }
 
-function safeSessionSet(key, value) {
-  try { sessionStorage.setItem(key, value); }
-  catch {}
+function prizePopupDismissedKey() {
+  return `${PRIZE_POPUP_DISMISSED_PREFIX}${prizePopupIdentity()}`;
 }
 
-function safeSessionRemove(key) {
-  try { sessionStorage.removeItem(key); }
-  catch {}
+function isPrizePopupDismissedForCurrentUser() {
+  if (!currentUser) return true;
+  const dismissals = getPrizePopupDismissals();
+  if (currentUser.id && dismissals[currentUser.id]) return true;
+  try { return localStorage.getItem(prizePopupDismissedKey()) === '1'; }
+  catch { return false; }
 }
 
-function ensurePrizePopupLoginId(reset = false) {
-  if (!currentUser) return 'guest';
-  let loginId = safeSessionGet(PRIZE_POPUP_LOGIN_ID_KEY);
-  if (reset || !loginId) {
-    loginId = `${Date.now()}_${normalize(currentUser.email || currentUser.username || currentUser.name || 'user')}`;
-    safeSessionSet(PRIZE_POPUP_LOGIN_ID_KEY, loginId);
+async function persistPrizePopupDismissedForCurrentUser() {
+  if (!currentUser) return;
+  const localKey = prizePopupDismissedKey();
+  try { localStorage.setItem(localKey, '1'); } catch {}
+
+  if (currentUser.id) {
+    prizePopupDismissalsCache[currentUser.id] = { dismissedAt: new Date().toISOString() };
   }
-  return loginId;
+
+  if (!onlineMode || !currentUser.id) return;
+  try {
+    await appApi('dismissPrizePopup', { userId: currentUser.id });
+  } catch (err) {
+    console.warn('[prize-popup] Nu am putut salva închiderea în Supabase.', err);
+  }
 }
 
-function prizePopupSessionKey() {
-  const identity = normalize(currentUser?.email || currentUser?.username || currentUser?.name || 'guest');
-  return `${PRIZE_POPUP_SEEN_PREFIX}${identity}_${ensurePrizePopupLoginId(false)}`;
-}
-
-function closePrizePopup(markSeen = true) {
+function closePrizePopup(markDismissed = true) {
   const modal = $('prizePopupModal');
   if (!modal) return;
   modal.classList.add('hidden');
@@ -433,15 +448,16 @@ function closePrizePopup(markSeen = true) {
   modal.style.removeProperty('visibility');
   modal.style.removeProperty('opacity');
   document.body.classList.remove('prize-popup-open');
-  if (markSeen && currentUser) safeSessionSet(prizePopupSessionKey(), '1');
+  if (markDismissed) persistPrizePopupDismissedForCurrentUser();
 }
 
 function maybeShowPrizePopup() {
   const modal = $('prizePopupModal');
   if (!modal || !currentUser) return;
-  if (safeSessionGet(prizePopupSessionKey()) === '1') return;
+  if (isPrizePopupDismissedForCurrentUser()) return;
 
   const openPopup = () => {
+    if (isPrizePopupDismissedForCurrentUser()) return;
     modal.classList.remove('hidden');
     modal.setAttribute('data-open', 'true');
     modal.style.display = 'grid';
@@ -491,8 +507,6 @@ $('loginForm').addEventListener('submit', async (e) => {
     const user = onlineMode ? await registerOrLoginOnline(name, email) : registerOrLoginLocal(name, email);
     currentUser = { id: user.id, name: user.name, username: user.name, email: user.email, role: user.role };
     localStorage.setItem(STORAGE.current, JSON.stringify(currentUser));
-    ensurePrizePopupLoginId(true);
-    safeSessionRemove(prizePopupSessionKey());
     try { history.replaceState(null, '', '#predictii'); }
     catch { location.hash = 'predictii'; }
     await showApp();
@@ -511,8 +525,6 @@ $('loginForm').addEventListener('submit', async (e) => {
 $('logoutBtn').addEventListener('click', () => {
   localStorage.removeItem(STORAGE.current);
   sessionStorage.removeItem('wc2026_admin_pin');
-  if (currentUser) safeSessionRemove(prizePopupSessionKey());
-  safeSessionRemove(PRIZE_POPUP_LOGIN_ID_KEY);
   currentUser = null;
   location.hash = 'home';
   showLanding();
@@ -789,9 +801,81 @@ function updateLivePredPill(e) {
   const away = document.querySelector(`.prediction-score-select[data-id="${id}"][data-side="away"]`)?.value ?? '';
   const pill = document.querySelector(`[data-pred="${id}"]`);
   if (pill) pill.textContent = predictionFromScore(home, away);
+  schedulePredictionAutoSave(id);
 }
 
-$('savePredictions').addEventListener('click', async () => {
+
+const PREDICTION_AUTOSAVE_DELAY_MS = 450;
+const predictionAutoSaveTimers = {};
+let predictionAutoSaveBusy = false;
+
+function updatePredictionsCacheForCurrentUser(matchId, home, away) {
+  const email = normalize(currentUser?.email);
+  if (!email || !matchId) return;
+  predictionsCache[email] ||= {};
+  predictionsCache[email][matchId] = {
+    home,
+    away,
+    updatedAt: new Date().toISOString()
+  };
+}
+
+async function savePredictionMatch(matchId, { silent = false } = {}) {
+  if (!currentUser || !matchId) return;
+  const match = allMatches().find(m => String(m.id) === String(matchId));
+  if (!match || isLocked(match)) return;
+
+  const scoreInputs = Array.from(document.querySelectorAll('#matchList .prediction-score-select'));
+  const homeEl = scoreInputs.find(input => String(input.dataset.id) === String(matchId) && input.dataset.side === 'home');
+  const awayEl = scoreInputs.find(input => String(input.dataset.id) === String(matchId) && input.dataset.side === 'away');
+  if (!homeEl || !awayEl || homeEl.disabled || awayEl.disabled) return;
+  if (homeEl.value === '' || awayEl.value === '') return;
+
+  const home = Number(homeEl.value);
+  const away = Number(awayEl.value);
+  if (!Number.isInteger(home) || !Number.isInteger(away)) return;
+  if (home < 0 || home > 20 || away < 0 || away > 20) return;
+
+  try {
+    if (onlineMode) {
+      const row = {
+        user_id: currentUser.id,
+        match_id: String(matchId),
+        home,
+        away,
+        updated_at: new Date().toISOString()
+      };
+      const saveInfo = await appApi('savePredictions', { rows: [row] });
+      if (saveInfo?.blocked) {
+        if (!silent) toast('Meciul este blocat. Pronosticul nu a fost salvat.');
+        return;
+      }
+    } else {
+      const all = localPredictions();
+      const existing = all[currentUser.email] || {};
+      existing[matchId] = { home, away, updatedAt: new Date().toISOString() };
+      all[currentUser.email] = existing;
+      saveLocalPredictions(all);
+    }
+
+    updatePredictionsCacheForCurrentUser(matchId, home, away);
+    if (!silent) toast('Pronostic salvat automat.');
+  } catch (err) {
+    console.error(err);
+    if (!silent) toast('Nu am putut salva automat pronosticul.');
+  }
+}
+
+function schedulePredictionAutoSave(matchId) {
+  if (!matchId) return;
+  clearTimeout(predictionAutoSaveTimers[matchId]);
+  predictionAutoSaveTimers[matchId] = setTimeout(() => {
+    savePredictionMatch(matchId);
+  }, PREDICTION_AUTOSAVE_DELAY_MS);
+}
+
+const savePredictionsBtn = $('savePredictions');
+if (savePredictionsBtn) savePredictionsBtn.addEventListener('click', async () => {
   if (!currentUser) return;
   const inputs = Array.from(document.querySelectorAll('#matchList .prediction-score-select'));
   const grouped = {};

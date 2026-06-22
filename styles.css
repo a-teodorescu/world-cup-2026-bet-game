@@ -6226,3 +6226,9 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     align-content: flex-start;
   }
 }
+
+/* Pronosticurile se salvează automat când ambele scoruri sunt completate. */
+#savePredictions,
+.prediction-save-manual-hidden {
+  display: none !important;
+}
