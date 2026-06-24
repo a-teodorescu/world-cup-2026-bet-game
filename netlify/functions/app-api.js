@@ -80,6 +80,24 @@ async function supabaseFetch(path, options = {}) {
   return data;
 }
 
+async function supabaseFetchAll(path, options = {}) {
+  const pageSize = Number(options.pageSize || 1000);
+  const separator = path.includes('?') ? '&' : '?';
+  const allRows = [];
+  let offset = 0;
+
+  while (true) {
+    const page = await supabaseFetch(`${path}${separator}limit=${pageSize}&offset=${offset}`);
+    if (!Array.isArray(page)) return page;
+
+    allRows.push(...page);
+    if (page.length < pageSize) break;
+    offset += pageSize;
+  }
+
+  return allRows;
+}
+
 async function rpc(fn, payload) {
   return supabaseFetch(`/rpc/${fn}`, {
     method: 'POST',
@@ -90,28 +108,28 @@ async function rpc(fn, payload) {
 
 async function loadData() {
   const [users, predictions, results] = await Promise.all([
-    supabaseFetch('/wc2026_users?select=id,username,email,role,created_at&order=created_at.asc'),
-    supabaseFetch('/wc2026_predictions?select=user_id,match_id,home,away,updated_at'),
-    supabaseFetch('/wc2026_results?select=match_id,home,away,updated_at')
+    supabaseFetchAll('/wc2026_users?select=id,username,email,role,created_at&order=created_at.asc'),
+    supabaseFetchAll('/wc2026_predictions?select=user_id,match_id,home,away,updated_at&order=user_id.asc,match_id.asc'),
+    supabaseFetchAll('/wc2026_results?select=match_id,home,away,updated_at&order=match_id.asc')
   ]);
 
   let luckyStrikes = [];
   try {
-    luckyStrikes = await supabaseFetch('/wc2026_lucky_strikes?select=user_id,team,created_at');
+    luckyStrikes = await supabaseFetchAll('/wc2026_lucky_strikes?select=user_id,team,created_at&order=created_at.asc');
   } catch (err) {
     console.warn('[app-api] lucky strikes not available', err.message);
   }
 
   let matchOverrides = [];
   try {
-    matchOverrides = await supabaseFetch('/wc2026_match_overrides?select=match_id,home,away,api_match_id,updated_at');
+    matchOverrides = await supabaseFetchAll('/wc2026_match_overrides?select=match_id,home,away,api_match_id,updated_at&order=match_id.asc');
   } catch (err) {
     console.warn('[app-api] match overrides not available', err.message);
   }
 
   let prizeDismissals = [];
   try {
-    prizeDismissals = await supabaseFetch('/wc2026_prize_popup_dismissals?select=user_id,dismissed_at');
+    prizeDismissals = await supabaseFetchAll('/wc2026_prize_popup_dismissals?select=user_id,dismissed_at&order=dismissed_at.asc');
   } catch (err) {
     console.warn('[app-api] prize popup dismissals not available', err.message);
   }
@@ -124,7 +142,7 @@ async function registerOrLogin({ name, email }) {
   const cleanEmail = normalize(email);
   if (!cleanName || !cleanEmail) throw new Error('Numele și emailul sunt obligatorii.');
 
-  const users = await supabaseFetch('/wc2026_users?select=id,username,email,role,created_at&order=created_at.asc');
+  const users = await supabaseFetchAll('/wc2026_users?select=id,username,email,role,created_at&order=created_at.asc');
   const sameNameDifferentEmail = (users || []).find(u => normalize(u.username) === normalize(cleanName) && normalize(u.email) !== cleanEmail);
   if (sameNameDifferentEmail) throw new Error(`Numele „${cleanName}” există deja în clasament. Alege alt nume.`);
 
