@@ -1274,7 +1274,7 @@ function knockoutTreeLayout() {
 
   const finalPos = positions['F-01'];
   if (finalPos) {
-    const thirdPlaceY = finalPos.y + finalH + 28;
+    const thirdPlaceY = finalPos.y + finalH + 38;
     const thirdPlaceCenter = thirdPlaceY + finalH / 2;
     positions['TP-01'] = { id: 'TP-01', x: finalPos.x, y: thirdPlaceY, w: finalW, h: finalH, cx: finalPos.x + finalW / 2, cy: thirdPlaceCenter };
   }
