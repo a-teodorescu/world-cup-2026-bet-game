@@ -1238,7 +1238,7 @@ const KNOCKOUT_TREE_PYRAMID = {
 
 function knockoutTreeLayout() {
   const cardW = 205;
-  const cardH = 80;
+  const cardH = 82;
   const finalW = cardW;
   const finalH = cardH;
   const width = 1440;
@@ -1278,10 +1278,10 @@ function knockoutTreeLayout() {
 function knockoutTreeColumnLabels(layout) {
   const labels = [
     { x: 20 + 102.5, y: 28, label: 'Șaisprezecimi' },
-    { x: 310 + 102.5, y: 44, label: 'Optimi' },
-    { x: 600 + 102.5, y: 44, label: 'Sferturi' },
-    { x: 890 + 102.5, y: 44, label: 'Semifinale' },
-    { x: 1160 + 102.5, y: 44, label: 'Finală' }
+    { x: 310 + 102.5, y: 78, label: 'Optimi' },
+    { x: 600 + 102.5, y: 162, label: 'Sferturi' },
+    { x: 890 + 102.5, y: 330, label: 'Semifinale' },
+    { x: 1160 + 102.5, y: 666, label: 'Finală' }
   ];
   return labels.map(item => `<text class="ko-tree-label" x="${item.x}" y="${item.y}" text-anchor="middle">${escapeHtml(item.label)}</text>`).join('');
 }
