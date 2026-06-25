@@ -774,8 +774,10 @@ function renderPredictions() {
   const list = $('matchList');
   const preds = userPredictions();
   const filtered = allMatches().filter(m => currentFilter === 'all' || (currentFilter === 'group' && isGroup(m)) || (currentFilter === 'knockout' && m.matchNo >= 73 && m.matchNo <= 104));
+  const knockoutDisplayMap = filtered.some(isKnockout) ? resolvedKnockoutMatchMap() : new Map();
   const nextMatchId = nextUnplayedMatchId(filtered);
   list.innerHTML = filtered.map(m => {
+    const displayMatch = matchWithResolvedKnockoutTeams(m, knockoutDisplayMap);
     const p = preds[m.id] || {};
     const locked = isLocked(m);
     const pred = predictionFromScore(p.home ?? '', p.away ?? '');
@@ -784,9 +786,9 @@ function renderPredictions() {
     return `<article class="match-card ${locked ? 'locked' : ''}"${currentPredictionMatchAttr(m.id, nextMatchId)}>
       <div class="match-meta"><span>#${m.matchNo} • ${groupLabel}</span><span>${formatRoDate(m)} RO</span></div>
       <div class="prediction-duel">
-        ${predictionSideScoreBlock(m.home, m.id, 'home', p.home, locked)}
+        ${predictionSideScoreBlock(displayMatch.home, m.id, 'home', p.home, locked)}
         <span class="prediction-vs">vs</span>
-        ${predictionSideScoreBlock(m.away, m.id, 'away', p.away, locked)}
+        ${predictionSideScoreBlock(displayMatch.away, m.id, 'away', p.away, locked)}
       </div>
       <div class="prediction-pill">Pronostic:<strong data-pred="${m.id}">${pred}</strong></div>
       <div class="lock-info">${m.venue} • blocare: ${new Intl.DateTimeFormat('ro-RO', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }).format(new Date(new Date(m.startTimeRo).getTime() - LOCK_HOURS_BEFORE_START*3600000))} RO</div>
@@ -924,13 +926,15 @@ function renderResults() {
   const preds = userPredictions();
   let total = 0;
   const playedOrPredicted = allMatches().filter(m => hasResult(m) || preds[m.id]);
+  const knockoutDisplayMap = playedOrPredicted.some(isKnockout) ? resolvedKnockoutMatchMap() : new Map();
   $('resultsList').innerHTML = playedOrPredicted.length ? playedOrPredicted.map(m => {
+    const displayMatch = matchWithResolvedKnockoutTeams(m, knockoutDisplayMap);
     const pred = preds[m.id];
     const realMatch = effectiveMatch(m);
     const sc = scorePrediction(realMatch, pred);
     total += sc.points;
     return `<article class="result-row ${sc.type}">
-      <div class="result-match-info"><strong>${matchTitle(m)}</strong><span>${isGroup(m) ? 'Grupa ' + m.group : m.stage} • ${formatRoDate(m)} RO</span></div>
+      <div class="result-match-info"><strong>${matchTitle(displayMatch)}</strong><span>${isGroup(m) ? 'Grupa ' + m.group : m.stage} • ${formatRoDate(m)} RO</span></div>
       <div class="score-box"><b>Rezultat</b><span>${hasResult(realMatch) ? `${realMatch.resultHome} - ${realMatch.resultAway}` : 'Nejucat'}</span></div>
       <div class="score-box user-score"><b>Pronosticul tău</b><span>${pred?.home ?? '—'} - ${pred?.away ?? '—'}</span></div>
       <div class="points"><strong>${sc.points}p</strong><span>${sc.type === 'exact' ? 'Scor exact' : sc.type === 'winner' ? 'Pronostic corect' : sc.type === 'wrong' ? 'Greșit' : 'În așteptare'}</span></div>
@@ -1164,6 +1168,20 @@ function buildKnockoutBracketState() {
   return { matches: resolvedMatches, context };
 }
 
+
+function resolvedKnockoutMatchMap() {
+  return new Map(buildKnockoutBracketState().matches.map(match => [match.id, match]));
+}
+
+function matchWithResolvedKnockoutTeams(match, knockoutMap = null) {
+  if (!match || !isKnockout(match)) return match;
+  const resolved = knockoutMap?.get(match.id);
+  if (!resolved) return match;
+  const home = resolved.resolvedHome?.label || match.home;
+  const away = resolved.resolvedAway?.label || match.away;
+  return { ...match, home, away, resolvedHome: resolved.resolvedHome, resolvedAway: resolved.resolvedAway };
+}
+
 function knockoutTeamMarkup(entry, score, isWinner = false) {
   const label = entry?.label || '—';
   const detail = entry?.detail || '';
@@ -1219,13 +1237,13 @@ const KNOCKOUT_TREE_PYRAMID = {
 };
 
 function knockoutTreeLayout() {
-  const cardW = 170;
-  const cardH = 62;
-  const finalW = 210;
-  const finalH = 82;
-  const width = 1220;
-  const height = 1225;
-  const r32Centers = Array.from({ length: 16 }, (_, index) => 70 + index * 72);
+  const cardW = 205;
+  const cardH = 76;
+  const finalW = 245;
+  const finalH = 94;
+  const width = 1440;
+  const height = 1420;
+  const r32Centers = Array.from({ length: 16 }, (_, index) => 82 + index * 84);
   const r16Centers = r32Centers.reduce((items, center, index) => {
     if (index % 2 === 0) items.push((center + r32Centers[index + 1]) / 2);
     return items;
@@ -1249,21 +1267,21 @@ function knockoutTreeLayout() {
   }
 
   place(KNOCKOUT_TREE_PYRAMID.columns[0].ids, 20, r32Centers);
-  place(KNOCKOUT_TREE_PYRAMID.columns[1].ids, 260, r16Centers);
-  place(KNOCKOUT_TREE_PYRAMID.columns[2].ids, 500, qfCenters);
-  place(KNOCKOUT_TREE_PYRAMID.columns[3].ids, 740, sfCenters);
-  place(KNOCKOUT_TREE_PYRAMID.columns[4].ids, 970, finalCenters, finalW, finalH);
+  place(KNOCKOUT_TREE_PYRAMID.columns[1].ids, 310, r16Centers);
+  place(KNOCKOUT_TREE_PYRAMID.columns[2].ids, 600, qfCenters);
+  place(KNOCKOUT_TREE_PYRAMID.columns[3].ids, 890, sfCenters);
+  place(KNOCKOUT_TREE_PYRAMID.columns[4].ids, 1160, finalCenters, finalW, finalH);
 
   return { width, height, cardW, cardH, finalW, finalH, positions };
 }
 
 function knockoutTreeColumnLabels(layout) {
   const labels = [
-    { x: 20 + 85, label: 'Șaisprezecimi' },
-    { x: 260 + 85, label: 'Optimi' },
-    { x: 500 + 85, label: 'Sferturi' },
-    { x: 740 + 85, label: 'Semifinale' },
-    { x: 970 + 105, label: 'Finală' }
+    { x: 20 + 102.5, label: 'Șaisprezecimi' },
+    { x: 310 + 102.5, label: 'Optimi' },
+    { x: 600 + 102.5, label: 'Sferturi' },
+    { x: 890 + 102.5, label: 'Semifinale' },
+    { x: 1160 + 122.5, label: 'Finală' }
   ];
   return labels.map(item => `<text class="ko-tree-label" x="${item.x}" y="28" text-anchor="middle">${escapeHtml(item.label)}</text>`).join('');
 }

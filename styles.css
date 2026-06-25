@@ -6288,9 +6288,9 @@ section[data-section="clasament"] .leaderboard-intro-icon {
 }
 .ko-tree-svg {
   display: block;
-  width: 1220px;
-  min-width: 1220px;
-  height: 1225px;
+  width: 1440px;
+  min-width: 1440px;
+  height: 1420px;
 }
 .ko-tree-label {
   fill: rgba(231,238,255,.78);
@@ -6311,9 +6311,9 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   height: 100%;
   box-sizing: border-box;
   overflow: hidden;
-  padding: 6px;
+  padding: 8px;
   border: 1px solid rgba(255,255,255,.14);
-  border-radius: 16px;
+  border-radius: 18px;
   background:
     radial-gradient(circle at top left, rgba(139,92,246,.16), transparent 56%),
     linear-gradient(180deg, rgba(15,23,42,.96), rgba(8,13,25,.94));
@@ -6338,22 +6338,22 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   color: rgba(167,180,200,.82);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 900;
   letter-spacing: .05em;
   text-transform: uppercase;
 }
 .ko-tree-team {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 24px;
+  grid-template-columns: minmax(0, 1fr) 30px;
   align-items: center;
-  gap: 6px;
-  height: 18px;
-  margin-top: 2px;
-  padding: 0 5px;
-  border-radius: 10px;
+  gap: 7px;
+  height: 23px;
+  margin-top: 3px;
+  padding: 0 7px;
+  border-radius: 12px;
   background: rgba(255,255,255,.055);
   border: 1px solid rgba(255,255,255,.055);
 }
@@ -6362,27 +6362,27 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   display: flex;
 }
 .ko-tree-team .flag-badge {
-  width: 20px;
-  height: 20px;
-  min-width: 20px;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
 }
 .ko-tree-team .team-name {
-  max-width: 96px;
+  max-width: 128px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 850;
 }
 .ko-tree-team strong {
   display: grid;
   place-items: center;
-  width: 24px;
-  height: 18px;
-  border-radius: 8px;
+  width: 30px;
+  height: 21px;
+  border-radius: 9px;
   background: rgba(7,17,31,.78);
   color: var(--text);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 950;
 }
 .ko-tree-team.is-placeholder {
@@ -6561,8 +6561,8 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     border-radius: 20px;
   }
   .ko-tree-svg {
-    width: 1220px;
-    min-width: 1220px;
+    width: 1440px;
+    min-width: 1440px;
   }
   .knockout-match {
     padding: 12px;
