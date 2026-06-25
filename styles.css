@@ -232,7 +232,7 @@ code { background: rgba(255,255,255,.1); padding: 2px 7px; border-radius: 8px; c
 
 .leaderboard-user .leaderboard-email {
   display: block;
-  margin-top: 4px;
+  margin-top: 3px;
   color: rgba(226, 232, 240, .78);
   font-size: .78rem;
   line-height: 1.25;
@@ -1416,7 +1416,7 @@ body.modal-open {
   right: 0;
   max-height: 260px;
   overflow: auto;
-  padding: 8px 8px 11px;
+  padding: 8px;
   border-radius: 20px;
   border: 1px solid rgba(255,255,255,.16);
   background: rgba(10, 20, 36, .96);
@@ -6274,8 +6274,8 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   gap: 18px;
 }
 .ko-tree-scroll {
-  overflow-x: auto;
-  overflow-y: auto;
+  overflow-x: hidden;
+  overflow-y: visible;
   border: 1px solid rgba(255,255,255,.13);
   border-radius: 28px;
   background:
@@ -6288,9 +6288,10 @@ section[data-section="clasament"] .leaderboard-intro-icon {
 }
 .ko-tree-svg {
   display: block;
-  width: 1440px;
-  min-width: 1440px;
-  height: 1490px;
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  aspect-ratio: 1440 / 1420;
 }
 .ko-tree-label {
   fill: rgba(231,238,255,.78);
@@ -6311,7 +6312,7 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   height: 100%;
   box-sizing: border-box;
   overflow: hidden;
-  padding: 8px;
+  padding: 8px 8px 10px;
   border: 1px solid rgba(255,255,255,.14);
   border-radius: 18px;
   background:
@@ -6350,7 +6351,7 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   grid-template-columns: minmax(0, 1fr) 30px;
   align-items: center;
   gap: 7px;
-  min-height: 25px;
+  height: 23px;
   margin-top: 3px;
   padding: 0 7px;
   border-radius: 12px;
@@ -6543,10 +6544,18 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     grid-template-columns: 1fr;
   }
   .ko-tree-scroll {
+    overflow-x: auto;
+    overflow-y: auto;
     margin-left: -8px;
     margin-right: -8px;
     padding: 10px;
     border-radius: 22px;
+  }
+  .ko-tree-svg {
+    width: 1440px;
+    min-width: 1440px;
+    height: 1420px;
+    aspect-ratio: auto;
   }
   .knockout-third-place {
     max-width: none;
