@@ -1276,12 +1276,17 @@ function knockoutTreeLayout() {
 }
 
 function knockoutTreeColumnLabels(layout) {
+  const sameGapAsFirstRound = 13;
+  const labelForMatch = (matchId, label, x) => {
+    const pos = layout.positions[matchId];
+    return { x, y: Math.max(24, Math.round((pos?.y || 41) - sameGapAsFirstRound)), label };
+  };
   const labels = [
-    { x: 20 + 102.5, y: 28, label: 'Șaisprezecimi' },
-    { x: 310 + 102.5, y: 78, label: 'Optimi' },
-    { x: 600 + 102.5, y: 162, label: 'Sferturi' },
-    { x: 890 + 102.5, y: 330, label: 'Semifinale' },
-    { x: 1160 + 102.5, y: 666, label: 'Finală' }
+    labelForMatch('R32-01', 'Șaisprezecimi', 20 + 102.5),
+    labelForMatch('R16-01', 'Optimi', 310 + 102.5),
+    labelForMatch('QF-01', 'Sferturi', 600 + 102.5),
+    labelForMatch('SF-01', 'Semifinale', 890 + 102.5),
+    labelForMatch('F-01', 'Finală', 1160 + 102.5)
   ];
   return labels.map(item => `<text class="ko-tree-label" x="${item.x}" y="${item.y}" text-anchor="middle">${escapeHtml(item.label)}</text>`).join('');
 }
