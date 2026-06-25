@@ -2774,50 +2774,92 @@ function parcursBuildSnapshots(mode) {
 
   if (mode === 'round') {
     const sortByKickoff = (a, b) => new Date(a.startTimeRo).getTime() - new Date(b.startTimeRo).getTime() || Number(a.matchNo || 0) - Number(b.matchNo || 0);
-    const groupMatches = completed.filter(isGroup).slice().sort(sortByKickoff);
+    const snapshots = [{ label: 'Start', match: null, matches: [] }];
     const groupOrder = 'ABCDEFGHIJKL'.split('');
-    const byGroup = {};
+    const allGroupMatches = allMatches().filter(isGroup).slice().sort(sortByKickoff);
+    const completedGroupMatches = completed.filter(isGroup).slice().sort(sortByKickoff);
+    const completedIds = new Set(completed.map(m => m.id));
+
+    const expectedByGroup = {};
     groupOrder.forEach(g => {
-      byGroup[g] = groupMatches.filter(m => m.group === g).slice().sort(sortByKickoff);
+      expectedByGroup[g] = allGroupMatches.filter(m => m.group === g).slice().sort(sortByKickoff);
     });
 
-    const snapshots = [{ label: 'Start', match: null, matches: [] }];
-
     for (let round = 1; round <= 3; round += 1) {
-      const neededMatchesPerGroup = round * 2;
-      const completeGroups = groupOrder.filter(g => (byGroup[g] || []).length >= neededMatchesPerGroup);
-      if (!completeGroups.length) continue;
+      const expectedUpToRound = [];
+      const expectedCurrentRound = [];
 
-      const scopeIds = new Set();
-      completeGroups.forEach(g => {
-        byGroup[g].slice(0, neededMatchesPerGroup).forEach(m => scopeIds.add(m.id));
+      groupOrder.forEach(g => {
+        const list = expectedByGroup[g] || [];
+        expectedUpToRound.push(...list.slice(0, round * 2));
+        expectedCurrentRound.push(...list.slice((round - 1) * 2, round * 2));
       });
 
-      const scope = completed.filter(m => scopeIds.has(m.id)).slice().sort(sortByKickoff);
-      snapshots.push({
-        label: `Grupe R${round}`,
-        match: scope[scope.length - 1],
-        matches: scope
-      });
+      const expectedUpToRoundIds = new Set(expectedUpToRound.map(m => m.id));
+      const expectedCurrentRoundIds = new Set(expectedCurrentRound.map(m => m.id));
+      const currentRoundCompletedCount = Array.from(expectedCurrentRoundIds).filter(id => completedIds.has(id)).length;
+      const roundIsComplete = expectedCurrentRoundIds.size > 0 && currentRoundCompletedCount === expectedCurrentRoundIds.size;
+      const roundHasStarted = currentRoundCompletedCount > 0;
+
+      if (roundIsComplete) {
+        const scope = completedGroupMatches.filter(m => expectedUpToRoundIds.has(m.id)).slice().sort(sortByKickoff);
+        snapshots.push({
+          label: `Grupe R${round}`,
+          match: scope[scope.length - 1] || null,
+          matches: scope
+        });
+        continue;
+      }
+
+      if (roundHasStarted) {
+        snapshots.push({
+          label: `Grupe R${round}`,
+          match: completedGroupMatches[completedGroupMatches.length - 1] || null,
+          matches: completedGroupMatches.slice()
+        });
+      }
+      break;
     }
 
     const knockoutRounds = [
-      { label: '16-imi', matches: completed.filter(m => Number(m.matchNo) >= 73 && Number(m.matchNo) <= 88) },
-      { label: 'Optimi', matches: completed.filter(m => Number(m.matchNo) >= 89 && Number(m.matchNo) <= 96) },
-      { label: 'Sferturi', matches: completed.filter(m => Number(m.matchNo) >= 97 && Number(m.matchNo) <= 100) },
-      { label: 'Semifinale', matches: completed.filter(m => Number(m.matchNo) >= 101 && Number(m.matchNo) <= 102) },
-      { label: 'Finale', matches: completed.filter(m => Number(m.matchNo) >= 103 && Number(m.matchNo) <= 104) }
+      { label: '16-imi', min: 73, max: 88 },
+      { label: 'Optimi', min: 89, max: 96 },
+      { label: 'Sferturi', min: 97, max: 100 },
+      { label: 'Semifinale', min: 101, max: 102 },
+      { label: 'Finale', min: 103, max: 104 }
     ];
 
-    knockoutRounds.forEach(round => {
-      if (!round.matches.length) return;
-      const latest = round.matches.slice().sort(sortByKickoff).at(-1);
+    for (const round of knockoutRounds) {
+      const expectedRoundMatches = allMatches()
+        .filter(m => Number(m.matchNo) >= round.min && Number(m.matchNo) <= round.max)
+        .slice()
+        .sort(sortByKickoff);
+      const completedRoundMatches = completed
+        .filter(m => Number(m.matchNo) >= round.min && Number(m.matchNo) <= round.max)
+        .slice()
+        .sort(sortByKickoff);
+
+      if (!completedRoundMatches.length) break;
+
+      const roundIsComplete = expectedRoundMatches.length > 0 && completedRoundMatches.length >= expectedRoundMatches.length;
+      const latest = completedRoundMatches[completedRoundMatches.length - 1];
+
+      if (roundIsComplete) {
+        snapshots.push({
+          label: round.label,
+          match: latest,
+          matches: completed.filter(m => new Date(m.startTimeRo).getTime() <= new Date(latest.startTimeRo).getTime()).slice().sort(sortByKickoff)
+        });
+        continue;
+      }
+
       snapshots.push({
         label: round.label,
         match: latest,
-        matches: completed.filter(m => new Date(m.startTimeRo).getTime() <= new Date(latest.startTimeRo).getTime()).slice().sort(sortByKickoff)
+        matches: completed.slice().sort(sortByKickoff)
       });
-    });
+      break;
+    }
 
     if (snapshots.length > 1) return snapshots;
 
@@ -2834,7 +2876,6 @@ function parcursBuildSnapshots(mode) {
     matches: completed.filter(x => new Date(x.startTimeRo).getTime() <= new Date(m.startTimeRo).getTime())
   }));
 }
-
 function parcursBuildRealDataset(mode) {
   let snapshots = parcursBuildSnapshots(mode);
   const users = getUsers().filter(u => !isAdminUser(u));
