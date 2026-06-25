@@ -1238,9 +1238,9 @@ const KNOCKOUT_TREE_PYRAMID = {
 
 function knockoutTreeLayout() {
   const cardW = 205;
-  const cardH = 78;
+  const cardH = 82;
   const finalW = 245;
-  const finalH = 96;
+  const finalH = 100;
   const width = 1440;
   const height = 1420;
   const r32Centers = Array.from({ length: 16 }, (_, index) => 82 + index * 84);
