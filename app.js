@@ -1238,12 +1238,12 @@ const KNOCKOUT_TREE_PYRAMID = {
 
 function knockoutTreeLayout() {
   const cardW = 205;
-  const cardH = 76;
+  const cardH = 84;
   const finalW = 245;
-  const finalH = 94;
+  const finalH = 104;
   const width = 1440;
-  const height = 1420;
-  const r32Centers = Array.from({ length: 16 }, (_, index) => 82 + index * 84);
+  const height = 1490;
+  const r32Centers = Array.from({ length: 16 }, (_, index) => 88 + index * 88);
   const r16Centers = r32Centers.reduce((items, center, index) => {
     if (index % 2 === 0) items.push((center + r32Centers[index + 1]) / 2);
     return items;
