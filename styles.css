@@ -6237,6 +6237,10 @@ section[data-section="clasament"] .leaderboard-intro-icon {
 #eliminatorii .knockout-section-head .eyebrow {
   margin: 0 0 8px;
 }
+#eliminatorii .knockout-public-note {
+  margin-top: 8px;
+  max-width: 760px;
+}
 .knockout-status {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -6312,7 +6316,7 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   height: 100%;
   box-sizing: border-box;
   overflow: hidden;
-  padding: 8px 8px 14px;
+  padding: 6px 8px 10px;
   border: 1px solid rgba(255,255,255,.14);
   border-radius: 18px;
   background:
@@ -6339,7 +6343,7 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   color: rgba(167,180,200,.82);
   font-size: 11px;
   font-weight: 900;
@@ -6351,9 +6355,9 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   grid-template-columns: minmax(0, 1fr) 30px;
   align-items: center;
   gap: 7px;
-  height: 23px;
-  margin-top: 4px;
-  padding: 0 7px;
+  height: 26px;
+  margin-top: 3px;
+  padding: 0 8px;
   border-radius: 12px;
   background: rgba(255,255,255,.055);
   border: 1px solid rgba(255,255,255,.055);
