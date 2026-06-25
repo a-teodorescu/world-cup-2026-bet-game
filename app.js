@@ -296,7 +296,7 @@ const NAV_ITEMS = [
   { id: 'predictii', label: 'Pronosticuri' },
   { id: 'rezultate', label: 'Rezultate' },
   { id: 'grupe', label: 'Grupe' },
-  { id: 'eliminatorii', label: 'Eliminatorii', admin: true },
+  { id: 'eliminatorii', label: 'Eliminatorii' },
   { id: 'lucky-strike', label: 'Lucky Strike' },
   { id: 'clasament', label: 'Clasament' },
   { id: 'parcurs-preview', label: 'Evoluție' },
@@ -1272,6 +1272,13 @@ function knockoutTreeLayout() {
   place(KNOCKOUT_TREE_PYRAMID.columns[3].ids, 890, sfCenters);
   place(KNOCKOUT_TREE_PYRAMID.columns[4].ids, 1160, finalCenters, finalW, finalH);
 
+  const finalPos = positions['F-01'];
+  if (finalPos) {
+    const thirdPlaceY = finalPos.y + finalH + 28;
+    const thirdPlaceCenter = thirdPlaceY + finalH / 2;
+    positions['TP-01'] = { id: 'TP-01', x: finalPos.x, y: thirdPlaceY, w: finalW, h: finalH, cx: finalPos.x + finalW / 2, cy: thirdPlaceCenter };
+  }
+
   return { width, height, cardW, cardH, finalW, finalH, positions };
 }
 
@@ -1341,7 +1348,7 @@ function renderKnockoutTreeCard(match, isFinal = false) {
 function knockoutTreeCards(layout, matchesById) {
   return Object.entries(layout.positions).map(([id, pos]) => {
     const match = matchesById.get(id);
-    const isFinal = id === 'F-01';
+    const isFinal = id === 'F-01' || id === 'TP-01';
     return `<foreignObject x="${pos.x}" y="${pos.y}" width="${pos.w}" height="${pos.h}">
       ${renderKnockoutTreeCard(match, isFinal)}
     </foreignObject>`;
@@ -1377,16 +1384,15 @@ function renderEliminatorii() {
   const r32 = matches.filter(m => Number(m.matchNo) >= 73 && Number(m.matchNo) <= 88);
   const resolvedR32Sides = r32.reduce((count, m) => count + [m.resolvedHome, m.resolvedAway].filter(side => !side?.placeholder).length, 0);
 
-  status.innerHTML = `<div class="knockout-status-card"><span>Grupe finalizate</span><strong>${areAllGroupsComplete() ? 'Da' : 'Nu'}</strong><small>${groupPlayed}/72 rezultate grupe</small></div>
-    <div class="knockout-status-card"><span>Sloturi Round of 32</span><strong>${resolvedR32Sides}/32</strong><small>Se completează din clasamente</small></div>
-    <div class="knockout-status-card"><span>Meciuri eliminatorii jucate</span><strong>${knockoutPlayed}/32</strong><small>Câștigătoarele avansează automat din rezultate/API</small></div>`;
+  if (isAdminUser()) {
+    status.innerHTML = `<div class="knockout-status-card"><span>Grupe finalizate</span><strong>${areAllGroupsComplete() ? 'Da' : 'Nu'}</strong><small>${groupPlayed}/72 rezultate grupe</small></div>
+      <div class="knockout-status-card"><span>Sloturi Round of 32</span><strong>${resolvedR32Sides}/32</strong><small>Se completează din clasamente</small></div>
+      <div class="knockout-status-card"><span>Meciuri eliminatorii jucate</span><strong>${knockoutPlayed}/32</strong><small>Câștigătoarele avansează automat din rezultate/API</small></div>`;
+  } else {
+    status.innerHTML = '';
+  }
 
-  const thirdPlace = matches.filter(m => m.stage === 'Third place play-off');
-  wrap.innerHTML = `${renderKnockoutTree(matches)}
-    <section class="knockout-third-place">
-      <div class="knockout-round-head"><strong>Finala mică</strong><span>Meciul 103</span></div>
-      <div class="knockout-round-matches">${thirdPlace.map(renderKnockoutMatchCard).join('')}</div>
-    </section>`;
+  wrap.innerHTML = renderKnockoutTree(matches);
 }
 
 

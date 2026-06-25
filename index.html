@@ -23,7 +23,7 @@
       <a href="#predictii">Pronosticuri</a>
       <a href="#rezultate">Rezultate</a>
       <a href="#grupe">Grupe</a>
-      <a href="#eliminatorii" class="admin-only">Eliminatorii</a>
+      <a href="#eliminatorii">Eliminatorii</a>
       <a href="#lucky-strike">Lucky Strike</a>
       <a href="#clasament">Clasament</a>
       <a href="#parcurs-preview">Evoluție</a>
@@ -39,7 +39,7 @@
         <option value="predictii">Pronosticuri</option>
         <option value="rezultate">Rezultate</option>
         <option value="grupe">Grupe</option>
-        <option value="eliminatorii" class="admin-only-option">Eliminatorii</option>
+        <option value="eliminatorii">Eliminatorii</option>
         <option value="lucky-strike">Lucky Strike</option>
         <option value="clasament">Clasament</option>
         <option value="parcurs-preview">Evoluție</option>
@@ -128,12 +128,12 @@
       <div id="groupStandings" class="groups-grid"></div>
     </section>
 
-    <section id="eliminatorii" class="section app-section admin-only-section" data-section="eliminatorii">
+    <section id="eliminatorii" class="section app-section" data-section="eliminatorii">
       <div class="section-head knockout-section-head">
         <div>
-          <p class="eyebrow">Admin preview</p>
+          <p class="eyebrow admin-visible-note">Admin preview</p>
           <h2>Eliminatorii</h2>
-          <p>Tabloul se completează automat din clasamentele grupelor și din rezultatele reale sincronizate prin API. Momentan pagina este vizibilă doar pentru admin.</p>
+          <p class="admin-visible-note">Tabloul se completează automat din clasamentele grupelor și din rezultatele reale sincronizate prin API.</p>
         </div>
       </div>
       <div id="knockoutStatus" class="knockout-status"></div>
