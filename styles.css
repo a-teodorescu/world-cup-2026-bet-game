@@ -6295,7 +6295,7 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   width: 100%;
   min-width: 0;
   height: auto;
-  aspect-ratio: 1440 / 1420;
+  aspect-ratio: 1440 / 1480;
 }
 .ko-tree-label {
   fill: rgba(231,238,255,.78);
@@ -6316,7 +6316,7 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   height: 100%;
   box-sizing: border-box;
   overflow: hidden;
-  padding: 6px 8px 10px;
+  padding: 5px 8px 7px;
   border: 1px solid rgba(255,255,255,.14);
   border-radius: 18px;
   background:
@@ -6343,9 +6343,10 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
   color: rgba(167,180,200,.82);
-  font-size: 11px;
+  font-size: 10.5px;
+  line-height: 1.05;
   font-weight: 900;
   letter-spacing: .05em;
   text-transform: uppercase;
@@ -6355,12 +6356,15 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   grid-template-columns: minmax(0, 1fr) 30px;
   align-items: center;
   gap: 7px;
-  height: 26px;
-  margin-top: 3px;
-  padding: 0 8px;
+  height: 28px;
+  margin-top: 0;
+  padding: 0 9px;
   border-radius: 12px;
   background: rgba(255,255,255,.055);
   border: 1px solid rgba(255,255,255,.055);
+}
+.ko-tree-team + .ko-tree-team {
+  margin-top: 2px;
 }
 .ko-tree-team .team-inline {
   min-width: 0;
@@ -6558,7 +6562,7 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   .ko-tree-svg {
     width: 1440px;
     min-width: 1440px;
-    height: 1420px;
+    height: 1480px;
     aspect-ratio: auto;
   }
   .knockout-third-place {
