@@ -1215,7 +1215,7 @@ const KNOCKOUT_TREE_PYRAMID = {
     { key: 'r16', label: 'Optimi', ids: ['R16-01', 'R16-02', 'R16-05', 'R16-06', 'R16-03', 'R16-04', 'R16-07', 'R16-08'] },
     { key: 'qf', label: 'Sferturi', ids: ['QF-01', 'QF-02', 'QF-03', 'QF-04'] },
     { key: 'sf', label: 'Semifinale', ids: ['SF-01', 'SF-02'] },
-    { key: 'final', label: 'Finală', ids: ['F-01'] }
+    { key: 'final', label: 'Finala Mare', ids: ['F-01'] }
   ],
   edges: [
     ['R32-01', 'R16-01'], ['R32-04', 'R16-01'],
@@ -1293,7 +1293,8 @@ function knockoutTreeColumnLabels(layout) {
     labelForMatch('R16-01', 'Optimi', 310 + 102.5),
     labelForMatch('QF-01', 'Sferturi', 600 + 102.5),
     labelForMatch('SF-01', 'Semifinale', 890 + 102.5),
-    labelForMatch('F-01', 'Finală', 1160 + 102.5)
+    labelForMatch('F-01', 'Finala Mare', 1160 + 102.5),
+    labelForMatch('TP-01', 'Finala mică', 1160 + 102.5)
   ];
   return labels.map(item => `<text class="ko-tree-label" x="${item.x}" y="${item.y}" text-anchor="middle">${escapeHtml(item.label)}</text>`).join('');
 }
