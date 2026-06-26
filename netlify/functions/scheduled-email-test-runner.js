@@ -129,6 +129,24 @@ async function supabaseGet(baseUrl, anonKey, table, query = '') {
   return response.json();
 }
 
+async function supabaseGetAll(baseUrl, anonKey, table, query = '', pageSize = 1000) {
+  const allRows = [];
+  let offset = 0;
+  const separator = query.includes('?') ? '&' : '?';
+
+  while (true) {
+    const pagedQuery = `${query}${separator}limit=${pageSize}&offset=${offset}`;
+    const page = await supabaseGet(baseUrl, anonKey, table, pagedQuery);
+    if (!Array.isArray(page)) return page;
+
+    allRows.push(...page);
+    if (page.length < pageSize) break;
+    offset += pageSize;
+  }
+
+  return allRows;
+}
+
 async function supabaseInsert(baseUrl, anonKey, table, row) {
   const response = await fetch(`${baseUrl}/rest/v1/${table}`, {
     method: 'POST',
@@ -239,7 +257,7 @@ async function runOneScheduledTest(test, env) {
 
   // Load all users and exclude only explicit admin accounts. Older users may not have
   // a clean role value, but they still must receive scheduled test emails.
-  const rawUsers = await supabaseGet(SUPABASE_URL, SUPABASE_ANON_KEY, 'wc2026_users', '?select=id,username,email,role');
+  const rawUsers = await supabaseGetAll(SUPABASE_URL, SUPABASE_ANON_KEY, 'wc2026_users', '?select=id,username,email,role&order=id.asc');
   const players = rawUsers
     .filter(u => {
       const email = String(u.email || '').trim().toLowerCase();
@@ -253,14 +271,16 @@ async function runOneScheduledTest(test, env) {
     .map(u => ({ id: u.id, name: u.username || String(u.email).split('@')[0], email: String(u.email).toLowerCase() }));
 
   console.log('[WC2026 one-time emails] users loaded', JSON.stringify({ rawUsers: rawUsers.length, players: players.length }));
-  const predictions = await supabaseGet(SUPABASE_URL, SUPABASE_ANON_KEY, 'wc2026_predictions', '?select=user_id,match_id,home,away');
-  const resultsRows = await supabaseGet(SUPABASE_URL, SUPABASE_ANON_KEY, 'wc2026_results', '?select=match_id,home,away');
+  const predictions = await supabaseGetAll(SUPABASE_URL, SUPABASE_ANON_KEY, 'wc2026_predictions', '?select=user_id,match_id,home,away&order=user_id.asc,match_id.asc');
+  const resultsRows = await supabaseGetAll(SUPABASE_URL, SUPABASE_ANON_KEY, 'wc2026_results', '?select=match_id,home,away&order=match_id.asc');
   let luckyRows = [];
   try {
-    luckyRows = await supabaseGet(SUPABASE_URL, SUPABASE_ANON_KEY, 'wc2026_lucky_strikes', '?select=user_id,team');
+    luckyRows = await supabaseGetAll(SUPABASE_URL, SUPABASE_ANON_KEY, 'wc2026_lucky_strikes', '?select=user_id,team&order=user_id.asc');
   } catch (_) {
     luckyRows = [];
   }
+
+  console.log('[WC2026 emails] data loaded', JSON.stringify({ users: players.length, predictions: predictions.length, results: resultsRows.length, luckyStrikes: luckyRows.length }));
 
   const resultsByMatch = new Map(resultsRows.map(r => [r.match_id, { home: Number(r.home), away: Number(r.away) }]));
   const predsByUserMatch = new Map(predictions.map(p => [`${p.user_id}|${p.match_id}`, { home: Number(p.home), away: Number(p.away) }]));
