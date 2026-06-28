@@ -150,7 +150,9 @@ function looseMatchKey(home, away) {
 const MANUAL_KNOCKOUT_TEAM_CORRECTIONS = {
   'R32-03': { home: 'Germany', away: 'Paraguay' },
   'R32-06': { home: 'France', away: 'Sweden' },
+  'R32-07': { home: 'Mexico', away: 'Ecuador' },
   'R32-09': { home: 'Belgium', away: 'Senegal' },
+  'R32-10': { home: 'USA', away: 'Bosnia and Herzegovina' },
   'R32-13': { home: 'Switzerland', away: 'Algeria' }
 };
 
