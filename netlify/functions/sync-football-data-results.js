@@ -147,12 +147,25 @@ function looseMatchKey(home, away) {
 }
 
 
+const MANUAL_KNOCKOUT_TEAM_CORRECTIONS = {
+  'R32-03': { home: 'Germany', away: 'Paraguay' },
+  'R32-06': { home: 'France', away: 'Sweden' },
+  'R32-09': { home: 'Belgium', away: 'Senegal' },
+  'R32-13': { home: 'Switzerland', away: 'Algeria' }
+};
+
+function applyManualKnockoutTeamCorrection(match) {
+  const correction = MANUAL_KNOCKOUT_TEAM_CORRECTIONS[match?.id];
+  if (!correction) return match;
+  return { ...match, home: correction.home, away: correction.away };
+}
+
 function applyMatchOverrides(matches, overrides) {
   const byId = new Map((overrides || []).map(row => [row.match_id, row]));
   return matches.map(m => {
     const o = byId.get(m.id);
-    if (!o || !o.home || !o.away) return m;
-    return { ...m, home: o.home, away: o.away, apiMatchId: o.api_match_id };
+    const withOverride = (!o || !o.home || !o.away) ? m : { ...m, home: o.home, away: o.away, apiMatchId: o.api_match_id };
+    return applyManualKnockoutTeamCorrection(withOverride);
   });
 }
 

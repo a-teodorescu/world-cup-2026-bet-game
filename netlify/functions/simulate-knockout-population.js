@@ -44,6 +44,19 @@ async function validateAdmin(baseUrl, anonKey, adminEmail, adminPin) {
   if (ok !== true) throw new Error('PIN admin invalid.');
 }
 
+const MANUAL_KNOCKOUT_TEAM_CORRECTIONS = {
+  'R32-03': { home: 'Germany', away: 'Paraguay' },
+  'R32-06': { home: 'France', away: 'Sweden' },
+  'R32-09': { home: 'Belgium', away: 'Senegal' },
+  'R32-13': { home: 'Switzerland', away: 'Algeria' }
+};
+
+function applyManualKnockoutRowCorrection(row) {
+  const correction = MANUAL_KNOCKOUT_TEAM_CORRECTIONS[row?.match_id];
+  if (!correction) return row;
+  return { ...row, home: correction.home, away: correction.away };
+}
+
 async function upsertOverrides(baseUrl, anonKey, rows) {
   const response = await fetch(`${baseUrl}/rest/v1/wc2026_match_overrides?on_conflict=match_id`, {
     method: 'POST',
@@ -111,6 +124,7 @@ exports.handler = async (event) => {
       }));
     }
 
+    rows = rows.map(applyManualKnockoutRowCorrection);
     await upsertOverrides(SUPABASE_URL, SUPABASE_ANON_KEY, rows);
     const flagsFound = rows.reduce((acc, row) => acc + (TEAM_FLAGS[row.home] ? 1 : 0) + (TEAM_FLAGS[row.away] ? 1 : 0), 0);
     const placeholderPattern = /winner|loser|runner|third|group|match|tbd|to be decided|qualified|place|\d+[a-z]|\d+[a-z]\//i;

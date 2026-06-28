@@ -260,10 +260,30 @@ function getLuckyStrikes() { return luckyStrikesCache || {}; }
 function getMatchOverrides() { return matchOverridesCache || {}; }
 function getPrizePopupDismissals() { return prizePopupDismissalsCache || {}; }
 
+const MANUAL_KNOCKOUT_TEAM_CORRECTIONS = {
+  'R32-03': { home: 'Germany', away: 'Paraguay' },
+  'R32-06': { home: 'France', away: 'Sweden' },
+  'R32-09': { home: 'Belgium', away: 'Senegal' },
+  'R32-13': { home: 'Switzerland', away: 'Algeria' }
+};
+
+function applyManualKnockoutTeamCorrection(match) {
+  const correction = MANUAL_KNOCKOUT_TEAM_CORRECTIONS[match?.id];
+  if (!correction) return match;
+  return {
+    ...match,
+    home: correction.home,
+    away: correction.away,
+    fixtureSource: match.fixtureSource || 'manual-knockout-correction'
+  };
+}
+
 function applyMatchOverride(m) {
   const o = getMatchOverrides()[m.id];
-  if (!o || !o.home || !o.away) return m;
-  return { ...m, home: canonicalTeamName(o.home), away: canonicalTeamName(o.away), fixtureSource: 'football-data.org', apiMatchId: o.apiMatchId };
+  const withOverride = (!o || !o.home || !o.away)
+    ? m
+    : { ...m, home: canonicalTeamName(o.home), away: canonicalTeamName(o.away), fixtureSource: 'football-data.org', apiMatchId: o.apiMatchId };
+  return applyManualKnockoutTeamCorrection(withOverride);
 }
 function allMatches() { return MATCHES.map(applyMatchOverride); }
 function effectiveMatch(m) {

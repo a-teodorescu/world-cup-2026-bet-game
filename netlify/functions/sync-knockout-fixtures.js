@@ -97,6 +97,19 @@ function hasKnownTeams(apiMatch) {
   const placeholderPattern = /winner|runner|third|group|match|tbd|to be decided|qualified|place/i;
   return !placeholderPattern.test(home) && !placeholderPattern.test(away);
 }
+
+const MANUAL_KNOCKOUT_TEAM_CORRECTIONS = {
+  'R32-03': { home: 'Germany', away: 'Paraguay' },
+  'R32-06': { home: 'France', away: 'Sweden' },
+  'R32-09': { home: 'Belgium', away: 'Senegal' },
+  'R32-13': { home: 'Switzerland', away: 'Algeria' }
+};
+
+function applyManualKnockoutRowCorrection(row) {
+  const correction = MANUAL_KNOCKOUT_TEAM_CORRECTIONS[row?.match_id];
+  if (!correction) return row;
+  return { ...row, home: correction.home, away: correction.away, api_stage: row.api_stage || 'MANUAL_CORRECTION' };
+}
 function summarizeApiMatch(match) {
   const { dateRo, timeRo } = roDateTimeFromUtc(match?.utcDate);
   return {
@@ -207,9 +220,19 @@ async function runSync({ mode, adminEmail, adminPin }) {
     updated.push({ match_id: internal.id, matchNo: internal.matchNo, dateRo: internal.romaniaDate, home: api.home, away: api.away, apiMatchId: api.apiMatchId, stage: api.stage, changed: isChanged });
   }
 
-  if (changed > 0) await supabaseUpsertOverrides(SUPABASE_URL, SUPABASE_ANON_KEY, rows);
+  const forcedCorrectionRows = Object.entries(MANUAL_KNOCKOUT_TEAM_CORRECTIONS).map(([match_id, teams]) => ({
+    match_id,
+    home: teams.home,
+    away: teams.away,
+    api_match_id: existingById.get(match_id)?.api_match_id || null,
+    api_stage: 'MANUAL_KNOCKOUT_CORRECTION',
+    api_utc_date: existingById.get(match_id)?.api_utc_date || null,
+    updated_at: new Date().toISOString()
+  }));
+  const correctedRows = [...rows.map(applyManualKnockoutRowCorrection), ...forcedCorrectionRows];
+  await supabaseUpsertOverrides(SUPABASE_URL, SUPABASE_ANON_KEY, correctedRows);
 
-  const summary = { mode, apiMatches: apiMatches.length, knockoutApi: apiKnockouts.length, ready: matched, matched, changed, updated, pendingSample: pending.slice(0, 10) };
+  const summary = { mode, apiMatches: apiMatches.length, knockoutApi: apiKnockouts.length, ready: matched, matched, changed: changed + forcedCorrectionRows.length, updated: correctedRows.map(row => ({ match_id: row.match_id, home: row.home, away: row.away, apiMatchId: row.api_match_id, stage: row.api_stage })), pendingSample: pending.slice(0, 10) };
   await supabaseInsertLog(SUPABASE_URL, SUPABASE_ANON_KEY, { provider: 'football-data.org', mode: `knockout-${mode}`, status: 'success', summary });
   return summary;
 }
