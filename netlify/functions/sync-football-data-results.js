@@ -49,13 +49,25 @@ function roDateFromUtc(utcDate) {
   return getRomaniaIsoDate(new Date(utcDate));
 }
 
+function roDateTimeFromUtc(utcDate) {
+  if (!utcDate) return { dateRo: '', timeRo: '' };
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Bucharest',
+    year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit',
+    hourCycle: 'h23'
+  }).formatToParts(new Date(utcDate)).reduce((acc, part) => {
+    if (part.type !== 'literal') acc[part.type] = part.value;
+    return acc;
+  }, {});
+  return { dateRo: `${parts.year}-${parts.month}-${parts.day}`, timeRo: `${parts.hour}:${parts.minute}` };
+}
+
 const AUTO_SYNC_FIRST_DELAY_MINUTES = 120;
 const AUTO_SYNC_RETRY_DELAY_MINUTES = 180;
 const AUTO_SYNC_SLOT_MINUTES = 30;
 
 function getAutoSyncCandidates(matches, existingResults, now = new Date()) {
   const nowMs = now.getTime();
-  const slotMs = AUTO_SYNC_SLOT_MINUTES * 60 * 1000;
   const savedResultIds = new Set((existingResults || []).map(row => String(row.match_id || '')));
   const candidates = [];
 
@@ -66,31 +78,23 @@ function getAutoSyncCandidates(matches, existingResults, now = new Date()) {
     if (!Number.isFinite(startMs)) continue;
 
     const firstSyncAt = startMs + AUTO_SYNC_FIRST_DELAY_MINUTES * 60 * 1000;
-    const retrySyncAt = startMs + AUTO_SYNC_RETRY_DELAY_MINUTES * 60 * 1000;
+    if (nowMs < firstSyncAt) continue;
 
-    if (nowMs >= firstSyncAt && nowMs < firstSyncAt + slotMs) {
-      candidates.push({
-        match_id: match.id,
-        matchNo: match.matchNo,
-        home: match.home,
-        away: match.away,
-        startTimeRo: match.startTimeRo,
-        attempt: 'first',
-        scheduledSyncAt: new Date(firstSyncAt).toISOString(),
-        delayMinutes: AUTO_SYNC_FIRST_DELAY_MINUTES
-      });
-    } else if (nowMs >= retrySyncAt && nowMs < retrySyncAt + slotMs) {
-      candidates.push({
-        match_id: match.id,
-        matchNo: match.matchNo,
-        home: match.home,
-        away: match.away,
-        startTimeRo: match.startTimeRo,
-        attempt: 'retry',
-        scheduledSyncAt: new Date(retrySyncAt).toISOString(),
-        delayMinutes: AUTO_SYNC_RETRY_DELAY_MINUTES
-      });
-    }
+    const elapsedAfterStartMinutes = Math.floor((nowMs - startMs) / 60000);
+    const elapsedAfterFirstSyncMinutes = Math.floor((nowMs - firstSyncAt) / 60000);
+    const attempt = elapsedAfterStartMinutes < AUTO_SYNC_RETRY_DELAY_MINUTES ? 'first-or-live-retry' : 'catch-up';
+
+    candidates.push({
+      match_id: match.id,
+      matchNo: match.matchNo,
+      home: match.home,
+      away: match.away,
+      startTimeRo: match.startTimeRo,
+      attempt,
+      scheduledSyncAt: new Date(firstSyncAt).toISOString(),
+      delayMinutes: AUTO_SYNC_FIRST_DELAY_MINUTES,
+      elapsedAfterFirstSyncMinutes
+    });
   }
 
   return candidates;
@@ -172,27 +176,40 @@ function applyMatchOverrides(matches, overrides) {
   });
 }
 
+function dateTimeKey(dateRo, timeRo) {
+  return `${dateRo || ''}__${timeRo || ''}`;
+}
+
 function buildMatchIndexes(matches) {
   const byTeamAndDate = new Map();
   const byTeams = new Map();
+  const byDateTime = new Map();
+  const byApiMatchId = new Map();
   for (const m of matches) {
     byTeamAndDate.set(internalMatchKey(m.home, m.away, m.romaniaDate), m);
     byTeams.set(looseMatchKey(m.home, m.away), m);
+    if (m.romaniaDate && m.romaniaTime) byDateTime.set(dateTimeKey(m.romaniaDate, m.romaniaTime), m);
+    if (m.apiMatchId !== null && m.apiMatchId !== undefined && String(m.apiMatchId).trim()) {
+      byApiMatchId.set(String(m.apiMatchId), m);
+    }
   }
-  return { byTeamAndDate, byTeams };
+  return { byTeamAndDate, byTeams, byDateTime, byApiMatchId };
 }
 
 function summarizeApiMatch(match) {
   const ft = match?.score?.fullTime || {};
+  const { dateRo, timeRo } = roDateTimeFromUtc(match?.utcDate);
   return {
     apiMatchId: match?.id,
     utcDate: match?.utcDate,
-    dateRo: roDateFromUtc(match?.utcDate),
+    dateRo,
+    timeRo,
     home: match?.homeTeam?.name || match?.homeTeam?.shortName || '',
     away: match?.awayTeam?.name || match?.awayTeam?.shortName || '',
     status: match?.status || '',
     homeScore: ft.home,
     awayScore: ft.away,
+    winner: match?.score?.winner || '',
     stage: match?.stage || '',
     group: match?.group || '',
     matchday: match?.matchday || ''
@@ -286,7 +303,7 @@ async function runSync({ mode, adminEmail, adminPin, simulate = false, simulateC
   } catch (err) {
     console.warn('Nu am putut încărca override-urile pentru eliminatorii. Continuăm cu matches.js static:', err.message);
   }
-  const { byTeamAndDate, byTeams } = buildMatchIndexes(matches);
+  const { byTeamAndDate, byTeams, byDateTime, byApiMatchId } = buildMatchIndexes(matches);
   const apiMatches = await callFootballData(FOOTBALL_DATA_API_TOKEN);
   const allApiSummaries = apiMatches
     .map(summarizeApiMatch)
@@ -324,8 +341,21 @@ async function runSync({ mode, adminEmail, adminPin, simulate = false, simulateC
   const unmatched = [];
 
   for (const api of finished) {
-    let internal = byTeamAndDate.get(internalMatchKey(api.home, api.away, api.dateRo));
-    if (!internal) internal = byTeams.get(looseMatchKey(api.home, api.away));
+    let internal = byApiMatchId.get(String(api.apiMatchId || ''));
+    let matchStrategy = internal ? 'api_match_id' : '';
+
+    if (!internal) {
+      internal = byTeamAndDate.get(internalMatchKey(api.home, api.away, api.dateRo));
+      if (internal) matchStrategy = 'teams_and_date';
+    }
+    if (!internal) {
+      internal = byTeams.get(looseMatchKey(api.home, api.away));
+      if (internal) matchStrategy = 'teams_only';
+    }
+    if (!internal && !isGroupStage(api)) {
+      internal = byDateTime.get(dateTimeKey(api.dateRo, api.timeRo));
+      if (internal) matchStrategy = 'knockout_date_time';
+    }
     if (!internal) {
       unmatched.push(api);
       continue;
@@ -342,8 +372,11 @@ async function runSync({ mode, adminEmail, adminPin, simulate = false, simulateC
       internalAway: internal.away,
       matchNo: internal.matchNo,
       dateRo: internal.romaniaDate,
+      timeRo: internal.romaniaTime,
       apiStage: api.stage,
-      apiGroup: api.group
+      apiGroup: api.group,
+      apiWinner: api.winner,
+      matchStrategy
     });
   }
 
@@ -449,7 +482,7 @@ exports.handler = async (event) => {
           ok: true,
           skipped: true,
           reason: 'Nu există meciuri ajunse la fereastra de sync automat.',
-          strategy: 'sync la start + 2h; retry la start + 3h dacă scorul nu este deja salvat',
+          strategy: 'sync la start + 2h și apoi catch-up la fiecare rulare până când scorul este salvat',
           todayRo
         });
       }
@@ -457,7 +490,7 @@ exports.handler = async (event) => {
       mode = 'scheduled-match-auto';
       allowedMatchIds = dueMatches.map(match => match.match_id);
       autoSyncContext = {
-        strategy: 'start + 2h; retry +1h dacă scorul nu este salvat',
+        strategy: 'start + 2h; apoi catch-up automat până când scorul este salvat',
         now: now.toISOString(),
         dueMatches
       };
