@@ -194,7 +194,7 @@ async function runSync({ mode, adminEmail, adminPin }) {
 
   const matches = parseMatches();
   const internalKnockouts = matches.filter(m => Number(m.matchNo) >= 73 && Number(m.matchNo) <= 104).sort((a,b) => a.matchNo - b.matchNo);
-  const existing = await supabaseGet(SUPABASE_URL, SUPABASE_ANON_KEY, 'wc2026_match_overrides', '?select=match_id,home,away,api_match_id');
+  const existing = await supabaseGet(SUPABASE_URL, SUPABASE_ANON_KEY, 'wc2026_match_overrides', '?select=match_id,home,away,api_match_id,api_stage,api_utc_date');
   const existingById = new Map((existing || []).map(r => [r.match_id, r]));
   const apiMatches = await callFootballData(FOOTBALL_DATA_API_TOKEN);
   const apiKnockouts = apiMatches.map(summarizeApiMatch).filter(m => !isGroupStage(m)).sort((a,b) => new Date(a.utcDate || 0) - new Date(b.utcDate || 0));
@@ -223,19 +223,38 @@ async function runSync({ mode, adminEmail, adminPin }) {
     updated.push({ match_id: internal.id, matchNo: internal.matchNo, dateRo: internal.romaniaDate, home: api.home, away: api.away, apiMatchId: api.apiMatchId, stage: api.stage, changed: isChanged });
   }
 
-  const forcedCorrectionRows = Object.entries(MANUAL_KNOCKOUT_TEAM_CORRECTIONS).map(([match_id, teams]) => ({
-    match_id,
-    home: teams.home,
-    away: teams.away,
-    api_match_id: existingById.get(match_id)?.api_match_id || null,
-    api_stage: 'MANUAL_KNOCKOUT_CORRECTION',
-    api_utc_date: existingById.get(match_id)?.api_utc_date || null,
-    updated_at: new Date().toISOString()
-  }));
-  const correctedRows = [...rows.map(applyManualKnockoutRowCorrection), ...forcedCorrectionRows];
+  const nowIso = new Date().toISOString();
+  const correctedRowsById = new Map();
+
+  // Adăugăm întâi rândurile găsite din API. Aplicăm și corecțiile manuale,
+  // dar păstrăm metadata din API: api_match_id, api_utc_date, stage.
+  for (const row of rows.map(applyManualKnockoutRowCorrection)) {
+    if (!row?.match_id) continue;
+    correctedRowsById.set(row.match_id, row);
+  }
+
+  // Apoi forțăm corecțiile manuale. Înainte aveam posibilitatea să trimitem
+  // același match_id de două ori în același upsert, iar Supabase/PostgREST refuză:
+  // "ON CONFLICT DO UPDATE command cannot affect row a second time".
+  // Map-ul garantează un singur rând per match_id.
+  for (const [match_id, teams] of Object.entries(MANUAL_KNOCKOUT_TEAM_CORRECTIONS)) {
+    const base = correctedRowsById.get(match_id) || existingById.get(match_id) || {};
+    correctedRowsById.set(match_id, {
+      match_id,
+      home: teams.home,
+      away: teams.away,
+      api_match_id: base.api_match_id || null,
+      api_stage: base.api_stage || 'MANUAL_KNOCKOUT_CORRECTION',
+      api_utc_date: base.api_utc_date || null,
+      updated_at: nowIso
+    });
+  }
+
+  const correctedRows = Array.from(correctedRowsById.values());
+  const forcedCorrectionCount = Object.keys(MANUAL_KNOCKOUT_TEAM_CORRECTIONS).length;
   await supabaseUpsertOverrides(SUPABASE_URL, SUPABASE_ANON_KEY, correctedRows);
 
-  const summary = { mode, apiMatches: apiMatches.length, knockoutApi: apiKnockouts.length, ready: matched, matched, changed: changed + forcedCorrectionRows.length, updated: correctedRows.map(row => ({ match_id: row.match_id, home: row.home, away: row.away, apiMatchId: row.api_match_id, stage: row.api_stage })), pendingSample: pending.slice(0, 10) };
+  const summary = { mode, apiMatches: apiMatches.length, knockoutApi: apiKnockouts.length, ready: matched, matched, changed: changed + forcedCorrectionCount, updated: correctedRows.map(row => ({ match_id: row.match_id, home: row.home, away: row.away, apiMatchId: row.api_match_id, stage: row.api_stage })), pendingSample: pending.slice(0, 10) };
   await supabaseInsertLog(SUPABASE_URL, SUPABASE_ANON_KEY, { provider: 'football-data.org', mode: `knockout-${mode}`, status: 'success', summary });
   return summary;
 }
