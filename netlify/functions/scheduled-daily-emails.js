@@ -52,6 +52,90 @@ function parseMatches() {
   return JSON.parse(match[1]);
 }
 
+
+
+const TEAM_DISPLAY_ALIASES = {
+  'united states': 'USA',
+  'united states of america': 'USA',
+  'usa': 'USA',
+  'bosnia-herzegovina': 'Bosnia and Herzegovina',
+  'bosnia herzegovina': 'Bosnia and Herzegovina',
+  'bosnia and herzegovina': 'Bosnia and Herzegovina',
+  'cape verde islands': 'Cape Verde',
+  'cape verde': 'Cape Verde',
+  'congo dr': 'DR Congo',
+  'dr congo': 'DR Congo',
+  'democratic republic of congo': 'DR Congo',
+  'côte d’ivoire': 'Ivory Coast',
+  'cote d ivoire': 'Ivory Coast',
+  'ivory coast': 'Ivory Coast',
+  'czech republic': 'Czechia',
+  'czechia': 'Czechia',
+  'korea republic': 'South Korea',
+  'south korea': 'South Korea',
+  'ir iran': 'Iran',
+  'curaçao': 'Curacao',
+  'curacao': 'Curacao'
+};
+
+const MANUAL_KNOCKOUT_TEAM_CORRECTIONS = {
+  'R32-03': { home: 'Germany', away: 'Paraguay' },
+  'R32-06': { home: 'France', away: 'Sweden' },
+  'R32-07': { home: 'Mexico', away: 'Ecuador' },
+  'R32-09': { home: 'Belgium', away: 'Senegal' },
+  'R32-10': { home: 'USA', away: 'Bosnia and Herzegovina' },
+  'R32-13': { home: 'Switzerland', away: 'Algeria' },
+  'R32-16': { home: 'Colombia', away: 'Ghana' }
+};
+
+function teamAliasKey(value) {
+  return String(value || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/&/g, ' and ')
+    .replace(/[’']/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .replace(/\s+/g, ' ');
+}
+
+function canonicalTeamName(value) {
+  const raw = String(value || '').trim();
+  return TEAM_DISPLAY_ALIASES[teamAliasKey(raw)] || raw;
+}
+
+function applyManualKnockoutTeamCorrection(match) {
+  const correction = MANUAL_KNOCKOUT_TEAM_CORRECTIONS[match?.id];
+  if (!correction) return match;
+  return {
+    ...match,
+    home: correction.home,
+    away: correction.away,
+    fixtureSource: match.fixtureSource || 'manual-knockout-correction'
+  };
+}
+
+function applyMatchOverridesToMatches(matches, overrideRows = []) {
+  const overrides = new Map((overrideRows || [])
+    .filter(row => row?.match_id && row?.home && row?.away)
+    .map(row => [row.match_id, row]));
+
+  return (matches || []).map(match => {
+    const override = overrides.get(match.id);
+    const withOverride = override
+      ? {
+          ...match,
+          home: canonicalTeamName(override.home),
+          away: canonicalTeamName(override.away),
+          apiMatchId: override.api_match_id,
+          fixtureSource: 'football-data.org'
+        }
+      : match;
+    return applyManualKnockoutTeamCorrection(withOverride);
+  });
+}
+
 function getRomaniaDateParts(date = new Date()) {
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Europe/Bucharest',
@@ -303,7 +387,14 @@ async function scheduledDailyEmailsHandler(event = {}) {
 
   console.log('[WC2026 emails] start', JSON.stringify({ mode: reportType, todayRo, reportDate, httpTest: isHttpTest }));
 
-  const matches = parseMatches();
+  const baseMatches = parseMatches();
+  let matchOverrideRows = [];
+  try {
+    matchOverrideRows = await supabaseGetAll(SUPABASE_URL, SUPABASE_ANON_KEY, 'wc2026_match_overrides', '?select=match_id,home,away,api_match_id,updated_at&order=match_id.asc');
+  } catch (err) {
+    console.warn('[WC2026 emails] match overrides not available', err.message);
+  }
+  const matches = applyMatchOverridesToMatches(baseMatches, matchOverrideRows);
 
   // Important: do not filter directly with role=eq.player. Some early users may have
   // missing/older role values after schema changes, but they still must receive emails.
