@@ -204,26 +204,85 @@ function addScorePairs(a, b) {
   return { home: Number(a.home) + Number(b.home), away: Number(a.away) + Number(b.away) };
 }
 
+function subtractScorePairs(a, b) {
+  if (!a || !b) return null;
+  const home = Number(a.home) - Number(b.home);
+  const away = Number(a.away) - Number(b.away);
+  if (!Number.isFinite(home) || !Number.isFinite(away) || home < 0 || away < 0) return null;
+  return { home, away };
+}
+
+function sumScorePairs(pairs) {
+  let total = { home: 0, away: 0 };
+  let hasAny = false;
+  for (const pair of pairs || []) {
+    if (!pair) continue;
+    total = addScorePairs(total, pair);
+    hasAny = true;
+  }
+  return hasAny ? total : null;
+}
+
+function sameScorePair(a, b) {
+  return !!(a && b && Number(a.home) === Number(b.home) && Number(a.away) === Number(b.away));
+}
+
+function deriveNinetyMinuteScore({ duration, regular, full, extra, penalties }) {
+  // Sursa principală pentru punctaj / clasament / emailuri este scorul din 90 de minute.
+  if (regular) return regular;
+
+  if (!full) return null;
+
+  // În meciurile terminate normal, fullTime este același lucru cu scorul din 90 de minute.
+  if (duration === 'REGULAR' || !duration) return full;
+
+  // Fallback controlat: dacă regularTime lipsește, reconstruim 90 min doar din piese clare.
+  // EXTRA_TIME: fullTime = regularTime + extraTime, deci 90 min = fullTime - extraTime.
+  if (duration === 'EXTRA_TIME') {
+    if (!extra) return null;
+    return subtractScorePairs(full, extra);
+  }
+
+  // PENALTY_SHOOTOUT: în v4, fullTime poate include penalty-urile.
+  // 90 min = fullTime - penalties - extraTime, dar numai dacă avem și extraTime, și penalties.
+  if (duration === 'PENALTY_SHOOTOUT') {
+    if (!extra || !penalties) return null;
+    const withoutPenalties = subtractScorePairs(full, penalties);
+    return subtractScorePairs(withoutPenalties, extra);
+  }
+
+  return null;
+}
+
+function deriveFinalScore({ duration, regular, full, extra, penalties }) {
+  // Pentru bracket vrem câștigătoarea finală, deci scorul oficial final după prelungiri/penalty-uri.
+  let final = full || sumScorePairs([regular, extra, penalties]);
+
+  // Compatibilitate defensivă: dacă vreun răspuns ar trimite fullTime fără penalty-uri,
+  // adăugăm penalty-urile. Dacă fullTime le include deja, îl păstrăm nemodificat.
+  if (duration === 'PENALTY_SHOOTOUT' && full && penalties) {
+    const withPenalties = sumScorePairs([regular, extra, penalties]);
+    const withoutPenalties = sumScorePairs([regular, extra]);
+    if (sameScorePair(full, withoutPenalties)) {
+      final = addScorePairs(full, penalties);
+    } else if (sameScorePair(full, withPenalties)) {
+      final = full;
+    }
+  }
+
+  return final;
+}
+
 function scorePairsFromFootballData(match) {
   const score = match?.score || {};
+  const duration = String(score.duration || 'REGULAR').toUpperCase();
   const regular = readScorePair(score.regularTime);
   const full = readScorePair(score.fullTime);
+  const extra = readScorePair(score.extraTime);
   const penalties = readScorePair(score.penalties);
 
-  // Pentru punctajul aplicației folosim scorul din 90 de minute.
-  // football-data.org expune de regulă `regularTime` la meciurile decise după prelungiri/penalty-uri.
-  // Pentru meciurile obișnuite, fallback-ul corect rămâne `fullTime`.
-  const ninety = regular || full;
-
-  let final = full || regular;
-  if (penalties) {
-    const base = full || regular || { home: 0, away: 0 };
-    const regularPlusPenalties = regular ? addScorePairs(regular, penalties) : null;
-    const fullAlreadyIncludesPenalties = !!(regularPlusPenalties && full &&
-      Number(full.home) === Number(regularPlusPenalties.home) &&
-      Number(full.away) === Number(regularPlusPenalties.away));
-    final = fullAlreadyIncludesPenalties ? full : addScorePairs(base, penalties);
-  }
+  const ninety = deriveNinetyMinuteScore({ duration, regular, full, extra, penalties });
+  const final = deriveFinalScore({ duration, regular, full, extra, penalties });
 
   return {
     ninetyHome: ninety?.home ?? null,
