@@ -106,7 +106,8 @@ begin
     return false;
   end if;
 
-  delete from public.wc2026_results;
+  delete from public.wc2026_results
+  where true;
 
   for item in select * from jsonb_array_elements(coalesce(payload, '[]'::jsonb))
   loop

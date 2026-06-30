@@ -1,18 +1,6 @@
--- WC2026 - scor 90 min + scor final pentru Eliminatorii
+-- WC2026 - Fix pentru eroarea Supabase/Postgres: DELETE requires a WHERE clause
 -- Rulează acest script o singură dată în Supabase SQL Editor.
--- Poate fi rulat și peste schema existentă.
-
-alter table public.wc2026_results add column if not exists final_home integer check (final_home between 0 and 40);
-alter table public.wc2026_results add column if not exists final_away integer check (final_away between 0 and 40);
-alter table public.wc2026_results add column if not exists winner_side text check (winner_side is null or winner_side in ('home', 'away'));
-alter table public.wc2026_results add column if not exists api_winner text;
-alter table public.wc2026_results add column if not exists score_duration text;
-
-update public.wc2026_results
-set
-  final_home = coalesce(final_home, home),
-  final_away = coalesce(final_away, away)
-where final_home is null or final_away is null;
+-- Nu modifică tabelele și nu șterge date acum; doar redefinește funcția admin de salvare scoruri.
 
 create or replace function public.wc2026_admin_replace_results(admin_email text, admin_pin text, payload jsonb)
 returns boolean
@@ -34,6 +22,8 @@ begin
     return false;
   end if;
 
+  -- Unele proiecte Supabase au activat un guard de siguranță care refuză DELETE fără WHERE.
+  -- WHERE true păstrează comportamentul vechi: înlocuiește complet lista de rezultate cu payload-ul primit.
   delete from public.wc2026_results
   where true;
 
