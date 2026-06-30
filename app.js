@@ -172,6 +172,19 @@ function normalizeUserRow(u) {
   };
 }
 
+function numberOrNull(value) {
+  if (value === null || value === undefined || value === '') return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+function normalizeWinnerSide(value) {
+  const v = String(value || '').trim().toLowerCase();
+  if (v === 'home' || v === 'home_team') return 'home';
+  if (v === 'away' || v === 'away_team') return 'away';
+  return null;
+}
+
 async function loadOnlineData() {
   console.info('[WC2026 proxy fix] loadOnlineData prin Netlify Function, fără request direct browser → Supabase');
 
@@ -204,9 +217,16 @@ async function loadOnlineData() {
 
   resultsCache = {};
   results.forEach(r => {
+    const home = numberOrNull(r.home);
+    const away = numberOrNull(r.away);
     resultsCache[r.match_id] = {
-      home: r.home,
-      away: r.away,
+      home,
+      away,
+      finalHome: numberOrNull(r.final_home ?? r.finalHome ?? home),
+      finalAway: numberOrNull(r.final_away ?? r.finalAway ?? away),
+      winnerSide: normalizeWinnerSide(r.winner_side ?? r.winnerSide),
+      apiWinner: r.api_winner ?? r.apiWinner ?? '',
+      scoreDuration: r.score_duration ?? r.scoreDuration ?? '',
       updatedAt: r.updated_at
     };
   });
@@ -292,8 +312,22 @@ function allMatches() { return MATCHES.map(applyMatchOverride); }
 function effectiveMatch(m) {
   const withTeams = applyMatchOverride(m);
   const o = resultsCache[withTeams.id];
-  if (!o || o.home === '' || o.away === '' || o.home == null || o.away == null) return withTeams;
-  return { ...withTeams, resultHome: Number(o.home), resultAway: Number(o.away), resultSource: 'admin' };
+  const home = numberOrNull(o?.home);
+  const away = numberOrNull(o?.away);
+  if (!o || home == null || away == null) return withTeams;
+  const finalHome = numberOrNull(o.finalHome ?? o.final_home ?? home);
+  const finalAway = numberOrNull(o.finalAway ?? o.final_away ?? away);
+  return {
+    ...withTeams,
+    resultHome: home,
+    resultAway: away,
+    resultFinalHome: finalHome == null ? home : finalHome,
+    resultFinalAway: finalAway == null ? away : finalAway,
+    resultWinnerSide: normalizeWinnerSide(o.winnerSide ?? o.winner_side),
+    resultApiWinner: o.apiWinner ?? o.api_winner ?? '',
+    resultScoreDuration: o.scoreDuration ?? o.score_duration ?? '',
+    resultSource: 'admin'
+  };
 }
 function allEffectiveMatches() { return allMatches().map(effectiveMatch); }
 const isGroup = (m) => m.stage === 'group';
@@ -1153,10 +1187,15 @@ function resolveKnockoutEndpoint(raw, sideKey, context) {
 function knockoutWinnerSide(match) {
   const m = effectiveMatch(match);
   if (!hasResult(m)) return null;
+  const savedWinner = normalizeWinnerSide(m.resultWinnerSide);
+  if (savedWinner) return savedWinner;
   const home = Number(m.resultHome);
   const away = Number(m.resultAway);
   if (home > away) return 'home';
   if (away > home) return 'away';
+  const finalHome = numberOrNull(m.resultFinalHome);
+  const finalAway = numberOrNull(m.resultFinalAway);
+  if (finalHome != null && finalAway != null && finalHome !== finalAway) return finalHome > finalAway ? 'home' : 'away';
   return null;
 }
 
@@ -1205,11 +1244,22 @@ function matchWithResolvedKnockoutTeams(match, knockoutMap = null) {
   return { ...match, home, away, resolvedHome: resolved.resolvedHome, resolvedAway: resolved.resolvedAway };
 }
 
-function knockoutTeamMarkup(entry, score, isWinner = false) {
+function scoreValueForSide(effective, side, type = 'regular') {
+  if (!effective) return '—';
+  const key = side === 'home'
+    ? (type === 'final' ? 'resultFinalHome' : 'resultHome')
+    : (type === 'final' ? 'resultFinalAway' : 'resultAway');
+  const fallbackKey = side === 'home' ? 'resultHome' : 'resultAway';
+  const value = numberOrNull(effective[key]);
+  const fallback = numberOrNull(effective[fallbackKey]);
+  return value == null ? (fallback == null ? '—' : fallback) : value;
+}
+
+function knockoutTeamMarkup(entry, regularScore, finalScore, isWinner = false) {
   const label = entry?.label || '—';
   const detail = entry?.detail || '';
   return `<div class="knockout-team ${entry?.placeholder ? 'is-placeholder' : ''} ${isWinner ? 'is-winner' : ''}">
-    <div class="knockout-team-main">${teamInline(label)}<strong class="knockout-score-cell">${score}</strong></div>
+    <div class="knockout-team-main">${teamInline(label)}<strong class="knockout-score-cell" title="Scor 90 min">${regularScore}</strong><strong class="knockout-score-cell knockout-final-score-cell" title="Scor final">${finalScore}</strong></div>
     ${detail ? `<small>${escapeHtml(detail)}</small>` : ''}
   </div>`;
 }
@@ -1217,16 +1267,18 @@ function knockoutTeamMarkup(entry, score, isWinner = false) {
 function renderKnockoutMatchCard(match) {
   const played = hasResult(match);
   const effective = effectiveMatch(match);
-  const homeScore = played ? Number(effective.resultHome) : '—';
-  const awayScore = played ? Number(effective.resultAway) : '—';
+  const homeScore = played ? scoreValueForSide(effective, 'home') : '—';
+  const awayScore = played ? scoreValueForSide(effective, 'away') : '—';
+  const homeFinalScore = played ? scoreValueForSide(effective, 'home', 'final') : '—';
+  const awayFinalScore = played ? scoreValueForSide(effective, 'away', 'final') : '—';
   const tieNote = played && !match.winnerSide ? '<div class="knockout-warning">Egalitate: așteaptă departajarea / date complete din API.</div>' : '';
   return `<article class="knockout-match ${played ? 'is-played' : ''}">
     <div class="knockout-match-top">
       <span>#${match.matchNo}</span>
       <span>${escapeHtml(formatRoDate(match))} RO</span>
     </div>
-    ${knockoutTeamMarkup(match.resolvedHome, homeScore, match.winnerSide === 'home')}
-    ${knockoutTeamMarkup(match.resolvedAway, awayScore, match.winnerSide === 'away')}
+    ${knockoutTeamMarkup(match.resolvedHome, homeScore, homeFinalScore, match.winnerSide === 'home')}
+    ${knockoutTeamMarkup(match.resolvedAway, awayScore, awayFinalScore, match.winnerSide === 'away')}
     ${tieNote}
     <div class="knockout-match-bottom">${escapeHtml(match.venue || '')}</div>
   </article>`;
@@ -1260,7 +1312,7 @@ const KNOCKOUT_TREE_PYRAMID = {
 };
 
 function knockoutTreeLayout() {
-  const cardW = 205;
+  const cardW = 240;
   const cardH = 84;
   const finalW = cardW;
   const finalH = cardH;
@@ -1310,17 +1362,17 @@ function knockoutTreeLayout() {
 
 function knockoutTreeColumnLabels(layout) {
   const sameGapAsFirstRound = 13;
-  const labelForMatch = (matchId, label, x) => {
+  const labelForMatch = (matchId, label) => {
     const pos = layout.positions[matchId];
-    return { x, y: Math.max(24, Math.round((pos?.y || 41) - sameGapAsFirstRound)), label };
+    return { x: pos?.cx || 0, y: Math.max(24, Math.round((pos?.y || 41) - sameGapAsFirstRound)), label };
   };
   const labels = [
-    labelForMatch('R32-01', 'Șaisprezecimi', 20 + 102.5),
-    labelForMatch('R16-01', 'Optimi', 310 + 102.5),
-    labelForMatch('QF-01', 'Sferturi', 600 + 102.5),
-    labelForMatch('SF-01', 'Semifinale', 890 + 102.5),
-    labelForMatch('F-01', 'Finala Mare', 1160 + 102.5),
-    labelForMatch('TP-01', 'Finala mică', 1160 + 102.5)
+    labelForMatch('R32-01', 'Șaisprezecimi'),
+    labelForMatch('R16-01', 'Optimi'),
+    labelForMatch('QF-01', 'Sferturi'),
+    labelForMatch('SF-01', 'Semifinale'),
+    labelForMatch('F-01', 'Finala Mare'),
+    labelForMatch('TP-01', 'Finala mică')
   ];
   return labels.map(item => `<text class="ko-tree-label" x="${item.x}" y="${item.y}" text-anchor="middle">${escapeHtml(item.label)}</text>`).join('');
 }
@@ -1349,26 +1401,29 @@ function knockoutTreeMatchTitle(match) {
   return `#${match.matchNo} · ${stage} · ${date}`;
 }
 
-function knockoutTreeTeamRow(entry, score, isWinner = false) {
+function knockoutTreeTeamRow(entry, regularScore, finalScore, isWinner = false) {
   const label = entry?.label || '—';
   return `<div class="ko-tree-team ${entry?.placeholder ? 'is-placeholder' : ''} ${isWinner ? 'is-winner' : ''}">
     ${teamInline(label)}
-    <strong>${score}</strong>
+    <strong class="ko-tree-score-regular" title="Scor 90 min">${regularScore}</strong>
+    <strong class="ko-tree-score-final" title="Scor final">${finalScore}</strong>
   </div>`;
 }
 
 function renderKnockoutTreeCard(match, isFinal = false) {
   const played = match && hasResult(match);
   const effective = match ? effectiveMatch(match) : null;
-  const homeScore = played ? Number(effective.resultHome) : '—';
-  const awayScore = played ? Number(effective.resultAway) : '—';
+  const homeScore = played ? scoreValueForSide(effective, 'home') : '—';
+  const awayScore = played ? scoreValueForSide(effective, 'away') : '—';
+  const homeFinalScore = played ? scoreValueForSide(effective, 'home', 'final') : '—';
+  const awayFinalScore = played ? scoreValueForSide(effective, 'away', 'final') : '—';
   const tieClass = played && !match.winnerSide ? ' is-waiting-tiebreak' : '';
   const finalClass = isFinal ? ' is-final' : '';
   if (!match) return '<div xmlns="http://www.w3.org/1999/xhtml" class="ko-tree-match-card is-empty"></div>';
   return `<div xmlns="http://www.w3.org/1999/xhtml" class="ko-tree-match-card ${played ? 'is-played' : ''}${tieClass}${finalClass}">
     <div class="ko-tree-meta"><span>#${match.matchNo}</span><span>${escapeHtml(match.romaniaDate || '')}</span></div>
-    ${knockoutTreeTeamRow(match.resolvedHome, homeScore, match.winnerSide === 'home')}
-    ${knockoutTreeTeamRow(match.resolvedAway, awayScore, match.winnerSide === 'away')}
+    ${knockoutTreeTeamRow(match.resolvedHome, homeScore, homeFinalScore, match.winnerSide === 'home')}
+    ${knockoutTreeTeamRow(match.resolvedAway, awayScore, awayFinalScore, match.winnerSide === 'away')}
   </div>`;
 }
 
@@ -2583,7 +2638,20 @@ async function saveAdminScores() {
       const pin = sessionStorage.getItem('wc2026_admin_pin') || prompt('Introdu PIN-ul de admin:');
       if (!pin) return;
       sessionStorage.setItem('wc2026_admin_pin', pin);
-      const rows = Object.entries(overrides).map(([match_id, v]) => ({ match_id, home: v.home, away: v.away }));
+      const currentResults = getResultOverrides();
+      const rows = Object.entries(overrides).map(([match_id, v]) => {
+        const existing = currentResults[match_id] || {};
+        return {
+          match_id,
+          home: v.home,
+          away: v.away,
+          final_home: numberOrNull(existing.finalHome ?? existing.final_home ?? v.home),
+          final_away: numberOrNull(existing.finalAway ?? existing.final_away ?? v.away),
+          winner_side: normalizeWinnerSide(existing.winnerSide ?? existing.winner_side),
+          api_winner: existing.apiWinner ?? existing.api_winner ?? null,
+          score_duration: existing.scoreDuration ?? existing.score_duration ?? null
+        };
+      });
       const data = await appApi('adminReplaceResults', {
         adminEmail: currentUser.email,
         adminPin: pin,

@@ -68,11 +68,13 @@ const AUTO_SYNC_SLOT_MINUTES = 30;
 
 function getAutoSyncCandidates(matches, existingResults, now = new Date()) {
   const nowMs = now.getTime();
-  const savedResultIds = new Set((existingResults || []).map(row => String(row.match_id || '')));
+  const existingByMatchId = new Map((existingResults || []).map(row => [String(row.match_id || ''), row]));
   const candidates = [];
 
   for (const match of matches || []) {
-    if (!match?.id || !match?.startTimeRo || savedResultIds.has(String(match.id))) continue;
+    if (!match?.id || !match?.startTimeRo) continue;
+    const existingRow = existingByMatchId.get(String(match.id));
+    if (!needsResultBackfill(match, existingRow)) continue;
 
     const startMs = new Date(match.startTimeRo).getTime();
     if (!Number.isFinite(startMs)) continue;
@@ -180,6 +182,88 @@ function dateTimeKey(dateRo, timeRo) {
   return `${dateRo || ''}__${timeRo || ''}`;
 }
 
+function isKnockoutMatch(match) {
+  return match && String(match.stage || '').toLowerCase() !== 'group';
+}
+
+function readScoreSide(obj, side) {
+  if (!obj) return null;
+  const value = obj[side] ?? obj[`${side}Team`] ?? obj[side === 'home' ? 'homeTeam' : 'awayTeam'];
+  return value === null || value === undefined || value === '' ? null : Number(value);
+}
+
+function readScorePair(obj) {
+  const home = readScoreSide(obj, 'home');
+  const away = readScoreSide(obj, 'away');
+  if (!Number.isFinite(home) || !Number.isFinite(away)) return null;
+  return { home, away };
+}
+
+function addScorePairs(a, b) {
+  if (!a || !b) return null;
+  return { home: Number(a.home) + Number(b.home), away: Number(a.away) + Number(b.away) };
+}
+
+function scorePairsFromFootballData(match) {
+  const score = match?.score || {};
+  const regular = readScorePair(score.regularTime);
+  const full = readScorePair(score.fullTime);
+  const penalties = readScorePair(score.penalties);
+
+  // Pentru punctajul aplicației folosim scorul din 90 de minute.
+  // football-data.org expune de regulă `regularTime` la meciurile decise după prelungiri/penalty-uri.
+  // Pentru meciurile obișnuite, fallback-ul corect rămâne `fullTime`.
+  const ninety = regular || full;
+
+  let final = full || regular;
+  if (penalties) {
+    const base = full || regular || { home: 0, away: 0 };
+    const regularPlusPenalties = regular ? addScorePairs(regular, penalties) : null;
+    const fullAlreadyIncludesPenalties = !!(regularPlusPenalties && full &&
+      Number(full.home) === Number(regularPlusPenalties.home) &&
+      Number(full.away) === Number(regularPlusPenalties.away));
+    final = fullAlreadyIncludesPenalties ? full : addScorePairs(base, penalties);
+  }
+
+  return {
+    ninetyHome: ninety?.home ?? null,
+    ninetyAway: ninety?.away ?? null,
+    finalHome: final?.home ?? ninety?.home ?? null,
+    finalAway: final?.away ?? ninety?.away ?? null,
+    duration: score.duration || ''
+  };
+}
+
+function winnerSideFromApiWinner(apiWinner) {
+  const value = String(apiWinner || '').toUpperCase();
+  if (value === 'HOME_TEAM' || value === 'HOME') return 'home';
+  if (value === 'AWAY_TEAM' || value === 'AWAY') return 'away';
+  return null;
+}
+
+function deriveWinnerSide({ apiWinner, finalHome, finalAway, homeScore, awayScore }) {
+  const fromApi = winnerSideFromApiWinner(apiWinner);
+  if (fromApi) return fromApi;
+  if (Number.isFinite(Number(finalHome)) && Number.isFinite(Number(finalAway)) && Number(finalHome) !== Number(finalAway)) {
+    return Number(finalHome) > Number(finalAway) ? 'home' : 'away';
+  }
+  if (Number.isFinite(Number(homeScore)) && Number.isFinite(Number(awayScore)) && Number(homeScore) !== Number(awayScore)) {
+    return Number(homeScore) > Number(awayScore) ? 'home' : 'away';
+  }
+  return null;
+}
+
+function needsResultBackfill(match, existingRow) {
+  if (!existingRow) return true;
+  if (!isKnockoutMatch(match)) return false;
+  const home = Number(existingRow.home);
+  const away = Number(existingRow.away);
+  const missingFinalScore = existingRow.final_home === null || existingRow.final_home === undefined || existingRow.final_away === null || existingRow.final_away === undefined;
+  const missingWinnerForTie = home === away && !String(existingRow.winner_side || '').trim();
+  const missingApiScoreMetadata = !String(existingRow.score_duration || '').trim();
+  return missingFinalScore || missingWinnerForTie || missingApiScoreMetadata;
+}
+
 function buildMatchIndexes(matches) {
   const byTeamAndDate = new Map();
   const byTeams = new Map();
@@ -197,8 +281,16 @@ function buildMatchIndexes(matches) {
 }
 
 function summarizeApiMatch(match) {
-  const ft = match?.score?.fullTime || {};
   const { dateRo, timeRo } = roDateTimeFromUtc(match?.utcDate);
+  const scorePairs = scorePairsFromFootballData(match);
+  const apiWinner = match?.score?.winner || '';
+  const winnerSide = deriveWinnerSide({
+    apiWinner,
+    finalHome: scorePairs.finalHome,
+    finalAway: scorePairs.finalAway,
+    homeScore: scorePairs.ninetyHome,
+    awayScore: scorePairs.ninetyAway
+  });
   return {
     apiMatchId: match?.id,
     utcDate: match?.utcDate,
@@ -207,9 +299,13 @@ function summarizeApiMatch(match) {
     home: match?.homeTeam?.name || match?.homeTeam?.shortName || '',
     away: match?.awayTeam?.name || match?.awayTeam?.shortName || '',
     status: match?.status || '',
-    homeScore: ft.home,
-    awayScore: ft.away,
-    winner: match?.score?.winner || '',
+    homeScore: scorePairs.ninetyHome,
+    awayScore: scorePairs.ninetyAway,
+    finalHomeScore: scorePairs.finalHome,
+    finalAwayScore: scorePairs.finalAway,
+    winner: apiWinner,
+    winnerSide,
+    scoreDuration: scorePairs.duration,
     stage: match?.stage || '',
     group: match?.group || '',
     matchday: match?.matchday || ''
@@ -245,6 +341,15 @@ async function supabaseGet(baseUrl, anonKey, table, query = '') {
   });
   if (!response.ok) throw new Error(`Supabase GET ${table} eșuat: ${(await response.text()).slice(0, 240)}`);
   return response.json();
+}
+
+async function supabaseGetResults(baseUrl, anonKey, querySuffix = '&order=match_id.asc') {
+  try {
+    return await supabaseGet(baseUrl, anonKey, 'wc2026_results', `?select=match_id,home,away,final_home,final_away,winner_side,api_winner,score_duration,updated_at${querySuffix}`);
+  } catch (err) {
+    console.warn('Coloanele pentru scor final nu sunt încă disponibile în wc2026_results. Folosim schema veche:', err.message);
+    return await supabaseGet(baseUrl, anonKey, 'wc2026_results', `?select=match_id,home,away,updated_at${querySuffix}`);
+  }
 }
 
 async function supabaseInsertLog(baseUrl, anonKey, row) {
@@ -365,6 +470,11 @@ async function runSync({ mode, adminEmail, adminPin, simulate = false, simulateC
       match_id: internal.id,
       home: Number(api.homeScore),
       away: Number(api.awayScore),
+      final_home: api.finalHomeScore == null ? Number(api.homeScore) : Number(api.finalHomeScore),
+      final_away: api.finalAwayScore == null ? Number(api.awayScore) : Number(api.finalAwayScore),
+      winner_side: isKnockoutMatch(internal) ? api.winnerSide : null,
+      api_winner: api.winner || null,
+      score_duration: api.scoreDuration || null,
       apiMatchId: api.apiMatchId,
       apiHome: api.home,
       apiAway: api.away,
@@ -380,14 +490,41 @@ async function runSync({ mode, adminEmail, adminPin, simulate = false, simulateC
     });
   }
 
-  const existingRows = await supabaseGet(SUPABASE_URL, SUPABASE_ANON_KEY, 'wc2026_results', '?select=match_id,home,away');
-  const merged = new Map((existingRows || []).map(r => [r.match_id, { match_id: r.match_id, home: Number(r.home), away: Number(r.away) }]));
+  const existingRows = await supabaseGetResults(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const merged = new Map((existingRows || []).map(r => [r.match_id, {
+    match_id: r.match_id,
+    home: Number(r.home),
+    away: Number(r.away),
+    final_home: r.final_home == null ? Number(r.home) : Number(r.final_home),
+    final_away: r.final_away == null ? Number(r.away) : Number(r.final_away),
+    winner_side: r.winner_side || null,
+    api_winner: r.api_winner || null,
+    score_duration: r.score_duration || null
+  }]));
   let changed = 0;
 
   for (const u of matchedUpdates) {
+    const next = {
+      match_id: u.match_id,
+      home: u.home,
+      away: u.away,
+      final_home: u.final_home,
+      final_away: u.final_away,
+      winner_side: u.winner_side || null,
+      api_winner: u.api_winner || null,
+      score_duration: u.score_duration || null
+    };
     const prev = merged.get(u.match_id);
-    if (!prev || Number(prev.home) !== Number(u.home) || Number(prev.away) !== Number(u.away)) changed += 1;
-    merged.set(u.match_id, { match_id: u.match_id, home: u.home, away: u.away });
+    if (!prev ||
+      Number(prev.home) !== Number(next.home) ||
+      Number(prev.away) !== Number(next.away) ||
+      Number(prev.final_home) !== Number(next.final_home) ||
+      Number(prev.final_away) !== Number(next.final_away) ||
+      String(prev.winner_side || '') !== String(next.winner_side || '') ||
+      String(prev.api_winner || '') !== String(next.api_winner || '') ||
+      String(prev.score_duration || '') !== String(next.score_duration || '')
+    ) changed += 1;
+    merged.set(u.match_id, next);
   }
 
   const payloadRows = Array.from(merged.values()).sort((a, b) => String(a.match_id).localeCompare(String(b.match_id)));
@@ -474,7 +611,7 @@ exports.handler = async (event) => {
       const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
       if (!SUPABASE_URL || !SUPABASE_ANON_KEY) throw new Error('Lipsesc variabilele Netlify SUPABASE_URL / SUPABASE_ANON_KEY.');
 
-      const existingRows = await supabaseGet(SUPABASE_URL, SUPABASE_ANON_KEY, 'wc2026_results', '?select=match_id');
+      const existingRows = await supabaseGetResults(SUPABASE_URL, SUPABASE_ANON_KEY);
       const dueMatches = getAutoSyncCandidates(parseMatches(), existingRows, now);
 
       if (!dueMatches.length) {

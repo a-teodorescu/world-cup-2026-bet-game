@@ -31,8 +31,19 @@ create table if not exists public.wc2026_results (
   match_id text primary key,
   home integer not null check (home between 0 and 20),
   away integer not null check (away between 0 and 20),
+  final_home integer check (final_home between 0 and 40),
+  final_away integer check (final_away between 0 and 40),
+  winner_side text check (winner_side is null or winner_side in ('home', 'away')),
+  api_winner text,
+  score_duration text,
   updated_at timestamptz not null default now()
 );
+
+alter table public.wc2026_results add column if not exists final_home integer check (final_home between 0 and 40);
+alter table public.wc2026_results add column if not exists final_away integer check (final_away between 0 and 40);
+alter table public.wc2026_results add column if not exists winner_side text check (winner_side is null or winner_side in ('home', 'away'));
+alter table public.wc2026_results add column if not exists api_winner text;
+alter table public.wc2026_results add column if not exists score_duration text;
 
 create table if not exists public.wc2026_admin_settings (
   id boolean primary key default true,
@@ -99,11 +110,26 @@ begin
 
   for item in select * from jsonb_array_elements(coalesce(payload, '[]'::jsonb))
   loop
-    insert into public.wc2026_results (match_id, home, away, updated_at)
-    values (item->>'match_id', (item->>'home')::integer, (item->>'away')::integer, now())
+    insert into public.wc2026_results (match_id, home, away, final_home, final_away, winner_side, api_winner, score_duration, updated_at)
+    values (
+      item->>'match_id',
+      (item->>'home')::integer,
+      (item->>'away')::integer,
+      coalesce(nullif(item->>'final_home', '')::integer, (item->>'home')::integer),
+      coalesce(nullif(item->>'final_away', '')::integer, (item->>'away')::integer),
+      nullif(item->>'winner_side', ''),
+      nullif(item->>'api_winner', ''),
+      nullif(item->>'score_duration', ''),
+      now()
+    )
     on conflict (match_id) do update set
       home = excluded.home,
       away = excluded.away,
+      final_home = excluded.final_home,
+      final_away = excluded.final_away,
+      winner_side = excluded.winner_side,
+      api_winner = excluded.api_winner,
+      score_duration = excluded.score_duration,
       updated_at = now();
   end loop;
 

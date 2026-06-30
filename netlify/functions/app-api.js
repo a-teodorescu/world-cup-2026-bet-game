@@ -106,11 +106,20 @@ async function rpc(fn, payload) {
   });
 }
 
+async function loadResultsRows() {
+  try {
+    return await supabaseFetchAll('/wc2026_results?select=match_id,home,away,final_home,final_away,winner_side,api_winner,score_duration,updated_at&order=match_id.asc');
+  } catch (err) {
+    console.warn('[app-api] result final-score columns not available yet, falling back to legacy results select', err.message);
+    return await supabaseFetchAll('/wc2026_results?select=match_id,home,away,updated_at&order=match_id.asc');
+  }
+}
+
 async function loadData() {
   const [users, predictions, results] = await Promise.all([
     supabaseFetchAll('/wc2026_users?select=id,username,email,role,created_at&order=created_at.asc'),
     supabaseFetchAll('/wc2026_predictions?select=user_id,match_id,home,away,updated_at&order=user_id.asc,match_id.asc'),
-    supabaseFetchAll('/wc2026_results?select=match_id,home,away,updated_at&order=match_id.asc')
+    loadResultsRows()
   ]);
 
   let luckyStrikes = [];

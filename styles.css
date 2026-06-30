@@ -6353,12 +6353,12 @@ section[data-section="clasament"] .leaderboard-intro-icon {
 }
 .ko-tree-team {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 30px;
+  grid-template-columns: minmax(0, 1fr) 25px 32px;
   align-items: center;
-  gap: 7px;
+  gap: 5px;
   height: 28px;
   margin-top: 0;
-  padding: 0 9px;
+  padding: 0 7px;
   border-radius: 12px;
   background: rgba(255,255,255,.055);
   border: 1px solid rgba(255,255,255,.055);
@@ -6376,7 +6376,7 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   min-width: 22px;
 }
 .ko-tree-team .team-name {
-  max-width: 128px;
+  max-width: 132px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -6386,7 +6386,8 @@ section[data-section="clasament"] .leaderboard-intro-icon {
 .ko-tree-team strong {
   display: grid;
   place-items: center;
-  width: 30px;
+  width: 100%;
+  min-width: 0;
   height: 21px;
   border-radius: 9px;
   background: rgba(7,17,31,.78);
@@ -6404,6 +6405,10 @@ section[data-section="clasament"] .leaderboard-intro-icon {
 .ko-tree-team.is-winner {
   background: linear-gradient(135deg, rgba(50,213,131,.22), rgba(110,231,249,.10));
   border-color: rgba(50,213,131,.38);
+}
+.ko-tree-team .ko-tree-score-final {
+  background: rgba(30,41,59,.82);
+  border: 1px solid rgba(255,255,255,.12);
 }
 .ko-tree-team.is-winner strong {
   background: rgba(50,213,131,.22);
@@ -6484,9 +6489,9 @@ section[data-section="clasament"] .leaderboard-intro-icon {
 }
 .knockout-team-main {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 .knockout-team .team-inline {
   min-width: 0;
@@ -6512,6 +6517,10 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   border: 1px solid rgba(255,255,255,.12);
   color: var(--text);
   font-size: .9rem;
+}
+.knockout-final-score-cell {
+  min-width: 34px;
+  background: rgba(30,41,59,.78);
 }
 .knockout-team.is-placeholder {
   opacity: .72;
