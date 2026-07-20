@@ -1,0 +1,13 @@
+Lucky Strike final winner + leaderboard medal fix
+
+Modified only: app.js
+
+1. finalWinnerTeam() now determines the tournament winner in this order:
+   - winner_side saved in wc2026_results
+   - api_winner returned by the results API
+   - final_home/final_away
+   - 90-minute score only as final fallback
+
+2. The leaderboard now displays a special Lucky Strike medal next to users whose pick won.
+
+No Supabase SQL changes are required.

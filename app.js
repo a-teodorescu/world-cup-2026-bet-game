@@ -2316,6 +2316,25 @@ function finalWinnerTeam() {
   const f = finalMatch();
   if (!f || !hasResult(f)) return null;
   const em = effectiveMatch(f);
+
+  // Pentru Lucky Strike contează câștigătoarea finală după prelungiri/penalty-uri,
+  // nu doar scorul folosit la punctaj după 90 de minute.
+  const winnerSide = normalizeWinnerSide(em.resultWinnerSide);
+  if (winnerSide === 'home') return em.home;
+  if (winnerSide === 'away') return em.away;
+
+  const apiWinner = String(em.resultApiWinner || '').trim().toUpperCase();
+  if (apiWinner === 'HOME_TEAM' || apiWinner === 'HOME') return em.home;
+  if (apiWinner === 'AWAY_TEAM' || apiWinner === 'AWAY') return em.away;
+
+  const finalHome = numberOrNull(em.resultFinalHome);
+  const finalAway = numberOrNull(em.resultFinalAway);
+  if (finalHome != null && finalAway != null) {
+    if (finalHome > finalAway) return em.home;
+    if (finalAway > finalHome) return em.away;
+  }
+
+  // Fallback doar pentru finale decise în timpul regulamentar.
   if (Number(em.resultHome) > Number(em.resultAway)) return em.home;
   if (Number(em.resultAway) > Number(em.resultHome)) return em.away;
   return null;
@@ -2473,7 +2492,10 @@ function leaderboardDeleteButton(row, compact = false) {
 }
 
 function leaderboardNameWithDelete(row, compact = false) {
-  return `<span class="leaderboard-name-with-delete"><strong>${escapeHtml(row.name)}</strong>${leaderboardDeleteButton(row, compact)}</span>`;
+  const luckyMedal = row?.luckyHit
+    ? `<span class="lucky-rank-medal" title="Lucky Strike câștigat: ${escapeHtml(row.luckyTeam || '')} · +25 puncte" aria-label="Lucky Strike câștigat, plus 25 de puncte">🎯</span>`
+    : '';
+  return `<span class="leaderboard-name-with-delete"><strong>${escapeHtml(row.name)}</strong>${luckyMedal}${leaderboardDeleteButton(row, compact)}</span>`;
 }
 
 function scrollToCurrentLeaderboardUser() {
