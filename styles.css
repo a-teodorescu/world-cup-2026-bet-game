@@ -1283,6 +1283,7 @@ body.modal-open {
   width: 22px;
   height: 18px;
   margin-top: 2px;
+  margin-left: 6px;
   border-radius: 999px;
   background: rgba(50,213,131,.18);
   border: 1px solid rgba(50,213,131,.42);
@@ -6593,5 +6594,42 @@ section[data-section="clasament"] .leaderboard-intro-icon {
   .knockout-match {
     padding: 12px;
     border-radius: 20px;
+  }
+}
+
+/* CLASAMENT_LUCKY_STRIKE_NAME_SPACING_FIX
+   Keep a visible space between the username and the Lucky Strike icon,
+   regardless of the leaderboard container rules that force gap: 0. */
+#clasament .leaderboard-name-with-delete > .lucky-rank-medal {
+  margin-left: 8px !important;
+  flex: 0 0 auto;
+}
+
+@media (max-width: 640px) {
+  #clasament .leaderboard-name-with-delete > .lucky-rank-medal {
+    margin-left: 7px !important;
+  }
+}
+
+
+/* CLASAMENT_LUCKY_STRIKE_REAL_SPACER
+   Dedicated flex spacer so the desktop gap cannot be collapsed or hidden by other rules. */
+#clasament .leaderboard-name-with-delete > .lucky-rank-gap {
+  display: inline-block !important;
+  flex: 0 0 10px !important;
+  width: 10px !important;
+  min-width: 10px !important;
+  height: 1px;
+}
+
+#clasament .leaderboard-name-with-delete > .lucky-rank-gap + .lucky-rank-medal {
+  margin-left: 0 !important;
+}
+
+@media (max-width: 640px) {
+  #clasament .leaderboard-name-with-delete > .lucky-rank-gap {
+    flex-basis: 8px !important;
+    width: 8px !important;
+    min-width: 8px !important;
   }
 }

@@ -2493,7 +2493,7 @@ function leaderboardDeleteButton(row, compact = false) {
 
 function leaderboardNameWithDelete(row, compact = false) {
   const luckyMedal = row?.luckyHit
-    ? `<span class="lucky-rank-medal" title="Lucky Strike câștigat: ${escapeHtml(row.luckyTeam || '')} · +25 puncte" aria-label="Lucky Strike câștigat, plus 25 de puncte">🎯</span>`
+    ? `<span class="lucky-rank-gap" aria-hidden="true"></span><span class="lucky-rank-medal" title="Lucky Strike câștigat: ${escapeHtml(row.luckyTeam || '')} · +25 puncte" aria-label="Lucky Strike câștigat, plus 25 de puncte">🎯</span>`
     : '';
   return `<span class="leaderboard-name-with-delete"><strong>${escapeHtml(row.name)}</strong>${luckyMedal}${leaderboardDeleteButton(row, compact)}</span>`;
 }
