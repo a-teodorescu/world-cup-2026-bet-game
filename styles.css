@@ -6633,3 +6633,21 @@ section[data-section="clasament"] .leaderboard-intro-icon {
     min-width: 8px !important;
   }
 }
+
+/* CLASAMENT_LUCKY_STRIKE_REST_CARDS_INLINE_FIX
+   Restul clasamentului has a generic rule that turns nested spans into blocks.
+   Keep the Lucky Strike spacer and medal inline, exactly like the Top 3 cards. */
+#clasament .leaderboard-row-card .leaderboard-name-with-delete > .lucky-rank-gap {
+  display: inline-block !important;
+  margin-top: 0 !important;
+  vertical-align: middle;
+}
+
+#clasament .leaderboard-row-card .leaderboard-name-with-delete > .lucky-rank-medal {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0 !important;
+  vertical-align: middle;
+  flex: 0 0 auto;
+}
